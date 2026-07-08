@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/>
+<title>Procedimiento fotointerpretación ATD</title><style>
+    body{font-family:'Segoe UI',Arial,sans-serif;margin:24px 32px;color:#1A2B3C;
+         line-height:1.45;background:#fff;}
+    h1{color:#2F5F8F;font-size:1.35em;border-bottom:3px solid #C41E3A;padding-bottom:8px;}
+    h2{color:#2F5F8F;font-size:1.05em;margin-top:1.2em;}
+    ol,ul{margin:0.4em 0 0.8em 1.2em;}
+    li{margin:0.25em 0;}
+    .tag{display:inline-block;background:#E8EEF4;color:#2F5F8F;padding:2px 8px;
+         border-radius:4px;font-size:0.85em;margin-bottom:12px;}
+    .btn{display:inline-block;margin:8px 12px 8px 0;padding:10px 18px;background:#2F5F8F;
+         color:#fff;text-decoration:none;border-radius:6px;font-weight:600;}
+    .btn:hover{background:#3A7CA5;}
+    .btn.red{background:#C41E3A;}
+    .note{background:#F4F6F8;border-left:4px solid #2F5F8F;padding:10px 14px;margin:12px 0;}
+    </style></head>
+<body>
+<span class="tag">GFP Subnacional · San Martin</span>
+<h1>Procedimiento — Fotointerpretación de alertas tempranas</h1>
+<div class="note">Mini manual operativo para validar alertas en campo y oficina.</div>
+
+<h2>1. Preparación</h2>
+<ol>
+<li>Abrir el reporte PDF y, si existen, las imagenes exportadas desde H2.</li>
+<li>En el enlace <strong>Visualizacion</strong> del PDF, abrir el
+<a href="https://acr-dashboard-5iqz.onrender.com/">Dashboard ACR</a> de monitoreo de deforestacion.</li>
+<li>Contrastar con el mapa de ubicación (ACR, zona de influencia y punto de alerta).</li>
+</ol>
+
+<h2>2. Criterios de interpretación</h2>
+<ul>
+<li><strong>Antrópico:</strong> agricultura, ganadería, minería, infraestructura, ocupación humana.</li>
+<li><strong>Natural:</strong> inundación, deslizamiento, muerte natural de árboles.</li>
+<li><strong>Falsa alerta:</strong> nubes, sombras, cambios espectrales temporales.</li>
+</ul>
+
+<h2>3. Pasos de validación</h2>
+<ol>
+<li>Confirmar que el polígono coincide con pérdida de cobertura forestal visible.</li>
+<li>Estimar superficie afectada y comparar con el valor del sistema (ha).</li>
+<li>Asignar causa dominante según dominio GeoBosques / GDB.</li>
+<li>Registrar nivel de confiabilidad (alta / media / baja).</li>
+<li>Documentar observaciones para seguimiento en campo si aplica.</li>
+</ol>
+
+<h2>4. Uso de imágenes Sentinel-2</h2>
+<ul>
+<li>Combinación color natural (B04, B03, B02) para lectura visual.</li>
+<li>Comparar fechas de escena antes y después del evento reportado.</li>
+<li>Usar swipe en EO Browser para deslizar entre fechas.</li>
+</ul>
+
+<h2>5. Entregables</h2>
+<p>Reporte PDF firmado, capas en GDB actualizadas y registro en monitoreo acumulado.</p>
+</body></html>

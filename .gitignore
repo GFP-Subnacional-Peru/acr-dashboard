@@ -56,3 +56,5 @@ deploy.R
 !data/cache/**
 !www/mapas/
 !www/mapas/**
+!www/reportes_atd/
+!www/reportes_atd/**

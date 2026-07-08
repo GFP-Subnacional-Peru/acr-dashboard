@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/>
+<title>Metodología ATD — GFP Subnacional</title><style>
+    body{font-family:'Segoe UI',Arial,sans-serif;margin:24px 32px;color:#1A2B3C;
+         line-height:1.45;background:#fff;}
+    h1{color:#2F5F8F;font-size:1.35em;border-bottom:3px solid #C41E3A;padding-bottom:8px;}
+    h2{color:#2F5F8F;font-size:1.05em;margin-top:1.2em;}
+    ol,ul{margin:0.4em 0 0.8em 1.2em;}
+    li{margin:0.25em 0;}
+    .tag{display:inline-block;background:#E8EEF4;color:#2F5F8F;padding:2px 8px;
+         border-radius:4px;font-size:0.85em;margin-bottom:12px;}
+    .btn{display:inline-block;margin:8px 12px 8px 0;padding:10px 18px;background:#2F5F8F;
+         color:#fff;text-decoration:none;border-radius:6px;font-weight:600;}
+    .btn:hover{background:#3A7CA5;}
+    .btn.red{background:#C41E3A;}
+    .note{background:#F4F6F8;border-left:4px solid #2F5F8F;padding:10px 14px;margin:12px 0;}
+    </style></head>
+<body>
+<span class="tag">GFP Subnacional · Loreto</span>
+<h1>Metodología — Línea base de deforestación y alertas tempranas</h1>
+
+<h2>1. Marco normativo y conceptual</h2>
+<p>Según el <strong>Decreto Supremo N.º 006-2008-MINAM</strong>, se establece el procedimiento
+para la aprobación de Áreas de Conservación Regional (ACR). El análisis de línea base de
+deforestación es un requisito fundamental para evaluar la efectividad de las medidas de
+conservación y planificar la gestión territorial sostenible.</p>
+<p>Las ACR son espacios naturales bajo gestión regional que conservan la diversidad biológica,
+los servicios ecosistémicos y los valores culturales, integrando a las comunidades locales.</p>
+
+<h2>2. Fuentes de información y datos</h2>
+<ul>
+<li><strong>Fuente primaria:</strong> Plataforma GeoBosques (MINAM).</li>
+<li><strong>Período:</strong> 2001–2024 (serie histórica).</li>
+<li><strong>Resolución:</strong> 30 m (Landsat 7/8).</li>
+<li><strong>Actualización:</strong> anual, con alertas trimestrales.</li>
+<li><strong>Cobertura:</strong> ACR en Loreto, San Martín y Cusco.</li>
+</ul>
+<p>Detección multitemporal con algoritmos de cambio espectral (estándares Hansen et al., 2013).</p>
+
+<h2>3. Procesamiento y análisis</h2>
+<ol>
+<li>Descarga de polígonos GeoBosques (shapefile por año).</li>
+<li>Normalización a WGS84 (EPSG:4326) y simplificación geométrica.</li>
+<li>Intersección con ACR y zona de influencia (buffer 5 km).</li>
+<li>Clasificación: antrópico, natural, falsa alerta.</li>
+<li>Cálculo de hectáreas por categoría, año y ACR.</li>
+</ol>
+
+<h2>4. Zona de influencia</h2>
+<p>Buffer de <strong>5 km</strong> alrededor de cada ACR para analizar presión antrópica adyacente,
+identificar frentes de deforestación y evaluar la ACR como barrera frente a la pérdida de bosque.</p>
+
+<h2>5. Análisis de tendencias</h2>
+<p>Regresión lineal 2001–2024: tasa anual (ha/año), proyección 2025–2029 y R².
+Limitaciones: no incluye políticas futuras ni eventos extraordinarios.</p>
+
+<h2>6. Gestión de datos</h2>
+<p>Geometrías en RDS simplificadas; estadísticas precomputadas; visualización Plotly/Leaflet.</p>
+
+<h2>7. Control de calidad</h2>
+<ul>
+<li>Comparación con reportes MINAM y estudios académicos.</li>
+<li>Verificación visual en Google Earth y Planet.</li>
+<li>Consulta con Gerencias Regionales de Recursos Naturales.</li>
+</ul>
+
+<h2>8. Referencias</h2>
+<ul>
+<li>Hansen, M. C., et al. (2013). Science, 342(6160), 850-853.</li>
+<li>MINAM (2024). Metodología monitoreo pérdida de bosque amazónico.</li>
+<li>DS N.º 006-2008-MINAM — SERNANP.</li>
+<li>Global Forest Watch (2024).</li>
+</ul>
+</body></html>

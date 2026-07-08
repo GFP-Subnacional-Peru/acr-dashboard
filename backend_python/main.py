@@ -31,6 +31,7 @@ from fastapi.staticfiles import StaticFiles
 from core.serializers import dataframe_to_records
 from services.centroides_stats_service import graficos_desde_centroides, kpis_desde_centroides
 from services.region_insights_service import region_insights
+from services.atd_reportes_service import cargar_catalogo_atd, resolver_archivo_atd
 from services.dashboard_service import datos_para_graficos
 from services.decretos_service import ACR_DECRETOS, obtener_info_decreto
 from core.rds_bridge import load_centroides_deforestacion
@@ -246,6 +247,20 @@ def region_insights_endpoint() -> dict:
     return region_insights(cent)
 
 
+@app.get("/api/atd/catalogo")
+def atd_catalogo_endpoint() -> dict:
+    return cargar_catalogo_atd()
+
+
+@app.get("/api/atd/archivo/{region}/{path:path}")
+def atd_archivo_endpoint(region: str, path: str) -> FileResponse:
+    archivo = resolver_archivo_atd(region, path)
+    if not archivo:
+        raise HTTPException(404, "Archivo ATD no encontrado")
+    media = "application/pdf" if archivo.suffix.lower() == ".pdf" else "text/html"
+    return FileResponse(archivo, media_type=media, filename=archivo.name)
+
+
 @app.get("/api/deforestacion/centroides")
 def centroides_endpoint(
     departamento: str = Query("todos"),
@@ -353,6 +368,10 @@ def descargar_datos_completo() -> StreamingResponse:
 
 
 # --- Archivos estáticos (mapas Shiny www/mapas) ---
+_ATD_REPORTES = _PROJECT_ROOT / "www" / "reportes_atd"
+if _ATD_REPORTES.exists():
+    app.mount("/reportes_atd", StaticFiles(directory=str(_ATD_REPORTES)), name="reportes_atd")
+
 if _WWW_MAPAS.exists():
     app.mount("/mapas", StaticFiles(directory=str(_WWW_MAPAS)), name="mapas")
 

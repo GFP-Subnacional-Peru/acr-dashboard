@@ -211,11 +211,22 @@
 
   <!-- REPORTES (ui.R tab 3) -->
   <section id="tab-reportes" class="tab-panel">
-    <div class="hero-red">Productos Cartográficos y Datos</div>
+    <div class="hero-red">Productos Cartográficos y Alertas Tempranas</div>
     <div class="hero-blue">
-      <h2>Mapas Temáticos de Deforestación por ACR</h2>
-      <p>Accede a mapas de alta resolución y conjuntos de datos geoespaciales de las Áreas de Conservación Regional. Los productos cartográficos están actualizados a noviembre 2025 y disponibles para descarga en formatos PDF y shapefile.</p>
+      <h2>Reportes, mapas y validación ATD GeoBosques</h2>
+      <p>Mapas de línea base de deforestación por ACR y <strong>reportes de Alertas Tempranas de Deforestación (ATD)</strong> generados con el toolbox GFP Subnacional: descarga MINAM, fotointerpretación satelital y informe PDF validado.</p>
     </div>
+
+    <div class="reportes-subtabs" role="tablist">
+      <button type="button" class="reportes-subtab active" data-reportes-panel="mapas" role="tab">
+        <i class="fas fa-map"></i> Mapas de línea base
+      </button>
+      <button type="button" class="reportes-subtab" data-reportes-panel="atd" role="tab">
+        <i class="fas fa-bell"></i> Alertas tempranas (ATD)
+      </button>
+    </div>
+
+    <div id="reportes-panel-mapas" class="reportes-panel active">
     <div class="reportes-filter-bar well-panel">
       <div class="reportes-filter-select">
         <label for="filtro_depto_mapas"><i class="fas fa-filter"></i> Filtrar por Departamento:</label>
@@ -234,14 +245,21 @@
     </div>
     <div class="reportes-download-bar">
       <div>
-        <h4><i class="fas fa-download"></i> Reportes, datos y metodologías</h4>
-        <p>Shapefiles, GeoTIFF, CSV, informes PDF y notas metodológicas.</p>
+        <h4><i class="fas fa-download"></i> Datos de línea base</h4>
+        <p>Centroides CSV, GeoJSON y productos cartográficos históricos.</p>
       </div>
       <div class="reportes-download-actions">
         <button type="button" id="btn-descargar-datos" class="btn btn-success"><i class="fas fa-file-archive"></i> Descargar datos</button>
-        <button type="button" id="btn-ver-informe" class="btn btn-warning"><i class="fas fa-file-pdf"></i> Ver informe</button>
       </div>
     </div>
+    </div>
+
+    <div id="reportes-panel-atd" class="reportes-panel hidden">
+      <div id="atd-root" class="atd-root" aria-live="polite">
+        <div class="atd-loading"><i class="fas fa-spinner fa-spin"></i> Cargando catálogo ATD…</div>
+      </div>
+    </div>
+
     <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
   </section>
 

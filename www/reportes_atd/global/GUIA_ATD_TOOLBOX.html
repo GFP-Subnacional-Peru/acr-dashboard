@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guía ATD Toolbox — GFP Subnacional</title>
+<style>
+  :root {
+    --azul:  #2F5F8F;
+    --rojo:  #C41E3A;
+    --gris:  #F4F6F8;
+    --borde: #B8C8D8;
+    --texto: #1A2B3C;
+    --dim:   #5A6B7D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; color: var(--texto); background: #fff; font-size: 14px; line-height: 1.6; }
+
+  header { background: var(--azul); color: #fff; padding: 28px 40px 20px; }
+  header h1 { font-size: 22px; letter-spacing: .5px; }
+  header p  { margin-top: 4px; color: #c8d8ea; font-size: 13px; }
+  .tag { display:inline-block; background: var(--rojo); color:#fff; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:3px; margin-left:10px; vertical-align:middle; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 30px 20px 60px; }
+
+  h2 { font-size: 17px; color: var(--azul); border-left: 4px solid var(--rojo); padding-left: 10px; margin: 32px 0 12px; }
+  h3 { font-size: 14px; font-weight: bold; color: var(--texto); margin: 18px 0 6px; }
+
+  .step { display:flex; gap: 14px; margin-bottom: 10px; }
+  .step .num { min-width:28px; height:28px; border-radius:50%; background:var(--azul); color:#fff; font-weight:bold; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .step .body { flex:1; }
+
+  table { width:100%; border-collapse:collapse; margin-top:10px; font-size:13px; }
+  th { background:var(--azul); color:#fff; text-align:left; padding:7px 10px; }
+  td { border:1px solid var(--borde); padding:6px 10px; vertical-align:top; }
+  tr:nth-child(even) td { background: var(--gris); }
+  td code, th code { background:#dde4ec; padding:1px 5px; border-radius:3px; font-size:12px; }
+
+  .box { background: var(--gris); border: 1px solid var(--borde); border-radius:6px; padding: 14px 16px; margin: 12px 0; }
+  .box.warn { border-color: var(--rojo); background:#fff5f5; }
+  .box.ok   { border-color: #2e7d32; background:#f5fdf6; }
+
+  code { font-family: Consolas, monospace; font-size: 12.5px; color: var(--azul); }
+  strong { color: var(--texto); }
+
+  .badge { display:inline-block; padding:2px 7px; border-radius:3px; font-size:11px; font-weight:bold; color:#fff; margin-left:4px; }
+  .badge.loreto  { background:#1565C0; }
+  .badge.cuzco   { background:#6A1B9A; }
+  .badge.sm      { background:#2E7D32; }
+
+  .tree { background:#1A2B3C; color:#c8d8ea; padding:14px 18px; border-radius:6px; font-family:Consolas,monospace; font-size:12px; line-height:1.8; margin:10px 0; }
+  .tree .dir  { color:#7FC3F5; }
+  .tree .file { color:#E8EEF4; }
+  .tree .note { color:#7A8B9A; }
+
+  footer { background:var(--azul); color:#c8d8ea; text-align:center; padding:16px; font-size:12px; margin-top:40px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛰️ ATD Toolbox — Guía de uso <span class="tag">v7.1</span></h1>
+  <p>GFP Subnacional &nbsp;|&nbsp; Loreto · Cuzco · San Martín &nbsp;|&nbsp; ArcGIS Pro 3.x</p>
+</header>
+
+<div class="container">
+
+<!-- ═══════════════════════════════ REQUISITOS ═══════════════════════════════ -->
+<h2>1. Requisitos previos</h2>
+
+<div class="box">
+  <strong>Software necesario</strong><br>
+  ArcGIS Pro 3.x con Python de ArcGIS Pro (<code>arcgispro-py3</code>) que incluya:<br>
+  <code>geopandas · fiona · pandas · numpy · matplotlib · Pillow · pyproj · reportlab · requests</code>
+</div>
+
+<div class="box warn">
+  <strong>⚠️ Antes de abrir el toolbox por primera vez</strong><br>
+  Abre <em>ArcGIS Pro → Inicio → Python Command Prompt</em> (menú de Windows) y ejecuta:<br><br>
+  <code>pip install geopandas fiona pandas numpy matplotlib Pillow pyproj reportlab requests</code><br><br>
+  Si ya los tienes instalados, este paso puede saltarse.
+</div>
+
+<!-- ═══════════════════════════════ ESTRUCTURA ═══════════════════════════════ -->
+<h2>2. Estructura de la carpeta</h2>
+
+<div class="tree">
+<span class="dir">Informe_ATD_preliminar/</span><br>
+├── <span class="dir">GDB/</span><br>
+│   ├── <span class="file">GestionACR_16012024.gdb</span>           <span class="note">← gestión Loreto (lugar poblado, OLV)</span><br>
+│   ├── <span class="file">Linea_base_deforestación_Loreto.gdb</span><br>
+│   ├── <span class="file">Linea_base_deforestación_Cuzco.gdb</span><br>
+│   └── <span class="dir">Linea_base_deforestación_San_Martin/</span><br>
+│       ├── <span class="file">gdb_monit_template_ACR_CE.gdb</span>      <span class="note">← ACR01 Cordillera Escalera</span><br>
+│       └── <span class="file">gdb_monit_template_ACR_BOSHUMI.gdb</span> <span class="note">← ACR21 Bosques Shunté-Mishollo</span><br>
+├── <span class="dir">logos/</span><br>
+├── <span class="dir">toolbox/</span><br>
+│   ├── <span class="file">atd_region_config.py</span>               <span class="note">← módulo compartido (NO borrar/mover)</span><br>
+│   ├── <span class="file">ATD_H1_Descargas_Geo_Bosques.pyt</span><br>
+│   ├── <span class="file">ATD_H2_VisorSatelital.pyt</span><br>
+│   └── <span class="file">ATD_H3_Reporte_PDF.pyt</span><br>
+├── <span class="dir">guia/</span><br>
+│   └── <span class="file">GUIA_ATD_TOOLBOX.html</span>             <span class="note">← este documento</span><br>
+├── <span class="dir">pdfs/</span> · <span class="dir">imagenes_sentinel/</span> · <span class="dir">mapas/</span>
+</div>
+
+<div class="box warn">
+  <strong>⚠️ IMPORTANTE — no cambies la estructura</strong><br>
+  Los toolbox usan <strong>rutas relativas</strong> desde la carpeta <code>Informe_ATD_preliminar/</code>.
+  Si mueves o renombras la carpeta, las GDB y logos dejan de encontrarse.
+  Siempre comparte/copia la <strong>carpeta completa</strong>.
+</div>
+
+<!-- ═══════════════════════════════ CÓMO AGREGAR A ARCGIS ═══════════════════ -->
+<h2>3. Agregar los toolbox a ArcGIS Pro</h2>
+
+<div class="step"><div class="num">1</div><div class="body">
+  Abre ArcGIS Pro y crea o abre un proyecto.
+</div></div>
+<div class="step"><div class="num">2</div><div class="body">
+  En el panel <strong>Catalog</strong> (derecha), haz clic derecho en <strong>Toolboxes → Add Toolbox</strong>.
+</div></div>
+<div class="step"><div class="num">3</div><div class="body">
+  Navega hasta <code>toolbox/</code> y agrega los tres archivos <code>.pyt</code>:<br>
+  <code>ATD_H1_Descargas_Geo_Bosques.pyt</code><br>
+  <code>ATD_H2_VisorSatelital.pyt</code><br>
+  <code>ATD_H3_Reporte_PDF.pyt</code>
+</div></div>
+<div class="step"><div class="num">4</div><div class="body">
+  Si algún toolbox muestra advertencias en rojo, haz clic derecho → <strong>Refresh</strong>.
+</div></div>
+
+<!-- ═══════════════════════════════ ELECCIÓN GDB / FC ══════════════════════════ -->
+<h2>4. ¿Qué GDB y Feature Class abrir según región?</h2>
+
+<table>
+  <thead><tr><th>Región / ACR</th><th>GDB que se abre</th><th>FC de alertas (H1 y H3)</th><th>FC de alertas en el mapa (H2)</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="badge loreto">Loreto</span> 4 ACRs (09·04·17·10)</td>
+      <td><code>Linea_base_deforestación_Loreto.gdb</code></td>
+      <td><code>MonitoreoDeforestacionAcumulado</code></td>
+      <td>Mismo FC arrastrado al mapa</td>
+    </tr>
+    <tr>
+      <td><span class="badge cuzco">Cuzco</span> 3 ACRs (07·26·30)</td>
+      <td><code>Linea_base_deforestación_Cuzco.gdb</code></td>
+      <td><code>MonitoreoDeforestacionAcumulado</code></td>
+      <td>Mismo FC arrastrado al mapa</td>
+    </tr>
+    <tr>
+      <td><span class="badge sm">San Martín</span> ACR01 — Cordillera Escalera</td>
+      <td><code>gdb_monit_template_ACR_CE.gdb</code></td>
+      <td><code>MonitoreoDeforestacionAcumulado_CE</code></td>
+      <td>Mismo FC arrastrado al mapa</td>
+    </tr>
+    <tr>
+      <td><span class="badge sm">San Martín</span> ACR21 — Bosques Shunté-Mishollo</td>
+      <td><code>gdb_monit_template_ACR_BOSHUMI.gdb</code></td>
+      <td><code>MonitoreoDeforestacionAcumulado_BOSHUMI</code></td>
+      <td>Mismo FC arrastrado al mapa</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <strong>Nota San Martín:</strong> Trabajas <strong>una GDB por ACR</strong>. Nunca mezclas CE y BOSHUMI en la misma corrida.
+  Los FC que dicen <code>_ZI_</code> son de Zona de Influencia; úsalos solo si quieres reportar alertas de la ZI.
+</div>
+
+<!-- ═══════════════════════════════ H1 ══════════════════════════════════════ -->
+<h2>5. H1 — Descargar e insertar alertas Geobosques</h2>
+<p style="color:var(--dim); margin-bottom:10px;">Descarga el raster de alertas anuales de Geobosques y las inserta en el FC <code>MonitoreoDeforestacionAcumulado</code>.</p>
+
+<div class="step"><div class="num">1</div><div class="body">
+  <strong>GDB Linea Base Deforestacion</strong>: selecciona la GDB de tu región/ACR (ver tabla arriba).
+</div></div>
+<div class="step"><div class="num">2</div><div class="body">
+  <strong>Año de alertas</strong>: elige el año (p. ej. 2026).
+</div></div>
+<div class="step"><div class="num">3</div><div class="body">
+  <strong>Fecha inicio / Fecha fin</strong>: período de monitoreo (ej. 01/03/2026 — 01/05/2026).
+</div></div>
+<div class="step"><div class="num">4</div><div class="body">
+  <strong>FC destino</strong>: se rellena automáticamente al elegir la GDB. Verifica que sea el FC correcto de la tabla.
+</div></div>
+<div class="step"><div class="num">5</div><div class="body">
+  Pulsa <strong>Run</strong>. Al finalizar verás el resumen de alertas insertadas por ACR.
+</div></div>
+
+<!-- ═══════════════════════════════ H2 ══════════════════════════════════════ -->
+<h2>6. H2 — Visor satelital (fotointerpretación)</h2>
+<p style="color:var(--dim); margin-bottom:10px;">Visor interactivo Sentinel-2/Landsat para antes/después de cada alerta. Exporta imágenes al mapa activo.</p>
+
+<div class="step"><div class="num">1</div><div class="body">
+  En ArcGIS Pro, <strong>arrastra el FC de alertas al mapa activo</strong> (desde Catalog).
+</div></div>
+<div class="step"><div class="num">2</div><div class="body">
+  <strong>FC de alertas</strong>: elige el layer que acabas de agregar al mapa.
+</div></div>
+<div class="step"><div class="num">3</div><div class="body">
+  <strong>GDB de trabajo (opcional)</strong>: apunta a la misma GDB de línea base. Esto hace que el visor filtre solo los códigos ACR de tu región.
+</div></div>
+<div class="step"><div class="num">4</div><div class="body">
+  <strong>Filtro ACR</strong>: puedes filtrar a un solo ACR o dejar <em>(Todos)</em>.
+</div></div>
+<div class="step"><div class="num">5</div><div class="body">
+  Pulsa <strong>Run</strong>. Se abre la ventana del visor. Selecciona la alerta, elige bandas, descarga ANTES/DESPUÉS y marca la fotointerpretación.
+</div></div>
+
+<!-- ═══════════════════════════════ H3 ══════════════════════════════════════ -->
+<h2>7. H3 — Generar reporte PDF</h2>
+<p style="color:var(--dim); margin-bottom:10px;">Genera el PDF oficial por alerta: ficha, mapa, imágenes Sentinel-2, tabla técnica y encabezado institucional.</p>
+
+<h3>Paso previo obligatorio — Diagnóstico Pre-Vuelo</h3>
+<div class="step"><div class="num">1</div><div class="body">
+  Expande el toolbox H3 y ejecuta primero <strong>"1. Diagnostico Pre-Vuelo"</strong>.
+</div></div>
+<div class="step"><div class="num">2</div><div class="body">
+  <strong>GDB</strong> y <strong>Fecha inicio / fin</strong>: los mismos que usarás en el reporte.
+</div></div>
+<div class="step"><div class="num">3</div><div class="body">
+  Corre la herramienta. Guarda las fechas internamente para la siguiente herramienta.
+</div></div>
+
+<h3>Generar Reporte ATD por Alerta</h3>
+<div class="step"><div class="num">1</div><div class="body">
+  <strong>GDB Linea Base Deforestacion</strong>: misma GDB del Diagnóstico.
+</div></div>
+<div class="step"><div class="num">2</div><div class="body">
+  <strong>Capa de alertas</strong>: FC correcto de la tabla (se rellena solo al elegir GDB).
+</div></div>
+<div class="step"><div class="num">3</div><div class="body">
+  <strong>Dónde se guarda el PDF</strong>: carpeta de salida (por defecto la misma raíz del proyecto).
+</div></div>
+<div class="step"><div class="num">4</div><div class="body">
+  <strong>Quién elabora el reporte</strong>: escribe tu nombre y cargo.
+</div></div>
+<div class="step"><div class="num">5</div><div class="body">
+  <strong>Qué alerta incluir</strong>: elige una alerta del desplegable o deja <em>TODAS</em> para generar un PDF por cada alerta del período.
+</div></div>
+<div class="step"><div class="num">6</div><div class="body">
+  Pulsa <strong>Run</strong>. Los PDFs quedan en <code>pdfs/</code>.
+</div></div>
+
+<div class="box ok">
+  <strong>✔ Campos que se rellenan automáticamente en el PDF</strong><br>
+  <strong>Loreto:</strong> Lugar poblado cercano y OLV cercano provienen de <code>GestionACR_16012024.gdb</code> (centro de vigilancia comunal más cercano).<br>
+  <strong>Todas las regiones:</strong> Sector proviene de <code>gpo_zonif_anp</code> de la línea base. Si el campo viene vacío en la GDB, aparecerá <code>—</code>.
+</div>
+
+<!-- ═══════════════════════════════ LOGOS ═══════════════════════════════════ -->
+<h2>8. Logos — nombrado esperado</h2>
+<p style="color:var(--dim); margin-bottom:10px;">Los archivos deben estar en la carpeta <code>logos/</code>. El toolbox busca en este orden: logo específico del ACR → logo de la región → logo genérico.</p>
+
+<table>
+  <thead><tr><th>Archivo</th><th>Qué es</th><th>Región</th></tr></thead>
+  <tbody>
+    <tr><td><code>logo_gore.png</code></td><td>GORE Loreto</td><td>Loreto</td></tr>
+    <tr><td><code>Logo_GORE_Cuzco.png</code></td><td>GORE Cusco</td><td>Cuzco</td></tr>
+    <tr><td><code>Logo_GORE_SAN_Martin_grande.png</code></td><td>GORE San Martín (prioridad en PDF)</td><td>San Martín</td></tr>
+    <tr><td><code>logo_grrnga.png</code></td><td>Gerencia RNGA Loreto</td><td>Solo Loreto</td></tr>
+    <tr><td><code>logo_SECO.jpg</code> · <code>logo_basel.png</code></td><td>SECO y Basel (pie del PDF)</td><td>Todas</td></tr>
+    <tr><td><code>Logo_Gerencia_CUzco_Color.png</code></td><td>Gerencia Cusco</td><td>Cuzco</td></tr>
+    <tr><td><code>logo_gfp.png</code></td><td>GFP Subnacional</td><td>Todas</td></tr>
+    <tr><td><code>logo_anp_ACR09.jpeg</code></td><td>ACR Ampiyacu Apayacu</td><td>Loreto</td></tr>
+    <tr><td><code>logo_anp_ACR04.jpeg</code></td><td>ACR Comunal Tamshiyacu Tahuayo</td><td>Loreto</td></tr>
+    <tr><td><code>logo_anp_ACR17.jpeg</code></td><td>ACR Maijuna Kichwa</td><td>Loreto</td></tr>
+    <tr><td><code>logo_anp_ACR10.png</code></td><td>ACR Alto Nanay Pintuyacu Chambira</td><td>Loreto</td></tr>
+    <tr><td><code>logo_anp_ACR07</code> o <code>ACR_Choquequirao.png</code></td><td>ACR Choquequirao</td><td>Cuzco</td></tr>
+    <tr><td><code>Logo Chuyapi Urusayhua_Mesa de trabajo 1.png</code></td><td>ACR Chuyapi Urusayhua</td><td>Cuzco</td></tr>
+    <tr><td><code>QEROS - LOGO POSITIVO.png</code></td><td>ACR Q'eros Kosñipata</td><td>Cuzco</td></tr>
+    <tr><td><code>ACR - CE.jpg.jpeg</code></td><td>ACR Cordillera Escalera</td><td>San Martín</td></tr>
+    <tr><td><code>ACR - BOSHUMI.png</code></td><td>ACR Bosques Shunté-Mishollo</td><td>San Martín</td></tr>
+  </tbody>
+</table>
+
+<div class="box">
+  Si un logo no existe, el toolbox continúa sin errores y deja el espacio en blanco en el PDF.
+</div>
+
+<!-- ═══════════════════════════════ RESUMEN ═════════════════════════════════ -->
+<h2>9. Confirmación — qué está listo y qué está pendiente</h2>
+
+<table>
+  <thead><tr><th>Ítem</th><th>Estado</th></tr></thead>
+  <tbody>
+    <tr><td>H1 funcional para Loreto, Cuzco y San Martín (CE y BOSHUMI)</td><td>✅ Listo</td></tr>
+    <tr><td>H2 funcional para las 3 regiones</td><td>✅ Listo</td></tr>
+    <tr><td>H3 funcional para las 3 regiones</td><td>✅ Listo</td></tr>
+    <tr><td>Campos PDF: Lugar poblado, Sector, OLV (Loreto)</td><td>✅ Automático desde GDB gestión</td></tr>
+    <tr><td>Detección automática de región por nombre de GDB</td><td>✅ Listo</td></tr>
+    <tr><td>FC de alertas correcto (CE / BOSHUMI) elegido automáticamente</td><td>✅ Listo</td></tr>
+    <tr><td>Sintaxis de los 4 archivos Python verificada</td><td>✅ Sin errores</td></tr>
+    <tr><td>Logos por región (SECO, San Martín grande, alias automático)</td><td>✅ v7.9</td></tr>
+    <tr><td>PDF completo en subproceso (evita cierre de ArcGIS Pro)</td><td>✅ Listo</td></tr>
+    <tr><td>Imágenes satelitales vía H2 → <code>imagenes_sentinel/</code> → H3</td><td>✅ Flujo recomendado</td></tr>
+    <tr><td>Sector y OLV para San Martín (sin GDB de gestión aún)</td><td>⏳ Pendiente — muestra <code>—</code></td></tr>
+    <tr><td>GEE dentro de H3 (Sentinel automático en toolbox)</td><td>⚠️ Desactivado por estabilidad — usar H2</td></tr>
+    <tr><td>Estética final del PDF (layout, colores, espaciados)</td><td>⏳ Afinar después de validación</td></tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════ ERRORES COMUNES ═════════════════════════ -->
+<h2>10. Errores frecuentes y soluciones</h2>
+
+<table>
+  <thead><tr><th>Síntoma</th><th>Causa</th><th>Solución</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>El toolbox no aparece o tiene error de carga roja</td>
+      <td><code>atd_region_config.py</code> no está junto a los <code>.pyt</code></td>
+      <td>Verificar que los 4 archivos estén en la misma carpeta <code>toolbox/</code></td>
+    </tr>
+    <tr>
+      <td>"No se encontraron alertas en el periodo"</td>
+      <td>Las fechas no coinciden con las del Diagnóstico Pre-Vuelo, o el FC está vacío</td>
+      <td>Correr primero el Diagnóstico con las mismas fechas y GDB</td>
+    </tr>
+    <tr>
+      <td>El desplegable de alertas dice "[Paso 1] Ejecute Diagnóstico"</td>
+      <td>No se ha corrido el Diagnóstico Pre-Vuelo</td>
+      <td>Ejecutar la herramienta "1. Diagnóstico Pre-Vuelo" y luego refrescar el panel</td>
+    </tr>
+    <tr>
+      <td>Logos no aparecen en el PDF</td>
+      <td>Archivo en <code>logos/</code> con nombre incorrecto</td>
+      <td>Revisar la tabla de logos (sección 8) y renombrar si hace falta</td>
+    </tr>
+    <tr>
+      <td>Lugar poblado / OLV muestra <code>—</code> en Loreto</td>
+      <td>La alerta no tiene un CVC cercano con coord. válidas en la GDB de gestión</td>
+      <td>Es normal si la alerta está lejos de los CVC registrados</td>
+    </tr>
+    <tr>
+      <td>PDF no se genera / error GEE</td>
+      <td>Earth Engine no está autenticado</td>
+      <td>En Python Command Prompt: <code>earthengine authenticate</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ═══════════════════════════════ PRESENTACIÓN ═══════════════════════════ -->
+<h2>11. Guion corto para reunión (5–8 min)</h2>
+
+<div class="box ok">
+  <strong>Mensaje central:</strong> Tenemos un flujo automatizado en ArcGIS Pro que va desde la alerta Geobosques hasta el PDF técnico oficial, para Loreto, Cuzco y San Martín.
+</div>
+
+<h3>Orden sugerido al exponer</h3>
+<div class="step"><div class="num">1</div><div class="body"><strong>Contexto (1 min):</strong> El ATD documenta alertas de deforestación en ACR. Antes era manual; ahora son 3 herramientas encadenadas.</div></div>
+<div class="step"><div class="num">2</div><div class="body"><strong>Arquitectura (1 min):</strong> H1 ingesta alertas → H2 fotointerpreta con imágenes satelitales → H3 genera el PDF con mapa, ficha y enlaces HTML.</div></div>
+<div class="step"><div class="num">3</div><div class="body"><strong>Demo (3–4 min):</strong> Mostrar una GDB, Diagnóstico Pre-Vuelo, una alerta en H2 (antes/después), y un PDF ya generado en <code>pdfs/</code>.</div></div>
+<div class="step"><div class="num">4</div><div class="body"><strong>Estado honesto (1 min):</strong> Funcional ~90 %. Lo crítico está listo; pendiente pulir estética PDF y campos de gestión en San Martín.</div></div>
+<div class="step"><div class="num">5</div><div class="body"><strong>Cierre:</strong> Próximo paso = validación con el equipo y ajustes según feedback.</div></div>
+
+<h3>Frases listas para decir</h3>
+<table>
+  <thead><tr><th>Tema</th><th>Qué decir</th></tr></thead>
+  <tbody>
+    <tr><td>Regiones</td><td>“El toolbox detecta solo la región según la GDB: Loreto, Cusco o San Martín (CE o BOSHUMI).”</td></tr>
+    <tr><td>H1</td><td>“Descarga Geobosques e inserta polígonos en el monitoreo acumulado.”</td></tr>
+    <tr><td>H2</td><td>“Visor satelital para comparar antes y después; guarda imágenes que H3 usa en el PDF.”</td></tr>
+    <tr><td>H3</td><td>“Genera el reporte técnico PDF por alerta, con logos institucionales y swipe HTML.”</td></tr>
+    <tr><td>Si Pro se cierra</td><td>“Hay modo estable y generación en subproceso; ver <code>guia/ATD_SI_SE_CIERRA_PRO.md</code>.”</td></tr>
+  </tbody>
+</table>
+
+<h3>Diagrama de flujo</h3>
+<div class="tree">
+<span class="note">[ Geobosques raster ]</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;↓ <span class="file">H1 — Insertar alertas</span><br>
+<span class="note">[ GDB MonitoreoDeforestacionAcumulado ]</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;↓ <span class="file">H2 — Visor satelital</span> → <span class="dir">imagenes_sentinel/</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;↓ <span class="file">H3 — Diagnóstico + Generar PDF</span><br>
+<span class="dir">pdfs/</span> + <span class="dir">documentacion_atd/</span> (metodología, swipe)<br>
+<br>
+<span class="note">Módulo compartido:</span> <span class="file">atd_region_config.py</span> · <span class="file">atd_logos.py</span>
+</div>
+
+<div class="box warn">
+  <strong>No decir “está al 100 %”</strong> — decir: <em>“está operativo para demostración y uso piloto; quedan ajustes menores de diseño y datos de gestión en San Martín.”</em>
+</div>
+
+</div><!-- /container -->
+
+<footer>
+  ATD Toolbox v7.9 &nbsp;·&nbsp; GFP Subnacional &nbsp;·&nbsp; 2026 &nbsp;·&nbsp; Para uso interno del equipo
+</footer>
+
+</body>
+</html>
