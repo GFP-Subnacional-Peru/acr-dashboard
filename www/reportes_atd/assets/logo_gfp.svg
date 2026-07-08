@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 72" role="img" aria-label="GFP Suiza apoyando al Perú">
+  <defs>
+    <linearGradient id="gfpRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E30613"/>
+      <stop offset="100%" stop-color="#C41E3A"/>
+    </linearGradient>
+  </defs>
+  <text x="8" y="46" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="800" fill="url(#gfpRed)">GFP</text>
+  <rect x="118" y="14" width="72" height="44" rx="4" fill="#fff" stroke="#ddd" stroke-width="1"/>
+  <rect x="118" y="14" width="72" height="14.67" fill="#E30613"/>
+  <rect x="118" y="42.67" width="72" height="15.33" fill="#E30613"/>
+  <text x="124" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="8" fill="#333">Suiza apoyando</text>
+  <text x="124" y="68" font-family="Segoe UI, Arial, sans-serif" font-size="8" font-weight="700" fill="#1A2B3C">al Perú</text>
+</svg>

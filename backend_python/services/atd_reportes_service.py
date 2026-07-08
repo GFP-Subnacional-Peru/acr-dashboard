@@ -26,7 +26,14 @@ def cargar_catalogo_atd() -> dict:
             "regiones": [],
         }
     data = json.loads(path.read_text(encoding="utf-8"))
+    # No enviar filas detalladas al frontend (manifest muy pesado).
+    for reg in data.get("regiones", []):
+        stats = reg.get("estadisticas")
+        if isinstance(stats, dict) and "rows" in stats:
+            stats = {k: v for k, v in stats.items() if k != "rows"}
+            reg["estadisticas"] = stats
     data["disponible"] = True
+    data["total_reportes"] = sum(int(r.get("n_reportes") or 0) for r in data.get("regiones", []))
     _MANIFEST = data
     return data
 

@@ -98,131 +98,153 @@ const Reportes = (() => {
   }
 
   function atdReportCard(r) {
-    return `<article class="atd-report-card">
+    return `<article class="atd-report-card" data-oid="${r.oid || ""}">
       <div class="atd-report-icon"><i class="fas fa-file-pdf"></i></div>
       <div class="atd-report-body">
         <h5>${r.titulo}</h5>
         <p class="atd-report-meta">${r.subtitulo || r.archivo}</p>
         <div class="atd-report-actions">
-          <a class="btn btn-primary btn-sm" href="${r.url}" target="_blank" rel="noopener">
-            <i class="fas fa-external-link-alt"></i> Abrir PDF
-          </a>
-          <a class="btn btn-outline btn-sm" href="${r.url}" download>
-            <i class="fas fa-download"></i> Descargar
+          <button type="button" class="btn btn-primary btn-sm atd-btn-demo-h3" data-oid="${r.oid || ""}">
+            <i class="fas fa-play"></i> Ver demo H3
+          </button>
+          <a class="btn btn-outline btn-sm" href="${r.url}" target="_blank" rel="noopener">
+            <i class="fas fa-external-link-alt"></i> PDF
           </a>
         </div>
       </div>
     </article>`;
   }
 
-  function atdDocLink(d) {
-    const icon = d.tipo === "swipe" ? "fa-exchange-alt" : "fa-book";
-    return `<a class="atd-doc-link" href="${d.url}" target="_blank" rel="noopener">
-      <i class="fas ${icon}"></i> ${d.titulo}
-    </a>`;
-  }
-
   function renderAtd() {
     const root = document.getElementById("atd-root");
-    if (!root || !atdCatalog?.disponible) {
-      if (root) {
-        root.innerHTML = `<p class="atd-empty">Catálogo ATD no disponible. Ejecute <code>scripts/sync_atd_reportes.py</code>.</p>`;
-      }
+    if (!root) return;
+
+    const tieneDatos = atdCatalog?.disponible && (atdCatalog.regiones?.length || 0) > 0;
+    if (!tieneDatos) {
+      root.innerHTML = `<p class="atd-empty">Catálogo ATD no disponible. Ejecute <code>scripts/sync_atd_reportes.py</code> y redespliegue.</p>`;
       return;
     }
 
-    const reg = regionAtd(atdDepto);
-    const global = atdCatalog.regiones?.find((r) => r.id === "global");
-    const periodo = reg?.periodo || {};
-    const stats = reg?.estadisticas?.total != null ? reg.estadisticas : global?.estadisticas;
-    const nAlertas = periodo.n_alertas ?? stats?.total ?? reg?.n_reportes ?? 0;
+    try {
+      const reg = regionAtd(atdDepto);
+      const regionGlobal = atdCatalog.regiones?.find((r) => r.id === "global");
+      const periodo = reg?.periodo || {};
+      const stats =
+        reg?.estadisticas && reg.estadisticas.total != null
+          ? reg.estadisticas
+          : regionGlobal?.estadisticas;
+      const nAlertas =
+        periodo.n_alertas > 0 ? periodo.n_alertas : (stats?.total ?? reg?.n_reportes ?? 0);
 
-    const flujo = (atdCatalog.flujo || [])
-      .map(
-        (f) => `<div class="atd-flow-step">
+      const flujo = (atdCatalog.flujo || [])
+        .map(
+          (f) => `<button type="button" class="atd-flow-step" data-paso="${f.paso}" title="Demo ${f.paso}">
           <span class="atd-flow-badge">${f.paso}</span>
           <i class="fas ${f.icono}"></i>
           <span>${f.nombre}</span>
-        </div>`
-      )
-      .join("");
+          <i class="fas fa-play-circle atd-flow-play"></i>
+        </button>`
+        )
+        .join("");
 
-    const reportes = reg?.reportes_pdf || [];
-    const docs = reg?.documentacion || [];
-    const swipes = docs.filter((d) => d.tipo === "swipe");
-    const otros = docs.filter((d) => d.tipo !== "swipe");
+      const reportes = reg?.reportes_pdf || [];
 
-    root.innerHTML = `
-      <div class="atd-hero well-panel">
-        <div class="atd-hero-text">
+      root.innerHTML = `
+      <div class="atd-top well-panel">
+        <div class="atd-top-head">
           <h3><i class="fas fa-satellite-dish"></i> ${atdCatalog.titulo}</h3>
-          <p>${atdCatalog.descripcion}</p>
         </div>
-        <div class="atd-kpis">
-          <div class="atd-kpi"><span class="atd-kpi-n">${nAlertas}</span><span class="atd-kpi-l">Alertas en periodo</span></div>
-          <div class="atd-kpi"><span class="atd-kpi-n">${reportes.length}</span><span class="atd-kpi-l">Reportes PDF</span></div>
-          <div class="atd-kpi"><span class="atd-kpi-n">${stats?.total_ha ? fmtHa(stats.total_ha) : "—"}</span><span class="atd-kpi-l">Ha monitoreadas</span></div>
-          <div class="atd-kpi atd-kpi-wide"><span class="atd-kpi-l">Periodo</span><span class="atd-kpi-n-sm">${periodo.fecha_ini || "—"} – ${periodo.fecha_fin || "—"}</span></div>
-        </div>
+        <div class="atd-flow">${flujo}</div>
       </div>
 
-      <div class="atd-flow">${flujo}</div>
+      <div id="atd-demo-stage" class="atd-demo-stage hidden" aria-live="polite"></div>
 
-      <div class="reportes-filter-bar well-panel atd-filter">
-        <label for="filtro_depto_atd"><i class="fas fa-filter"></i> Región ATD:</label>
+      <div class="reportes-filter-bar well-panel atd-filter atd-filter-compact">
+        <label for="filtro_depto_atd"><i class="fas fa-filter"></i> Región:</label>
         <select id="filtro_depto_atd">
           <option value="loreto">Loreto</option>
           <option value="sanmartin">San Martín</option>
           <option value="cusco">Cusco</option>
         </select>
-        ${reg?.guia ? `<a class="btn btn-warning btn-sm atd-guia-btn" href="${reg.guia.url}" target="_blank" rel="noopener"><i class="fas fa-book-open"></i> Guía toolbox</a>` : ""}
-        ${global?.guia ? `<a class="btn btn-outline btn-sm" href="${global.guia.url}" target="_blank" rel="noopener"><i class="fas fa-toolbox"></i> Guía general</a>` : ""}
+        ${reg?.guia ? `<a class="btn btn-warning btn-sm atd-guia-btn" href="${reg.guia.url}" target="_blank" rel="noopener"><i class="fas fa-book-open"></i> Guía</a>` : ""}
       </div>
-
-      <h4 class="atd-section-title"><i class="fas fa-file-pdf"></i> Informes ATD validados — ${reg?.label || ""}</h4>
-      <div class="atd-reports-grid">
-        ${reportes.length ? reportes.map(atdReportCard).join("") : `<p class="atd-empty">Sin reportes PDF publicados para esta región. Genere informes con H3 en ArcGIS Pro.</p>`}
-      </div>
-
-      ${swipes.length ? `<h4 class="atd-section-title"><i class="fas fa-exchange-alt"></i> Visores swipe (antes / después)</h4>
-      <div class="atd-docs-grid">${swipes.map(atdDocLink).join("")}</div>` : ""}
-
-      ${otros.length ? `<h4 class="atd-section-title"><i class="fas fa-book"></i> Metodología y procedimientos</h4>
-      <div class="atd-docs-grid">${otros.map(atdDocLink).join("")}</div>` : ""}
     `;
 
-    const sel = document.getElementById("filtro_depto_atd");
-    if (sel) {
-      sel.value = atdDepto;
-      sel.addEventListener("change", (e) => {
-        atdDepto = e.target.value;
-        renderAtd();
-      });
+      const sel = document.getElementById("filtro_depto_atd");
+      if (sel) {
+        sel.value = atdDepto;
+        sel.onchange = (e) => {
+          atdDepto = e.target.value;
+          AtdDemo.reset();
+          renderAtd();
+        };
+      }
+
+      if (typeof AtdDemo !== "undefined") {
+        AtdDemo.mount(reg, regionGlobal, undefined, atdCatalog.regiones);
+      }
+
+      const badge = document.getElementById("atd-badge");
+      if (badge) {
+        const total = atdCatalog.total_reportes || reportes.length;
+        badge.textContent = String(total);
+        badge.classList.toggle("hidden", !total);
+      }
+    } catch (err) {
+      console.error("renderAtd:", err);
+      root.innerHTML = `<p class="atd-empty">Error al mostrar reportes ATD. Recargue la página.</p>`;
     }
   }
 
   async function loadAtd() {
+    const root = document.getElementById("atd-root");
     try {
       const res = await fetch("/api/atd/catalogo");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       atdCatalog = await res.json();
       renderAtd();
     } catch (e) {
-      const root = document.getElementById("atd-root");
-      if (root) root.innerHTML = `<p class="atd-empty">No se pudo cargar el catálogo ATD.</p>`;
+      console.error("loadAtd:", e);
+      if (root) {
+        root.innerHTML = `<p class="atd-empty">No se pudo cargar el catálogo ATD. ${e.message || ""}</p>`;
+      }
     }
   }
 
   function bindSubtabs() {
+    const panelMapas = document.getElementById("reportes-panel-mapas");
+    const atdRoot = document.getElementById("atd-root");
+    const atdDivider = document.querySelector(".atd-section-divider");
+
+    function showMapas() {
+      panelMapas?.classList.remove("hidden");
+      atdRoot?.classList.add("hidden");
+      atdDivider?.classList.add("hidden");
+      panelMapas?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function showAtd() {
+      panelMapas?.classList.add("hidden");
+      atdRoot?.classList.remove("hidden");
+      atdDivider?.classList.remove("hidden");
+      if (!atdCatalog) loadAtd();
+      else renderAtd();
+      atdRoot?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
     document.querySelectorAll(".reportes-subtab").forEach((btn) => {
       btn.addEventListener("click", () => {
         const panel = btn.dataset.reportesPanel;
         document.querySelectorAll(".reportes-subtab").forEach((b) => b.classList.remove("active"));
-        document.querySelectorAll(".reportes-panel").forEach((p) => p.classList.add("hidden"));
         btn.classList.add("active");
-        document.getElementById(`reportes-panel-${panel}`)?.classList.remove("hidden");
-        if (panel === "atd" && !atdCatalog) loadAtd();
+        if (panel === "atd") showAtd();
+        else showMapas();
       });
     });
+
+    // Por defecto mapas visibles; ATD oculto hasta que el usuario cambie de pestaña.
+    atdRoot?.classList.add("hidden");
+    atdDivider?.classList.add("hidden");
   }
 
   function bindEvents() {
@@ -239,6 +261,16 @@ const Reportes = (() => {
 
     document.getElementById("btn-descargar-datos")?.addEventListener("click", () => {
       window.location.href = "/api/descargas/datos";
+    });
+
+    document.getElementById("tab-reportes")?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".atd-btn-demo-h3");
+      if (!btn || typeof AtdDemo === "undefined") return;
+      const oid = btn.dataset.oid;
+      const reg = regionAtd(atdDepto);
+      const regionGlobal = atdCatalog?.regiones?.find((r) => r.id === "global");
+      AtdDemo.mount(reg, regionGlobal, oid || undefined, atdCatalog?.regiones);
+      AtdDemo.showStep("H3");
     });
 
     document.getElementById("mapas-galleries")?.addEventListener("click", async (e) => {

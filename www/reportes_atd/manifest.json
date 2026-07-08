@@ -1,5 +1,5 @@
 {
-  "generado": "2026-07-08T20:32:20.617487+00:00",
+  "generado": "2026-07-08T21:40:45.212021+00:00",
   "fuente": "C:\\Users\\Favio Campos Rivera\\Desktop\\GFP-Subnacional\\2026\\LBD_2026\\reporte_atd_loreto\\output\\salidas",
   "titulo": "Alertas Tempranas de Deforestación (GeoBosques)",
   "descripcion": "Reportes ATD generados con el toolbox GFP Subnacional: descarga Geobosques (H1), fotointerpretación satelital (H2) y validación con informe PDF (H3).",
@@ -2140,6 +2140,114 @@
           }
         ]
       },
+      "resumen_acr_zi": {
+        "acr": {
+          "Maijuna Kichwa": {
+            "n": 49,
+            "ha": 15.93,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 10,
+                "ha": 0.9
+              },
+              "Natural": {
+                "n": 39,
+                "ha": 15.03
+              }
+            }
+          },
+          "Nanay": {
+            "n": 41,
+            "ha": 10.62,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 11,
+                "ha": 1.89
+              },
+              "Natural": {
+                "n": 30,
+                "ha": 8.73
+              }
+            }
+          },
+          "Comunal Tahuayo": {
+            "n": 12,
+            "ha": 1.89,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 1,
+                "ha": 0.09
+              },
+              "Natural": {
+                "n": 11,
+                "ha": 1.8
+              }
+            }
+          }
+        },
+        "zi": {
+          "ZI AA": {
+            "n": 72,
+            "ha": 8.46,
+            "tipos": {
+              "Antropogenico": {
+                "n": 21,
+                "ha": 3.42
+              },
+              "Natural": {
+                "n": 51,
+                "ha": 5.04
+              }
+            }
+          },
+          "ZI ANPCH": {
+            "n": 39,
+            "ha": 8.82,
+            "tipos": {
+              "Antropogenico": {
+                "n": 38,
+                "ha": 8.73
+              },
+              "Falsa alerta": {
+                "n": 1,
+                "ha": 0.09
+              }
+            }
+          },
+          "ZI MK": {
+            "n": 20,
+            "ha": 2.7,
+            "tipos": {
+              "Antropogenico": {
+                "n": 17,
+                "ha": 2.43
+              },
+              "Falsa alerta": {
+                "n": 3,
+                "ha": 0.27
+              }
+            }
+          },
+          "ZI CTT": {
+            "n": 11,
+            "ha": 2.16,
+            "tipos": {
+              "Antropogenico": {
+                "n": 3,
+                "ha": 1.26
+              },
+              "Falsa alerta": {
+                "n": 3,
+                "ha": 0.27
+              },
+              "Natural": {
+                "n": 5,
+                "ha": 0.63
+              }
+            }
+          }
+        }
+      },
       "n_reportes": 5,
       "reportes_pdf": [
         {
@@ -2267,6 +2375,68 @@
           "url": "/reportes_atd/global/documentacion_atd/ATD_visualizacion_OID681345.html"
         }
       ],
+      "demo_alertas": [
+        {
+          "oid": "7007",
+          "acr": "ACR21",
+          "acr_codigo": "ACR21",
+          "titulo": "Alerta 2026 — Bosques de Shunté y Mishollo",
+          "pdf_url": "/reportes_atd/global/pdfs/ATD_2026_ACR21_001_OID7007.pdf",
+          "bbox": null,
+          "antes": {
+            "fecha": "2026-04-22",
+            "sat": "Sentinel-2",
+            "etiqueta": "ANTES",
+            "imagen": "/reportes_atd/global/imagenes_sentinel/ATD_OID7007_A.png"
+          },
+          "despues": {
+            "fecha": "2026-06-11",
+            "sat": "Sentinel-2",
+            "etiqueta": "DESPUÉS",
+            "imagen": "/reportes_atd/global/imagenes_sentinel/ATD_OID7007_D.png"
+          }
+        },
+        {
+          "oid": "681345",
+          "acr": "ACR10",
+          "acr_codigo": "ACR10",
+          "titulo": "Alerta 2026 — Alto Nanay Pintuyacu Chambira",
+          "pdf_url": "/reportes_atd/global/pdfs/ATD_2026_ACR10_001_OID681345.pdf",
+          "bbox": null,
+          "antes": {
+            "fecha": "2026-02-28",
+            "sat": "Sentinel-2",
+            "etiqueta": "ANTES",
+            "imagen": "/reportes_atd/global/imagenes_sentinel/ATD_OID681345_A.png"
+          },
+          "despues": {
+            "fecha": "2026-03-20",
+            "sat": "Sentinel-2",
+            "etiqueta": "DESPUÉS",
+            "imagen": "/reportes_atd/global/imagenes_sentinel/ATD_OID681345_D.png"
+          }
+        },
+        {
+          "oid": "685664",
+          "acr": "ACR07",
+          "acr_codigo": "ACR07",
+          "titulo": "Alerta 2026 — Choquequirao",
+          "pdf_url": "/reportes_atd/global/pdfs/ATD_2026_ACR07_001_OID685664.pdf",
+          "bbox": null,
+          "antes": {
+            "fecha": "2026-05-06",
+            "sat": "Sentinel-2",
+            "etiqueta": "ANTES",
+            "imagen": "/reportes_atd/global/imagenes_sentinel/ATD_OID685664_A.png"
+          },
+          "despues": {
+            "fecha": "2026-05-31",
+            "sat": "Sentinel-2",
+            "etiqueta": "DESPUÉS",
+            "imagen": "/reportes_atd/global/imagenes_sentinel/ATD_OID685664_D.png"
+          }
+        }
+      ],
       "guia": {
         "titulo": "Guía operativa del toolbox ATD",
         "url": "/reportes_atd/global/GUIA_ATD_TOOLBOX.html"
@@ -2284,7 +2454,2157 @@
         "fecha_fin": "02/07/2026",
         "n_alertas": 0
       },
-      "estadisticas": {},
+      "estadisticas": {
+        "total": 244,
+        "total_ha": 50.58,
+        "by_tipo": {
+          "Antropogenico": {
+            "n": 79,
+            "ha": 15.84
+          },
+          "Natural": {
+            "n": 136,
+            "ha": 31.23
+          },
+          "Falsa alerta": {
+            "n": 29,
+            "ha": 3.51
+          }
+        },
+        "zonas": [
+          "Comunal Tahuayo",
+          "Maijuna Kichwa",
+          "Nanay",
+          "ZI AA",
+          "ZI ANPCH",
+          "ZI CTT",
+          "ZI MK"
+        ],
+        "by_zona_tipo": {
+          "ZI AA|Antropogenico": {
+            "n": 21,
+            "ha": 3.42
+          },
+          "ZI AA|Natural": {
+            "n": 51,
+            "ha": 5.04
+          },
+          "Maijuna Kichwa|Natural": {
+            "n": 39,
+            "ha": 15.03
+          },
+          "Maijuna Kichwa|Falsa alerta": {
+            "n": 10,
+            "ha": 0.9
+          },
+          "ZI MK|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          },
+          "ZI MK|Antropogenico": {
+            "n": 17,
+            "ha": 2.43
+          },
+          "Nanay|Falsa alerta": {
+            "n": 11,
+            "ha": 1.89
+          },
+          "Comunal Tahuayo|Natural": {
+            "n": 11,
+            "ha": 1.8
+          },
+          "Comunal Tahuayo|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "Nanay|Natural": {
+            "n": 30,
+            "ha": 8.73
+          },
+          "ZI ANPCH|Antropogenico": {
+            "n": 38,
+            "ha": 8.73
+          },
+          "ZI ANPCH|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "ZI CTT|Antropogenico": {
+            "n": 3,
+            "ha": 1.26
+          },
+          "ZI CTT|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          },
+          "ZI CTT|Natural": {
+            "n": 5,
+            "ha": 0.63
+          }
+        },
+        "rows": [
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.63,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.8,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 1.17,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.81,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          }
+        ]
+      },
+      "resumen_acr_zi": {
+        "acr": {
+          "Maijuna Kichwa": {
+            "n": 49,
+            "ha": 15.93,
+            "tipos": {
+              "Natural": {
+                "n": 39,
+                "ha": 15.03
+              },
+              "Falsa alerta": {
+                "n": 10,
+                "ha": 0.9
+              }
+            }
+          },
+          "Nanay": {
+            "n": 41,
+            "ha": 10.62,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 11,
+                "ha": 1.89
+              },
+              "Natural": {
+                "n": 30,
+                "ha": 8.73
+              }
+            }
+          },
+          "Comunal Tahuayo": {
+            "n": 12,
+            "ha": 1.89,
+            "tipos": {
+              "Natural": {
+                "n": 11,
+                "ha": 1.8
+              },
+              "Falsa alerta": {
+                "n": 1,
+                "ha": 0.09
+              }
+            }
+          }
+        },
+        "zi": {
+          "ZI AA": {
+            "n": 72,
+            "ha": 8.46,
+            "tipos": {
+              "Antropogenico": {
+                "n": 21,
+                "ha": 3.42
+              },
+              "Natural": {
+                "n": 51,
+                "ha": 5.04
+              }
+            }
+          },
+          "ZI ANPCH": {
+            "n": 39,
+            "ha": 8.82,
+            "tipos": {
+              "Antropogenico": {
+                "n": 38,
+                "ha": 8.73
+              },
+              "Falsa alerta": {
+                "n": 1,
+                "ha": 0.09
+              }
+            }
+          },
+          "ZI MK": {
+            "n": 20,
+            "ha": 2.7,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 3,
+                "ha": 0.27
+              },
+              "Antropogenico": {
+                "n": 17,
+                "ha": 2.43
+              }
+            }
+          },
+          "ZI CTT": {
+            "n": 11,
+            "ha": 2.16,
+            "tipos": {
+              "Antropogenico": {
+                "n": 3,
+                "ha": 1.26
+              },
+              "Falsa alerta": {
+                "n": 3,
+                "ha": 0.27
+              },
+              "Natural": {
+                "n": 5,
+                "ha": 0.63
+              }
+            }
+          }
+        }
+      },
       "n_reportes": 3,
       "reportes_pdf": [
         {
@@ -2354,6 +4674,53 @@
           "url": "/reportes_atd/loreto/documentacion_atd/ATD_swipe_OID60.html"
         }
       ],
+      "demo_alertas": [
+        {
+          "oid": "60",
+          "acr": "ACR10",
+          "acr_codigo": "ACR10",
+          "titulo": "Alerta 2026 — Alto Nanay Pintuyacu Chambira",
+          "pdf_url": "/reportes_atd/loreto/pdfs/ATD_2026_ACR10_001_OID60.pdf",
+          "bbox": null,
+          "antes": {
+            "fecha": "2026-03-20",
+            "sat": "Sentinel-2",
+            "etiqueta": "ANTES",
+            "imagen": "/reportes_atd/loreto/imagenes_sentinel/ATD_OID60_A.png"
+          },
+          "despues": {
+            "fecha": "2026-06-15",
+            "sat": "Sentinel-2",
+            "etiqueta": "DESPUÉS",
+            "imagen": "/reportes_atd/loreto/imagenes_sentinel/ATD_OID60_D.png"
+          }
+        },
+        {
+          "oid": "1009",
+          "acr": "ACR17 - 2026 - 032",
+          "acr_codigo": "ACR17",
+          "titulo": "Alerta 2026 — Maijuna Kichwa",
+          "pdf_url": "/reportes_atd/loreto/pdfs/ATD_2026_ACR17_001_OID1009.pdf",
+          "bbox": [
+            -73.1805515151053,
+            -3.252291738408643,
+            -73.14445798907443,
+            -3.2162557023726075
+          ],
+          "antes": {
+            "fecha": "2026-03-20",
+            "sat": "Sentinel-2",
+            "etiqueta": "ANTES",
+            "imagen": "/reportes_atd/loreto/imagenes_sentinel/ATD_OID1009_A.png"
+          },
+          "despues": {
+            "fecha": "2026-06-15",
+            "sat": "Sentinel-2",
+            "etiqueta": "DESPUÉS",
+            "imagen": "/reportes_atd/loreto/imagenes_sentinel/ATD_OID1009_D.png"
+          }
+        }
+      ],
       "guia": {
         "titulo": "Guía operativa del toolbox ATD",
         "url": "/reportes_atd/loreto/GUIA_ATD_LORETO.html"
@@ -2370,7 +4737,2223 @@
         "fecha_ini": "01/03/2026",
         "fecha_fin": "01/05/2026"
       },
-      "estadisticas": {},
+      "estadisticas": {
+        "total": 244,
+        "total_ha": 50.58,
+        "by_tipo": {
+          "Antropogenico": {
+            "n": 79,
+            "ha": 15.84
+          },
+          "Falsa alerta": {
+            "n": 29,
+            "ha": 3.51
+          },
+          "Natural": {
+            "n": 136,
+            "ha": 31.23
+          }
+        },
+        "zonas": [
+          "Comunal Tahuayo",
+          "Maijuna Kichwa",
+          "Nanay",
+          "ZI AA",
+          "ZI ANPCH",
+          "ZI CTT",
+          "ZI MK"
+        ],
+        "by_zona_tipo": {
+          "Comunal Tahuayo|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "Comunal Tahuayo|Natural": {
+            "n": 11,
+            "ha": 1.8
+          },
+          "Maijuna Kichwa|Falsa alerta": {
+            "n": 10,
+            "ha": 0.9
+          },
+          "Maijuna Kichwa|Natural": {
+            "n": 39,
+            "ha": 15.03
+          },
+          "Nanay|Falsa alerta": {
+            "n": 11,
+            "ha": 1.89
+          },
+          "Nanay|Natural": {
+            "n": 30,
+            "ha": 8.73
+          },
+          "ZI AA|Antropogenico": {
+            "n": 21,
+            "ha": 3.42
+          },
+          "ZI AA|Natural": {
+            "n": 51,
+            "ha": 5.04
+          },
+          "ZI ANPCH|Antropogenico": {
+            "n": 38,
+            "ha": 8.73
+          },
+          "ZI ANPCH|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "ZI CTT|Antropogenico": {
+            "n": 3,
+            "ha": 1.26
+          },
+          "ZI CTT|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          },
+          "ZI CTT|Natural": {
+            "n": 5,
+            "ha": 0.63
+          },
+          "ZI MK|Antropogenico": {
+            "n": 17,
+            "ha": 2.43
+          },
+          "ZI MK|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          }
+        },
+        "by_zona_causa": {
+          "Comunal Tahuayo|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "Comunal Tahuayo|Natural": {
+            "n": 11,
+            "ha": 1.8
+          },
+          "Maijuna Kichwa|Falsa alerta": {
+            "n": 10,
+            "ha": 0.9
+          },
+          "Maijuna Kichwa|Natural": {
+            "n": 39,
+            "ha": 15.03
+          },
+          "Nanay|Falsa alerta": {
+            "n": 11,
+            "ha": 1.89
+          },
+          "Nanay|Natural": {
+            "n": 30,
+            "ha": 8.73
+          },
+          "ZI AA|Agricultura": {
+            "n": 21,
+            "ha": 3.42
+          },
+          "ZI AA|Natural": {
+            "n": 51,
+            "ha": 5.04
+          },
+          "ZI ANPCH|Agricultura": {
+            "n": 34,
+            "ha": 8.28
+          },
+          "ZI ANPCH|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "ZI ANPCH|Mineria": {
+            "n": 4,
+            "ha": 0.45
+          },
+          "ZI CTT|Agricultura": {
+            "n": 3,
+            "ha": 1.26
+          },
+          "ZI CTT|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          },
+          "ZI CTT|Natural": {
+            "n": 5,
+            "ha": 0.63
+          },
+          "ZI MK|Agricultura": {
+            "n": 17,
+            "ha": 2.43
+          },
+          "ZI MK|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          }
+        },
+        "rows": [
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.63,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.8,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 1.17,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.81,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          }
+        ]
+      },
+      "resumen_acr_zi": {
+        "acr": {
+          "Maijuna Kichwa": {
+            "n": 49,
+            "ha": 15.93,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 10,
+                "ha": 0.9
+              },
+              "Natural": {
+                "n": 39,
+                "ha": 15.03
+              }
+            }
+          },
+          "Nanay": {
+            "n": 41,
+            "ha": 10.62,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 11,
+                "ha": 1.89
+              },
+              "Natural": {
+                "n": 30,
+                "ha": 8.73
+              }
+            }
+          },
+          "Comunal Tahuayo": {
+            "n": 12,
+            "ha": 1.89,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 1,
+                "ha": 0.09
+              },
+              "Natural": {
+                "n": 11,
+                "ha": 1.8
+              }
+            }
+          }
+        },
+        "zi": {
+          "ZI AA": {
+            "n": 72,
+            "ha": 8.46,
+            "tipos": {
+              "Antropogenico": {
+                "n": 21,
+                "ha": 3.42
+              },
+              "Natural": {
+                "n": 51,
+                "ha": 5.04
+              }
+            }
+          },
+          "ZI ANPCH": {
+            "n": 39,
+            "ha": 8.82,
+            "tipos": {
+              "Antropogenico": {
+                "n": 38,
+                "ha": 8.73
+              },
+              "Falsa alerta": {
+                "n": 1,
+                "ha": 0.09
+              }
+            }
+          },
+          "ZI MK": {
+            "n": 20,
+            "ha": 2.7,
+            "tipos": {
+              "Antropogenico": {
+                "n": 17,
+                "ha": 2.43
+              },
+              "Falsa alerta": {
+                "n": 3,
+                "ha": 0.27
+              }
+            }
+          },
+          "ZI CTT": {
+            "n": 11,
+            "ha": 2.16,
+            "tipos": {
+              "Antropogenico": {
+                "n": 3,
+                "ha": 1.26
+              },
+              "Falsa alerta": {
+                "n": 3,
+                "ha": 0.27
+              },
+              "Natural": {
+                "n": 5,
+                "ha": 0.63
+              }
+            }
+          }
+        }
+      },
       "n_reportes": 1,
       "reportes_pdf": [
         {
@@ -2387,6 +6970,7 @@
       ],
       "ejemplos_pdf": [],
       "documentacion": [],
+      "demo_alertas": [],
       "guia": {
         "titulo": "Guía operativa del toolbox ATD",
         "url": "/reportes_atd/cusco/GUIA_ATD_CUZCO.html"
@@ -2403,7 +6987,2223 @@
         "fecha_ini": "01/03/2026",
         "fecha_fin": "01/05/2026"
       },
-      "estadisticas": {},
+      "estadisticas": {
+        "total": 244,
+        "total_ha": 50.58,
+        "by_tipo": {
+          "Antropogenico": {
+            "n": 79,
+            "ha": 15.84
+          },
+          "Falsa alerta": {
+            "n": 29,
+            "ha": 3.51
+          },
+          "Natural": {
+            "n": 136,
+            "ha": 31.23
+          }
+        },
+        "zonas": [
+          "Comunal Tahuayo",
+          "Maijuna Kichwa",
+          "Nanay",
+          "ZI AA",
+          "ZI ANPCH",
+          "ZI CTT",
+          "ZI MK"
+        ],
+        "by_zona_tipo": {
+          "Comunal Tahuayo|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "Comunal Tahuayo|Natural": {
+            "n": 11,
+            "ha": 1.8
+          },
+          "Maijuna Kichwa|Falsa alerta": {
+            "n": 10,
+            "ha": 0.9
+          },
+          "Maijuna Kichwa|Natural": {
+            "n": 39,
+            "ha": 15.03
+          },
+          "Nanay|Falsa alerta": {
+            "n": 11,
+            "ha": 1.89
+          },
+          "Nanay|Natural": {
+            "n": 30,
+            "ha": 8.73
+          },
+          "ZI AA|Antropogenico": {
+            "n": 21,
+            "ha": 3.42
+          },
+          "ZI AA|Natural": {
+            "n": 51,
+            "ha": 5.04
+          },
+          "ZI ANPCH|Antropogenico": {
+            "n": 38,
+            "ha": 8.73
+          },
+          "ZI ANPCH|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "ZI CTT|Antropogenico": {
+            "n": 3,
+            "ha": 1.26
+          },
+          "ZI CTT|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          },
+          "ZI CTT|Natural": {
+            "n": 5,
+            "ha": 0.63
+          },
+          "ZI MK|Antropogenico": {
+            "n": 17,
+            "ha": 2.43
+          },
+          "ZI MK|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          }
+        },
+        "by_zona_causa": {
+          "Comunal Tahuayo|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "Comunal Tahuayo|Natural": {
+            "n": 11,
+            "ha": 1.8
+          },
+          "Maijuna Kichwa|Falsa alerta": {
+            "n": 10,
+            "ha": 0.9
+          },
+          "Maijuna Kichwa|Natural": {
+            "n": 39,
+            "ha": 15.03
+          },
+          "Nanay|Falsa alerta": {
+            "n": 11,
+            "ha": 1.89
+          },
+          "Nanay|Natural": {
+            "n": 30,
+            "ha": 8.73
+          },
+          "ZI AA|Agricultura": {
+            "n": 21,
+            "ha": 3.42
+          },
+          "ZI AA|Natural": {
+            "n": 51,
+            "ha": 5.04
+          },
+          "ZI ANPCH|Agricultura": {
+            "n": 34,
+            "ha": 8.28
+          },
+          "ZI ANPCH|Falsa alerta": {
+            "n": 1,
+            "ha": 0.09
+          },
+          "ZI ANPCH|Mineria": {
+            "n": 4,
+            "ha": 0.45
+          },
+          "ZI CTT|Agricultura": {
+            "n": 3,
+            "ha": 1.26
+          },
+          "ZI CTT|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          },
+          "ZI CTT|Natural": {
+            "n": 5,
+            "ha": 0.63
+          },
+          "ZI MK|Agricultura": {
+            "n": 17,
+            "ha": 2.43
+          },
+          "ZI MK|Falsa alerta": {
+            "n": 3,
+            "ha": 0.27
+          }
+        },
+        "rows": [
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.63,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI AA",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI MK",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Comunal Tahuayo",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.8,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.72,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Nanay",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Mineria",
+            "causa_cod": 6,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.54,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 1.17,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI ANPCH",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 1.98,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.45,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.36,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "Maijuna Kichwa",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.18,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.81,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Antropogenico",
+            "causa": "Agricultura",
+            "causa_cod": 1,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.27,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Natural",
+            "causa": "Natural",
+            "causa_cod": 14,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          },
+          {
+            "zona": "ZI CTT",
+            "tipo": "Falsa alerta",
+            "causa": "Falsa alerta",
+            "causa_cod": 99,
+            "ha": 0.09,
+            "anno": 2026
+          }
+        ]
+      },
+      "resumen_acr_zi": {
+        "acr": {
+          "Maijuna Kichwa": {
+            "n": 49,
+            "ha": 15.93,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 10,
+                "ha": 0.9
+              },
+              "Natural": {
+                "n": 39,
+                "ha": 15.03
+              }
+            }
+          },
+          "Nanay": {
+            "n": 41,
+            "ha": 10.62,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 11,
+                "ha": 1.89
+              },
+              "Natural": {
+                "n": 30,
+                "ha": 8.73
+              }
+            }
+          },
+          "Comunal Tahuayo": {
+            "n": 12,
+            "ha": 1.89,
+            "tipos": {
+              "Falsa alerta": {
+                "n": 1,
+                "ha": 0.09
+              },
+              "Natural": {
+                "n": 11,
+                "ha": 1.8
+              }
+            }
+          }
+        },
+        "zi": {
+          "ZI AA": {
+            "n": 72,
+            "ha": 8.46,
+            "tipos": {
+              "Antropogenico": {
+                "n": 21,
+                "ha": 3.42
+              },
+              "Natural": {
+                "n": 51,
+                "ha": 5.04
+              }
+            }
+          },
+          "ZI ANPCH": {
+            "n": 39,
+            "ha": 8.82,
+            "tipos": {
+              "Antropogenico": {
+                "n": 38,
+                "ha": 8.73
+              },
+              "Falsa alerta": {
+                "n": 1,
+                "ha": 0.09
+              }
+            }
+          },
+          "ZI MK": {
+            "n": 20,
+            "ha": 2.7,
+            "tipos": {
+              "Antropogenico": {
+                "n": 17,
+                "ha": 2.43
+              },
+              "Falsa alerta": {
+                "n": 3,
+                "ha": 0.27
+              }
+            }
+          },
+          "ZI CTT": {
+            "n": 11,
+            "ha": 2.16,
+            "tipos": {
+              "Antropogenico": {
+                "n": 3,
+                "ha": 1.26
+              },
+              "Falsa alerta": {
+                "n": 3,
+                "ha": 0.27
+              },
+              "Natural": {
+                "n": 5,
+                "ha": 0.63
+              }
+            }
+          }
+        }
+      },
       "n_reportes": 4,
       "reportes_pdf": [
         {
@@ -2453,6 +9253,7 @@
       ],
       "ejemplos_pdf": [],
       "documentacion": [],
+      "demo_alertas": [],
       "guia": {
         "titulo": "Guía operativa del toolbox ATD",
         "url": "/reportes_atd/san_martin/GUIA_ATD_SAN_MARTIN.html"

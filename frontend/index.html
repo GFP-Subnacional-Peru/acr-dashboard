@@ -95,7 +95,7 @@
 
         <div class="panelbox" style="margin-top:1.5rem">
           <h5 class="section-title"><i class="fas fa-map-marked-alt"></i> Mapa Interactivo de ACRs</h5>
-          <p style="color:#2e7d32;font-weight:600"><i class="fas fa-info-circle"></i> Los puntos rojos representan deforestación detectada (centroides precalculados).</p>
+          <p id="map-loreto-info" class="map-loreto-info"><i class="fas fa-info-circle"></i> En <strong>Loreto</strong>, los polígonos de deforestación vienen del GDB <em>MonitoreoDeforestacionAcumulado</em> y respetan el periodo del filtro lateral. Otras regiones usan centroides.</p>
           <div id="map"></div>
         </div>
 
@@ -221,8 +221,8 @@
       <button type="button" class="reportes-subtab active" data-reportes-panel="mapas" role="tab">
         <i class="fas fa-map"></i> Mapas de línea base
       </button>
-      <button type="button" class="reportes-subtab" data-reportes-panel="atd" role="tab">
-        <i class="fas fa-bell"></i> Alertas tempranas (ATD)
+      <button type="button" class="reportes-subtab" data-reportes-panel="atd" role="tab" id="reportes-subtab-atd">
+        <i class="fas fa-bell"></i> Alertas tempranas (ATD) <span id="atd-badge" class="atd-badge hidden">0</span>
       </button>
     </div>
 
@@ -254,10 +254,11 @@
     </div>
     </div>
 
-    <div id="reportes-panel-atd" class="reportes-panel hidden">
-      <div id="atd-root" class="atd-root" aria-live="polite">
-        <div class="atd-loading"><i class="fas fa-spinner fa-spin"></i> Cargando catálogo ATD…</div>
-      </div>
+    <section class="atd-section-divider" aria-hidden="true">
+      <span>Alertas tempranas GeoBosques</span>
+    </section>
+    <div id="atd-root" class="atd-root" aria-live="polite">
+      <div class="atd-loading"><i class="fas fa-spinner fa-spin"></i> Cargando reportes ATD…</div>
     </div>
 
     <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
@@ -307,8 +308,9 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js"></script>
+  <script src="/assets/js/map.js?v=20260708b"></script>
   <script src="/assets/js/modals.js"></script>
+  <script src="/assets/js/atd-demo.js?v=20260708d"></script>
   <script src="/assets/js/region-insights.js"></script>
   <script src="/assets/js/reportes.js"></script>
   <script src="/assets/js/tendencias.js"></script>

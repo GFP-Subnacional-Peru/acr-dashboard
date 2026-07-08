@@ -45,6 +45,15 @@ GUIA_BY_REGION = {
     "san_martin": "guia/GUIA_ATD_SAN_MARTIN.html",
 }
 
+REGION_ZONAS = {
+    "loreto": {
+        "Comunal Tahuayo", "Maijuna Kichwa", "Nanay",
+        "ZI AA", "ZI ANPCH", "ZI CTT", "ZI MK",
+    },
+    "cusco": {"Choquequirao", "Chuyapi Urusayhua", "Q'eros Kosñipata", "ZI CHQ", "ZI CHU", "ZI QK"},
+    "san_martin": {"Bosques de Shunté y Mishollo", "Cordillera Escalera", "ZI BOSHUMI", "ZI CE"},
+}
+
 
 def _read_json(path: Path) -> dict:
     if not path.exists():
@@ -80,6 +89,105 @@ def _copy_if_exists(src: Path, dst: Path) -> bool:
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dst)
     return True
+
+
+def _filter_stats_for_region(stats: dict, region_key: str) -> dict:
+    if not stats or region_key == "global":
+        return stats
+    zonas = REGION_ZONAS.get(region_key)
+    if not zonas or not stats.get("rows"):
+        return stats
+    rows = [r for r in stats["rows"] if r.get("zona") in zonas]
+    if not rows:
+        return stats
+    by_tipo: dict[str, dict] = {}
+    by_zona_tipo: dict[str, dict] = {}
+    total_ha = 0.0
+    for r in rows:
+        tipo = r.get("tipo") or "Sin clasificar"
+        zona = r.get("zona") or ""
+        ha = float(r.get("ha") or 0)
+        total_ha += ha
+        bt = by_tipo.setdefault(tipo, {"n": 0, "ha": 0.0})
+        bt["n"] += 1
+        bt["ha"] = round(bt["ha"] + ha, 4)
+        key = f"{zona}|{tipo}"
+        bzt = by_zona_tipo.setdefault(key, {"n": 0, "ha": 0.0})
+        bzt["n"] += 1
+        bzt["ha"] = round(bzt["ha"] + ha, 4)
+    return {
+        "total": len(rows),
+        "total_ha": round(total_ha, 2),
+        "by_tipo": by_tipo,
+        "zonas": sorted({r.get("zona") for r in rows if r.get("zona")}),
+        "by_zona_tipo": by_zona_tipo,
+        "rows": rows,
+    }
+
+
+def _sync_sentinel(pkg: Path, dest: Path, region_key: str, pdfs: list[dict]) -> list[dict]:
+    src = pkg / "imagenes_sentinel"
+    if not src.exists():
+        return []
+    dst = dest / "imagenes_sentinel"
+    if dst.exists():
+        shutil.rmtree(dst)
+    shutil.copytree(src, dst)
+
+    pdf_by_oid = {p["oid"]: p for p in pdfs if p.get("oid")}
+    demo_alertas = []
+    oids = sorted({f.stem.split("_")[1].replace("OID", "") for f in src.glob("ATD_OID*_A.json")})
+    for oid in oids:
+        a_meta = _read_json(src / f"ATD_OID{oid}_A.json")
+        d_meta = _read_json(src / f"ATD_OID{oid}_D.json")
+        a_png = src / f"ATD_OID{oid}_A.png"
+        d_png = src / f"ATD_OID{oid}_D.png"
+        if not a_png.exists():
+            continue
+        base = f"/reportes_atd/{region_key}/imagenes_sentinel"
+        pdf = pdf_by_oid.get(oid)
+        demo_alertas.append({
+            "oid": oid,
+            "acr": a_meta.get("acr") or pdf.get("acr_nombre") if pdf else "",
+            "acr_codigo": pdf.get("acr") if pdf else "",
+            "titulo": pdf.get("titulo") if pdf else f"Alerta OID {oid}",
+            "pdf_url": pdf.get("url") if pdf else None,
+            "bbox": a_meta.get("bbox_wgs84"),
+            "antes": {
+                "fecha": a_meta.get("fecha"),
+                "sat": a_meta.get("sat", "Sentinel-2"),
+                "etiqueta": "ANTES",
+                "imagen": f"{base}/ATD_OID{oid}_A.png",
+            },
+            "despues": {
+                "fecha": d_meta.get("fecha"),
+                "sat": d_meta.get("sat", "Sentinel-2"),
+                "etiqueta": "DESPUÉS",
+                "imagen": f"{base}/ATD_OID{oid}_D.png" if d_png.exists() else None,
+            },
+        })
+    return demo_alertas
+
+
+def _resumen_acr_zi(stats: dict) -> dict:
+    acr: dict = {}
+    zi: dict = {}
+    for key, val in (stats.get("by_zona_tipo") or {}).items():
+        if "|" not in key:
+            continue
+        zona, tipo = key.split("|", 1)
+        bucket = zi if zona.strip().upper().startswith("ZI") else acr
+        z = bucket.setdefault(zona, {"n": 0, "ha": 0.0, "tipos": {}})
+        z["n"] += int(val.get("n") or 0)
+        z["ha"] = round(z["ha"] + float(val.get("ha") or 0), 4)
+        z["tipos"][tipo] = {"n": val.get("n"), "ha": val.get("ha")}
+    for bucket in (acr, zi):
+        for z in bucket.values():
+            z["ha"] = round(z["ha"], 2)
+    return {
+        "acr": dict(sorted(acr.items(), key=lambda x: -x[1]["n"])),
+        "zi": dict(sorted(zi.items(), key=lambda x: -x[1]["n"])),
+    }
 
 
 def sync_region(source: Path, region_key: str, pkg_folder: str, label: str) -> dict:
@@ -147,6 +255,25 @@ def sync_region(source: Path, region_key: str, pkg_folder: str, label: str) -> d
         if "procedimiento" in html.name.lower():
             proc = f"/reportes_atd/{region_key}/documentacion_atd/{html.name}"
 
+    demo_alertas = _sync_sentinel(pkg, dest, region_key, pdfs)
+    if region_key == "loreto":
+        loreto_oids = {"1009", "1542", "1546", "1552", "1553", "1554"}
+        demo_alertas = [a for a in demo_alertas if str(a.get("oid")) in loreto_oids]
+        demo_alertas.sort(
+            key=lambda a: (
+                0 if str(a.get("oid")) == "1009" else 1,
+                int(a.get("oid") or 0),
+            )
+        )
+    else:
+        pdf_oids = {str(p.get("oid")) for p in pdfs if p.get("oid")}
+        if pdf_oids:
+            demo_alertas = [a for a in demo_alertas if str(a.get("oid")) in pdf_oids]
+        demo_alertas.sort(key=lambda a: (0 if a.get("pdf_url") else 1, int(a.get("oid") or 0)))
+    if not stats.get("total") and region_key != "global":
+        global_stats = _read_json(source / "Informe_ATD_preliminar" / "output" / "cuadro_causas_monitoreo.json")
+        stats = _filter_stats_for_region(global_stats, region_key)
+
     return {
         "id": region_key,
         "label": label,
@@ -154,10 +281,12 @@ def sync_region(source: Path, region_key: str, pkg_folder: str, label: str) -> d
         "disponible": pkg.exists(),
         "periodo": periodo,
         "estadisticas": stats,
+        "resumen_acr_zi": _resumen_acr_zi(stats),
         "n_reportes": len(pdfs),
         "reportes_pdf": pdfs,
         "ejemplos_pdf": docs,
         "documentacion": swipe,
+        "demo_alertas": demo_alertas,
         "guia": guia,
         "metodologia_url": metodologia,
         "procedimiento_url": proc,
@@ -199,6 +328,23 @@ def main() -> int:
     total_pdfs = sum(r["n_reportes"] for r in regiones)
     print(f"OK: {total_pdfs} reportes PDF -> {OUT}")
     print(f"Manifest: {manifest_path}")
+
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "export_vectores_loreto_atd.py")], check=False)
+
+    logo_files = {
+        "logo_gfp.png": source / "ATD_Loreto" / "logos" / "logo_gfp.png",
+        "logo_basel.png": source / "ATD_Loreto" / "logos" / "logo_basel.png",
+        "logo_SECO.jpg": source / "ATD_Loreto" / "logos" / "logo_SECO.jpg",
+    }
+    assets_dir = OUT / "assets"
+    assets_dir.mkdir(parents=True, exist_ok=True)
+    for name, logo_src in logo_files.items():
+        if logo_src.is_file():
+            shutil.copy2(logo_src, assets_dir / name)
+            print(f"Logo -> {assets_dir / name}")
     return 0
 
 

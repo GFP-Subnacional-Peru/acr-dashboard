@@ -36,6 +36,14 @@ from services.dashboard_service import datos_para_graficos
 from services.decretos_service import ACR_DECRETOS, obtener_info_decreto
 from core.rds_bridge import load_centroides_deforestacion
 from services.deforestacion_service import filtrar_centroides, resumen_centroides_por_region
+from services.deforestacion_vectors_service import (
+    LORETO_CODIGOS,
+    _merge_kpis,
+    graficos_desde_acumulado,
+    kpis_desde_acumulado,
+    load_acumulado_vectors,
+    loreto_en_alcance,
+)
 from services.estadisticas_service import estadisticas_a_catalogo
 from services.filtros_config import ACR_OPCIONES_POR_DEPTO
 from services.filtros_service import (
@@ -63,6 +71,113 @@ def _get_centroides_cached() -> pd.DataFrame:
     _APP_STATE["_centroides_loaded"] = True
     print(f"Mapa listo: {len(centroides)} puntos.", flush=True)
     return centroides
+
+
+def _loreto_acrs_seleccionados(acrs: list[str] | None) -> list[str]:
+    if not acrs:
+        return []
+    return [c for c in acrs if c in LORETO_CODIGOS]
+
+
+def _centroides_excluyendo_loreto(
+    centroides_df: pd.DataFrame,
+    departamento: str,
+    ambito: str,
+    acr_filtros: list[str] | None,
+    anno_desde: int | None,
+    anno_hasta: int | None,
+) -> pd.DataFrame:
+    otros = [c for c in (acr_filtros or []) if c not in LORETO_CODIGOS]
+    depto = departamento
+    if depto == "loreto":
+        return pd.DataFrame()
+    if depto == "todos" and acr_filtros and not otros:
+        return pd.DataFrame()
+    filtros = otros if acr_filtros else acr_filtros
+    df = filtrar_centroides(
+        centroides_df, depto, ambito, filtros, anno_desde=anno_desde, anno_hasta=anno_hasta
+    )
+    if df.empty:
+        return df
+    return df[~df["codigo"].isin(LORETO_CODIGOS)]
+
+
+def _kpis_combinados(
+    centroides_df: pd.DataFrame,
+    departamento: str,
+    ambito: str,
+    acr_filtros: list[str] | None,
+    anno_desde: int | None,
+    anno_hasta: int | None,
+) -> dict | None:
+    loreto_k = None
+    if loreto_en_alcance(departamento, acr_filtros):
+        loreto_sel = _loreto_acrs_seleccionados(acr_filtros) or None
+        loreto_k = kpis_desde_acumulado(
+            "loreto", ambito, loreto_sel, anno_desde=anno_desde, anno_hasta=anno_hasta
+        )
+
+    otros_k = None
+    if departamento != "loreto":
+        df = _centroides_excluyendo_loreto(
+            centroides_df, departamento, ambito, acr_filtros, anno_desde, anno_hasta
+        )
+        if not df.empty:
+            otros_k = kpis_desde_centroides(
+                df, departamento if departamento != "todos" else "todos", ambito, None,
+                anno_desde=anno_desde, anno_hasta=anno_hasta,
+            )
+
+    if loreto_k and otros_k:
+        return _merge_kpis(loreto_k, otros_k)
+    return loreto_k or otros_k
+
+
+def _graficos_combinados(
+    centroides_df: pd.DataFrame,
+    departamento: str,
+    ambito: str | None,
+    acr_filtros: list[str] | None,
+    anno_desde: int | None,
+    anno_hasta: int | None,
+) -> dict | None:
+    amb = ambito or "acr"
+    acrs = acr_filtros or []
+    loreto_sel = _loreto_acrs_seleccionados(acrs)
+    otros_sel = [c for c in acrs if c not in LORETO_CODIGOS]
+
+    g_loreto = None
+    if loreto_en_alcance(departamento, acr_filtros):
+        if not acrs or loreto_sel:
+            g_loreto = graficos_desde_acumulado(
+                "loreto", amb, loreto_sel or None, anno_desde=anno_desde, anno_hasta=anno_hasta
+            )
+
+    g_otros = None
+    if departamento != "loreto" and (not acrs or otros_sel):
+        df = _centroides_excluyendo_loreto(
+            centroides_df, departamento, amb, acr_filtros, anno_desde, anno_hasta
+        )
+        if not df.empty:
+            g_otros = graficos_desde_centroides(
+                df, departamento if departamento != "todos" else "todos", amb, None,
+                anno_desde=anno_desde, anno_hasta=anno_hasta,
+            )
+
+    if g_loreto and not g_otros:
+        return g_loreto
+    if g_otros and not g_loreto:
+        return g_otros
+    if g_loreto and g_otros:
+        if len(acrs) == 1:
+            return g_loreto
+        if g_loreto.get("modo") == "comparativa" and g_otros.get("modo") == "comparativa":
+            merged = dict(g_loreto)
+            merged["comparativa"] = (g_loreto.get("comparativa") or []) + (g_otros.get("comparativa") or [])
+            merged["modo"] = "comparativa"
+            return merged
+        return g_loreto if loreto_sel and not otros_sel else g_otros
+    return None
 
 
 @asynccontextmanager
@@ -164,9 +279,13 @@ def kpis_endpoint(
 ) -> dict:
     est = _APP_STATE["estadisticas"]
     cent = _get_centroides_cached()
-    kpis = kpis_desde_centroides(
+    kpis = _kpis_combinados(
         cent, departamento, ambito, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
     )
+    if kpis is None:
+        kpis = kpis_desde_centroides(
+            cent, departamento, ambito, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
+        )
     if kpis is None:
         kpis = generar_resumen_kpis(est, filtros=acr, depto=departamento, ambito=ambito)
     kpis["variacion_anual"] = calcular_variacion_anual(acr, departamento)
@@ -191,9 +310,13 @@ def graficos_endpoint(
     est = _APP_STATE["estadisticas"]
     amb = ambito if ambito else None
     cent = _get_centroides_cached()
-    graficos = graficos_desde_centroides(
-        cent, departamento, amb or "acr", acr, anno_desde=anno_desde, anno_hasta=anno_hasta
+    graficos = _graficos_combinados(
+        cent, departamento, amb, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
     )
+    if graficos is None:
+        graficos = graficos_desde_centroides(
+            cent, departamento, amb or "acr", acr, anno_desde=anno_desde, anno_hasta=anno_hasta
+        )
     if graficos is not None:
         return graficos
     return datos_para_graficos(est, acr, departamento, amb)
@@ -259,6 +382,26 @@ def atd_archivo_endpoint(region: str, path: str) -> FileResponse:
         raise HTTPException(404, "Archivo ATD no encontrado")
     media = "application/pdf" if archivo.suffix.lower() == ".pdf" else "text/html"
     return FileResponse(archivo, media_type=media, filename=archivo.name)
+
+
+@app.get("/api/deforestacion/vectors")
+def deforestacion_vectors_endpoint(
+    departamento: str = Query("loreto"),
+    ambito: str = Query("acr"),
+    acr: list[str] | None = Query(None),
+    anno_desde: int | None = Query(None, ge=2001, le=2030),
+    anno_hasta: int | None = Query(None, ge=2001, le=2030),
+    limit: int = Query(0, ge=0, le=50000),
+) -> dict:
+    """Polígonos MonitoreoDeforestacionAcumulado (Loreto)."""
+    return load_acumulado_vectors(
+        departamento=departamento,
+        ambito=ambito or "acr",
+        acrs=acr,
+        anno_desde=anno_desde,
+        anno_hasta=anno_hasta,
+        limit=limit,
+    )
 
 
 @app.get("/api/deforestacion/centroides")

@@ -1,0 +1,36 @@
+{
+  "zonas": {
+    "Ampiyacu Apayacu": {
+      "slug": "ampiyacu_apayacu",
+      "n": 770
+    },
+    "Comunal Tahuayo": {
+      "slug": "comunal_tahuayo",
+      "n": 894
+    },
+    "Maijuna Kichwa": {
+      "slug": "maijuna_kichwa",
+      "n": 1176
+    },
+    "Nanay": {
+      "slug": "nanay",
+      "n": 2439
+    },
+    "ZI AA": {
+      "slug": "zi_aa",
+      "n": 8513
+    },
+    "ZI ANPCH": {
+      "slug": "zi_anpch",
+      "n": 10629
+    },
+    "ZI CTT": {
+      "slug": "zi_ctt",
+      "n": 7262
+    },
+    "ZI MK": {
+      "slug": "zi_mk",
+      "n": 6268
+    }
+  }
+}
