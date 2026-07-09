@@ -385,13 +385,32 @@ const AtdDemo = (() => {
     if (!h1Started) {
       stage.innerHTML = `
         <div class="atd-demo-panel atd-h1-mission">
-          <div class="atd-mission-hero">
-            <div class="atd-mission-badge">MISIÓN H1</div>
-            <h4><i class="fas fa-cloud-download-alt"></i> Descarga GeoBosques</h4>
-            <p>Conecta con MINAM, filtra alertas del periodo y cárgalas al GDB <em>MonitoreoDeforestacion</em>.</p>
-            <button type="button" class="atd-mission-start" id="atd-h1-start">
-              <i class="fas fa-play"></i> Iniciar descarga
+          <div class="atd-mission-hero atd-game-screen">
+            <div class="atd-game-scanlines" aria-hidden="true"></div>
+            <div class="atd-game-hud">
+              <span class="atd-mission-badge">MISIÓN H1</span>
+              <span class="atd-game-level"><i class="fas fa-star"></i> NIVEL 1</span>
+            </div>
+            <div class="atd-game-icon-wrap">
+              <div class="atd-game-icon"><i class="fas fa-cloud-download-alt"></i></div>
+            </div>
+            <h4 class="atd-game-title">Descarga GeoBosques</h4>
+            <p class="atd-game-desc">Conecta con MINAM, filtra alertas del periodo y cárgalas al GDB <em>MonitoreoDeforestacion</em>.</p>
+            <div class="atd-mission-stats-preview">
+              <span><i class="fas fa-bell"></i> <strong>${total}</strong> alertas</span>
+              <span><i class="fas fa-tree"></i> <strong>${fmtHa(stats.total_ha)}</strong> ha</span>
+              <span><i class="fas fa-calendar"></i> ${periodo.fecha_ini || "—"} – ${periodo.fecha_fin || "—"}</span>
+            </div>
+            <ul class="atd-game-objectives">
+              <li><i class="fas fa-circle"></i> Conectar API MINAM GeoBosques</li>
+              <li><i class="fas fa-circle"></i> Filtrar ACR y ZI de Loreto</li>
+              <li><i class="fas fa-circle"></i> Cargar polígonos al GDB</li>
+            </ul>
+            <button type="button" class="atd-mission-start atd-game-start" id="atd-h1-start">
+              <span class="atd-game-start-glow" aria-hidden="true"></span>
+              <i class="fas fa-play"></i> INICIAR
             </button>
+            <p class="atd-game-hint"><i class="fas fa-gamepad"></i> Presiona INICIAR para comenzar la misión</p>
           </div>
         </div>`;
       stage.querySelector("#atd-h1-start")?.addEventListener("click", () => {
@@ -406,11 +425,13 @@ const AtdDemo = (() => {
   function runH1Animation(total, stats, periodo, tipos) {
     stage.innerHTML = `
       <div class="atd-demo-panel atd-h1-mission">
-        <div class="atd-h1-live">
+        <div class="atd-h1-live atd-game-loading">
+          <div class="atd-game-loading-badge">EJECUTANDO MISIÓN…</div>
           <div class="atd-live-header">
             <span class="atd-live-pulse"></span> Conectando API GeoBosques MINAM…
           </div>
-          <div class="atd-xp-bar"><div class="atd-xp-fill" id="atd-xp-fill"></div></div>
+          <div class="atd-xp-bar" aria-label="Progreso"><div class="atd-xp-fill" id="atd-xp-fill"></div></div>
+          <p class="atd-xp-label" id="atd-xp-label">0%</p>
           <div class="atd-h1-pipeline atd-pipeline-live">
             <div class="atd-pipe-step atd-pipe-live" data-p="0"><div class="atd-pipe-icon"><i class="fas fa-globe-americas"></i></div><span>API MINAM</span></div>
             <div class="atd-pipe-step atd-pipe-live" data-p="1"><div class="atd-pipe-icon"><i class="fas fa-filter"></i></div><span>Filtro ACR</span></div>
@@ -427,6 +448,7 @@ const AtdDemo = (() => {
     const map = stage.querySelector("#atd-mini-map");
     const log = stage.querySelector("#atd-live-log");
     const xp = stage.querySelector("#atd-xp-fill");
+    const xpLabel = stage.querySelector("#atd-xp-label");
     const counter = stage.querySelector("#atd-live-count");
     const steps = stage.querySelectorAll(".atd-pipe-live");
 
@@ -445,6 +467,7 @@ const AtdDemo = (() => {
     const interval = setInterval(() => {
       progress = Math.min(100, progress + 2.5);
       xp.style.width = `${progress}%`;
+      if (xpLabel) xpLabel.textContent = `${Math.round(progress)}%`;
       count = Math.floor((progress / 100) * target);
       counter.textContent = count;
       if (map && progress > 20) {
@@ -1157,19 +1180,8 @@ const AtdDemo = (() => {
       h2SubStep = 3;
       if (!selectedOid) selectedOid = pickDefaultOid();
     }
-    if (paso === "H1") {
-      if (!h1Started) {
-        h1Started = true;
-        const stats = statsForRegion();
-        const periodo = reg?.periodo || {};
-        const byTipo = stats.by_tipo || {};
-        const tipos = Object.entries(byTipo);
-        const total = stats.total || tipos.reduce((s, [, v]) => s + (v.n || 0), 0);
-        runH1Animation(total, stats, periodo, tipos);
-      } else {
-        renderH1();
-      }
-    } else if (paso === "H2") renderH2();
+    if (paso === "H1") renderH1();
+    else if (paso === "H2") renderH2();
     else if (paso === "H3") renderH3();
     stage.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }

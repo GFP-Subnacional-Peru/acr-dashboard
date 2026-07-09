@@ -1132,7 +1132,7 @@ body {
   display: block;
 }
 
-/* H1 — misión interactiva */
+/* H1 — misión interactiva (estilo videojuego) */
 .atd-h1-mission { padding: 0 !important; overflow: hidden; }
 .atd-mission-hero {
   text-align: center;
@@ -1140,6 +1140,166 @@ body {
   background: linear-gradient(160deg, #0d2137 0%, #1a4d6e 50%, #006D5B 100%);
   color: #fff;
   border-radius: 14px;
+}
+.atd-game-screen {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(243, 156, 18, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(0, 61, 165, 0.35),
+    0 20px 50px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.atd-game-scanlines {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  opacity: 0.5;
+}
+.atd-game-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+.atd-game-level {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #f39c12;
+  text-transform: uppercase;
+}
+.atd-game-icon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+.atd-game-icon {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  color: #fff;
+  background: linear-gradient(145deg, #003DA5, #006D5B);
+  border: 3px solid rgba(243, 156, 18, 0.8);
+  box-shadow: 0 0 30px rgba(243, 156, 18, 0.35);
+  animation: atdGameIconPulse 2.5s ease-in-out infinite;
+}
+@keyframes atdGameIconPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(243, 156, 18, 0.35); }
+  50% { transform: scale(1.06); box-shadow: 0 0 45px rgba(243, 156, 18, 0.55); }
+}
+.atd-game-title {
+  color: #fff;
+  margin: 0 0 8px;
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  position: relative;
+  z-index: 1;
+}
+.atd-game-desc {
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0 0 1.25rem;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.55;
+  position: relative;
+  z-index: 1;
+}
+.atd-game-objectives {
+  list-style: none;
+  margin: 0 auto 1.5rem;
+  padding: 14px 18px;
+  max-width: 420px;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  font-size: 13px;
+  position: relative;
+  z-index: 1;
+}
+.atd-game-objectives li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+.atd-game-objectives li i {
+  font-size: 7px;
+  color: #f39c12;
+}
+.atd-game-start {
+  position: relative;
+  z-index: 1;
+  min-width: 220px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  animation: atdStartPulse 2s ease-in-out infinite;
+}
+@keyframes atdStartPulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(243, 156, 18, 0.45); }
+  50% { box-shadow: 0 12px 36px rgba(243, 156, 18, 0.7), 0 0 20px rgba(243, 156, 18, 0.4); }
+}
+.atd-game-start-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(243, 156, 18, 0.35) 0%, transparent 70%);
+  z-index: -1;
+  animation: atdGlow 1.5s ease-in-out infinite;
+}
+@keyframes atdGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.atd-game-hint {
+  margin: 1rem 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  position: relative;
+  z-index: 1;
+}
+.atd-game-loading {
+  background: linear-gradient(160deg, #0a1628 0%, #122a45 55%, #0d3d35 100%);
+  border-radius: 14px;
+  color: #fff;
+  border: 2px solid rgba(0, 61, 165, 0.4);
+}
+.atd-game-loading-badge {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(227, 6, 19, 0.85);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+.atd-xp-label {
+  text-align: right;
+  font-size: 11px;
+  font-weight: 700;
+  color: #f39c12;
+  margin: -6px 0 10px;
 }
 .atd-mission-badge {
   display: inline-block;
@@ -1154,9 +1314,16 @@ body {
 .atd-mission-hero h4 { color: #fff; margin: 0 0 8px; font-size: 1.4rem; }
 .atd-mission-hero p { color: rgba(255,255,255,.85); margin: 0 0 1.25rem; }
 .atd-mission-stats-preview {
-  display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
-  margin-bottom: 1.5rem; font-size: 14px; opacity: .9;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
 }
+.atd-mission-stats-preview strong { color: #f39c12; }
 .atd-mission-start {
   background: linear-gradient(135deg, #f39c12, #e67e22);
   color: #fff;
