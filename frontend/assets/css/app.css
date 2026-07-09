@@ -1144,6 +1144,10 @@ body {
 .atd-game-screen {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   border: 2px solid rgba(243, 156, 18, 0.45);
   box-shadow:
     0 0 0 1px rgba(0, 61, 165, 0.35),
@@ -1171,6 +1175,7 @@ body {
   margin-bottom: 1.25rem;
   position: relative;
   z-index: 1;
+  width: 100%;
 }
 .atd-game-level {
   font-size: 11px;
@@ -1213,19 +1218,22 @@ body {
   position: relative;
   z-index: 1;
 }
-.atd-game-desc {
-  color: rgba(255, 255, 255, 0.88);
-  margin: 0 0 1.25rem;
-  max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.55;
+.atd-game-desc-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
   position: relative;
   z-index: 1;
 }
-.atd-game-desc-center {
-  text-align: center;
+.atd-game-desc {
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0 0 1.25rem;
+  max-width: 560px;
   width: 100%;
+  line-height: 1.55;
+  text-align: center !important;
 }
 .atd-game-objectives {
   list-style: none;
@@ -1315,8 +1323,8 @@ body {
   letter-spacing: .1em;
   margin-bottom: 12px;
 }
-.atd-mission-hero h4 { color: #fff; margin: 0 0 8px; font-size: 1.4rem; }
-.atd-mission-hero p { color: rgba(255,255,255,.85); margin: 0 0 1.25rem; }
+.atd-mission-hero h4 { color: #fff; margin: 0 0 8px; font-size: 1.4rem; text-align: center; }
+.atd-mission-hero p { color: rgba(255,255,255,.85); margin: 0 0 1.25rem; text-align: center !important; }
 .atd-mission-stats-preview {
   display: flex;
   gap: 1.5rem;

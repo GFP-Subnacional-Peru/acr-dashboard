@@ -395,7 +395,9 @@ const AtdDemo = (() => {
               <div class="atd-game-icon"><i class="fas fa-cloud-download-alt"></i></div>
             </div>
             <h4 class="atd-game-title">Descarga GeoBosques</h4>
-            <p class="atd-game-desc atd-game-desc-center">Conecta con MINAM, filtra alertas del periodo y cárgalas al GDB <em>MonitoreoDeforestacion</em>.</p>
+            <div class="atd-game-desc-wrap">
+              <p class="atd-game-desc">Conecta con MINAM, filtra alertas del periodo y cárgalas al GDB <em>MonitoreoDeforestacion</em>.</p>
+            </div>
             <ul class="atd-game-objectives">
               <li><i class="fas fa-circle"></i> Conectar API MINAM GeoBosques</li>
               <li><i class="fas fa-circle"></i> Filtrar ACR y ZI de Loreto</li>
