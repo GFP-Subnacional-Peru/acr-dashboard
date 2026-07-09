@@ -1205,5 +1205,5 @@ const AtdDemo = (() => {
     document.querySelectorAll(".atd-flow-step").forEach((el) => el.classList.remove("atd-flow-active"));
   }
 
-  return { mount, showStep, reset };
+  return { mount, showStep, reset, footerHtml: instFooterHtml };
 })();

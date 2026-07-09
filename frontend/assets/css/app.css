@@ -709,6 +709,12 @@ body {
 .atd-badge.hidden { display: none; }
 .atd-root.hidden,
 .atd-section-divider.hidden { display: none; }
+.atd-loading-panel {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #003DA5;
+  font-weight: 600;
+}
 .atd-loading, .atd-empty {
   text-align: center;
   padding: 2rem;

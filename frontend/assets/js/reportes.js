@@ -115,7 +115,30 @@ const Reportes = (() => {
     </article>`;
   }
 
-  function renderAtd() {
+  function updateAtdBadge() {
+    const badge = document.getElementById("atd-badge");
+    if (!badge || !atdCatalog?.disponible) return;
+    const total = atdCatalog.total_reportes || 0;
+    badge.textContent = String(total);
+    badge.classList.toggle("hidden", !total);
+  }
+
+  async function fetchAtdCatalog(retries = 8) {
+    let lastErr;
+    for (let i = 0; i < retries; i++) {
+      try {
+        const res = await fetch("/api/atd/catalogo", { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } catch (err) {
+        lastErr = err;
+        await new Promise((r) => setTimeout(r, 800 + i * 400));
+      }
+    }
+    throw lastErr;
+  }
+
+  function renderAtd(autoStart = false) {
     const root = document.getElementById("atd-root");
     if (!root) return;
 
@@ -157,7 +180,7 @@ const Reportes = (() => {
         <div class="atd-flow">${flujo}</div>
       </div>
 
-      <div id="atd-demo-stage" class="atd-demo-stage hidden" aria-live="polite"></div>
+      <div id="atd-demo-stage" class="atd-demo-stage" aria-live="polite"></div>
 
       <div class="reportes-filter-bar well-panel atd-filter atd-filter-compact">
         <label for="filtro_depto_atd"><i class="fas fa-filter"></i> Región:</label>
@@ -168,6 +191,7 @@ const Reportes = (() => {
         </select>
         ${reg?.guia ? `<a class="btn btn-warning btn-sm atd-guia-btn" href="${reg.guia.url}" target="_blank" rel="noopener"><i class="fas fa-book-open"></i> Guía</a>` : ""}
       </div>
+      <div id="atd-inst-footer-slot"></div>
     `;
 
       const sel = document.getElementById("filtro_depto_atd");
@@ -176,20 +200,22 @@ const Reportes = (() => {
         sel.onchange = (e) => {
           atdDepto = e.target.value;
           AtdDemo.reset();
-          renderAtd();
+          renderAtd(true);
         };
       }
 
       if (typeof AtdDemo !== "undefined") {
         AtdDemo.mount(reg, regionGlobal, undefined, atdCatalog.regiones);
+        const footerSlot = document.getElementById("atd-inst-footer-slot");
+        if (footerSlot && AtdDemo.footerHtml) {
+          footerSlot.innerHTML = AtdDemo.footerHtml();
+        }
+        if (autoStart) {
+          setTimeout(() => AtdDemo.showStep("H1"), 50);
+        }
       }
 
-      const badge = document.getElementById("atd-badge");
-      if (badge) {
-        const total = atdCatalog.total_reportes || reportes.length;
-        badge.textContent = String(total);
-        badge.classList.toggle("hidden", !total);
-      }
+      updateAtdBadge();
     } catch (err) {
       console.error("renderAtd:", err);
       root.innerHTML = `<p class="atd-empty">Error al mostrar reportes ATD. Recargue la página.</p>`;
@@ -199,16 +225,22 @@ const Reportes = (() => {
   async function loadAtd() {
     const root = document.getElementById("atd-root");
     try {
-      const res = await fetch("/api/atd/catalogo");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      atdCatalog = await res.json();
-      renderAtd();
+      if (!atdCatalog) {
+        atdCatalog = await fetchAtdCatalog();
+      }
+      updateAtdBadge();
+      return atdCatalog;
     } catch (e) {
       console.error("loadAtd:", e);
-      if (root) {
-        root.innerHTML = `<p class="atd-empty">No se pudo cargar el catálogo ATD. ${e.message || ""}</p>`;
+      if (root && !root.classList.contains("hidden")) {
+        root.innerHTML = `<p class="atd-empty">No se pudo cargar el catálogo ATD. El servidor puede estar despertando — espere un momento y vuelva a la pestaña ATD.<br><small>${e.message || ""}</small></p>`;
       }
+      throw e;
     }
+  }
+
+  function atdLoadingHtml() {
+    return `<div class="atd-loading atd-loading-panel"><i class="fas fa-spinner fa-spin"></i> Cargando demo ATD GeoBosques…</div>`;
   }
 
   function bindSubtabs() {
@@ -227,8 +259,14 @@ const Reportes = (() => {
       panelMapas?.classList.add("hidden");
       atdRoot?.classList.remove("hidden");
       atdDivider?.classList.remove("hidden");
-      if (!atdCatalog) loadAtd();
-      else renderAtd();
+      if (!atdCatalog) {
+        if (atdRoot) atdRoot.innerHTML = atdLoadingHtml();
+        loadAtd()
+          .then(() => renderAtd(true))
+          .catch(() => {});
+      } else {
+        renderAtd(true);
+      }
       atdRoot?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
@@ -291,7 +329,7 @@ const Reportes = (() => {
     renderAllDepartments();
     const sel = document.getElementById("filtro_depto_mapas");
     showDepartment(sel?.value || "loreto");
-    loadAtd();
+    loadAtd().catch(() => {});
   }
 
   return { init };
