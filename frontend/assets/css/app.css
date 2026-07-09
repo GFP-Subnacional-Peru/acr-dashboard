@@ -1223,6 +1223,10 @@ body {
   position: relative;
   z-index: 1;
 }
+.atd-game-desc-center {
+  text-align: center;
+  width: 100%;
+}
 .atd-game-objectives {
   list-style: none;
   margin: 0 auto 1.5rem;
