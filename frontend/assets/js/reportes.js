@@ -180,8 +180,6 @@ const Reportes = (() => {
         <div class="atd-flow">${flujo}</div>
       </div>
 
-      <div id="atd-demo-stage" class="atd-demo-stage" aria-live="polite"></div>
-
       <div class="reportes-filter-bar well-panel atd-filter atd-filter-compact">
         <label for="filtro_depto_atd"><i class="fas fa-filter"></i> Región:</label>
         <select id="filtro_depto_atd">
@@ -191,6 +189,8 @@ const Reportes = (() => {
         </select>
         ${reg?.guia ? `<a class="btn btn-warning btn-sm atd-guia-btn" href="${reg.guia.url}" target="_blank" rel="noopener"><i class="fas fa-book-open"></i> Guía</a>` : ""}
       </div>
+
+      <div id="atd-demo-stage" class="atd-demo-stage" aria-live="polite"></div>
       <div id="atd-inst-footer-slot"></div>
     `;
 

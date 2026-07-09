@@ -228,13 +228,14 @@ const AtdDemo = (() => {
   }
 
   function instFooterHtml() {
+    const imgStyle = 'height:52px;width:auto;max-width:160px;object-fit:contain';
     return `<footer class="atd-inst-footer">
       <div class="atd-inst-footer-inner">
         <div class="atd-inst-footer-brand">
           <div class="atd-inst-logos-row" aria-label="GFP, SECO y Basel Institute">
-            <img src="${LOGO_GFP}" alt="GFP — Suiza apoyando al Perú" class="atd-inst-logo-part atd-inst-logo-gfp" loading="lazy"/>
-            <img src="${LOGO_SECO}" alt="Embajada de Suiza en el Perú — SECO" class="atd-inst-logo-part atd-inst-logo-seco" loading="lazy"/>
-            <img src="${LOGO_BASEL}" alt="Basel Institute on Governance" class="atd-inst-logo-part atd-inst-logo-basel" loading="lazy"/>
+            <img src="${LOGO_GFP}" alt="GFP — Suiza apoyando al Perú" class="atd-inst-logo-part atd-inst-logo-gfp" style="${imgStyle}" loading="lazy"/>
+            <img src="${LOGO_SECO}" alt="Embajada de Suiza en el Perú — SECO" class="atd-inst-logo-part atd-inst-logo-seco" style="${imgStyle}" loading="lazy"/>
+            <img src="${LOGO_BASEL}" alt="Basel Institute on Governance" class="atd-inst-logo-part atd-inst-logo-basel" style="${imgStyle}" loading="lazy"/>
           </div>
           <p>GFP Subnacional · Cooperación Suiza (SECO) · Basel Institute on Governance</p>
         </div>
@@ -532,7 +533,6 @@ const AtdDemo = (() => {
             </button>
           </div>
         </div>
-        ${instFooterHtml()}
       </div>`;
 
     initH1Leaflet(zonas);
@@ -800,8 +800,7 @@ const AtdDemo = (() => {
         <button type="button" class="btn btn-primary" data-next="H3" id="atd-h2-to-h3">
           <i class="fas fa-file-pdf"></i> Generar reporte H3
         </button>
-      </div>
-      ${instFooterHtml()}`;
+      </div>`;
 
     renderH2SubPanel(alerta, list.length ? list : [alerta], scenes, marker);
 
@@ -1146,7 +1145,6 @@ const AtdDemo = (() => {
         <div class="atd-demo-footer">
           <button type="button" class="btn btn-outline" data-prev="H2">Volver a H2</button>
         </div>`}
-        ${instFooterHtml()}
       </div>`;
     stage.querySelector("[data-prev='H2']")?.addEventListener("click", () => showStep("H2"));
   }
@@ -1159,8 +1157,19 @@ const AtdDemo = (() => {
       h2SubStep = 3;
       if (!selectedOid) selectedOid = pickDefaultOid();
     }
-    if (paso === "H1") renderH1();
-    else if (paso === "H2") renderH2();
+    if (paso === "H1") {
+      if (!h1Started) {
+        h1Started = true;
+        const stats = statsForRegion();
+        const periodo = reg?.periodo || {};
+        const byTipo = stats.by_tipo || {};
+        const tipos = Object.entries(byTipo);
+        const total = stats.total || tipos.reduce((s, [, v]) => s + (v.n || 0), 0);
+        runH1Animation(total, stats, periodo, tipos);
+      } else {
+        renderH1();
+      }
+    } else if (paso === "H2") renderH2();
     else if (paso === "H3") renderH3();
     stage.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }

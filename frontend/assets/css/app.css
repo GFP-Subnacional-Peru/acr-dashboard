@@ -1508,6 +1508,12 @@ body {
   object-fit: contain;
   flex: 0 1 auto;
 }
+.atd-inst-footer img {
+  height: 52px !important;
+  width: auto !important;
+  max-width: 160px !important;
+  object-fit: contain !important;
+}
 .atd-inst-logo-gfp { max-height: 56px; max-width: 120px; }
 .atd-inst-logo-seco { max-height: 48px; max-width: 140px; }
 .atd-inst-logo-basel { max-height: 44px; max-width: 150px; }
