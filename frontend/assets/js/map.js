@@ -27,7 +27,7 @@ const AcrMap = (() => {
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
       { attribution: "© Esri", maxZoom: 18 }
     );
-    osm.addTo(map);
+    sat.addTo(map);
 
     defoLayer = L.layerGroup();
     clusterGroup = L.markerClusterGroup({
@@ -51,7 +51,7 @@ const AcrMap = (() => {
   function geoLayer(geo, style, groupName) {
     if (!geo || !geo.features || !geo.features.length) return null;
     return L.geoJSON(geo, {
-      style: () => style,
+      style: typeof style === "function" ? style : () => style,
       onEachFeature: (feature, layer) => {
         const p = feature.properties || {};
         if (p.popup_html) layer.bindPopup(p.popup_html, { maxWidth: 320 });
@@ -92,8 +92,9 @@ const AcrMap = (() => {
       }
       div.innerHTML = `<div style="background:#fff;padding:10px;border-radius:6px;font-size:12px;line-height:1.6">
         <b>🔍 Leyenda del Mapa</b><br>
-        <span style="color:#4CAF50">■</span> ACR<br>
-        <span style="color:#9E9E9E">■</span> Zona de Influencia<br>
+        <span style="color:#2E7D32">□</span> ACR (solo borde)<br>
+        <span style="color:#616161">□</span> Zona de Influencia (solo borde)<br>
+        <span style="color:#E30613">—</span> Límites departamentales<br>
         ${defoLine}
       </div>`;
       return div;
@@ -316,15 +317,16 @@ const AcrMap = (() => {
       console.warn("Ejecute exportar_datos.bat para polígonos ACR/ZI");
     }
 
-    const limColors = { LORETO: "#006D5B", SAN_MARTIN: "#D32F2F", CUSCO: "#FF6F00" };
+    const limColors = { LORETO: "#E30613", SAN_MARTIN: "#E30613", CUSCO: "#E30613" };
     if (layers.limites) {
       layerRefs.limites = geoLayer(
         layers.limites,
         (f) => ({
-          color: limColors[f.properties.codigo] || "#333",
-          weight: 2,
+          color: limColors[f.properties.codigo] || "#E30613",
+          weight: 2.5,
+          fill: false,
           fillOpacity: 0,
-          dashArray: "5,5",
+          opacity: 0.95,
         }),
         "limites"
       );
@@ -334,7 +336,13 @@ const AcrMap = (() => {
     if (layers.zi) {
       layerRefs.zi = geoLayer(
         layers.zi,
-        { fillColor: "#9E9E9E", fillOpacity: 0.25, color: "#616161", weight: 2 },
+        {
+          color: "#616161",
+          weight: 2,
+          fill: false,
+          fillOpacity: 0,
+          fillColor: "#9E9E9E",
+        },
         "zi"
       );
       if (layerRefs.zi) layerRefs.zi.addTo(map);
@@ -343,7 +351,13 @@ const AcrMap = (() => {
     if (layers.acr) {
       layerRefs.acr = geoLayer(
         layers.acr,
-        { fillColor: "#4CAF50", fillOpacity: 0.4, color: "#2E7D32", weight: 2.5 },
+        {
+          color: "#2E7D32",
+          weight: 2.5,
+          fill: false,
+          fillOpacity: 0,
+          fillColor: "#4CAF50",
+        },
         "acr"
       );
       if (layerRefs.acr) {
