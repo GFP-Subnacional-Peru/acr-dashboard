@@ -214,6 +214,18 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def no_cache_frontend(request, call_next):
+    """Evita que el iframe de WordPress / el navegador sirvan JS/CSS/HTML viejos."""
+    response = await call_next(request)
+    path = request.url.path or ""
+    if path == "/" or path.endswith((".html", ".js", ".css")):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
 # --- API ---
 
 @app.get("/api/health")
@@ -527,7 +539,14 @@ if _FRONTEND_DIR.exists():
 
     @app.get("/")
     def index():
-        return FileResponse(_FRONTEND_DIR / "index.html")
+        return FileResponse(
+            _FRONTEND_DIR / "index.html",
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
+        )
 else:
 
     @app.get("/")
