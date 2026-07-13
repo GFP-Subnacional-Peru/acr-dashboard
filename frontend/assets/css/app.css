@@ -98,44 +98,112 @@ body {
   line-height: 1.6;
 }
 
-.navbar {
-  display: flex;
-  align-items: center;
+/* Header institucional estilo GFP: logos izquierda + menú derecha */
+.site-header {
   background: #fff;
-  border-bottom: 1px solid #dce4ec;
-  padding: 0 1rem;
+  border-bottom: 1px solid #e6ebf0;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+  box-shadow: 0 2px 10px rgba(0, 40, 80, 0.06);
 }
-.navbar .brand {
-  color: var(--primary);
-  font-weight: 700;
-  padding: 1rem;
+.site-header-inner {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem;
+  flex-wrap: wrap;
 }
+.site-logos {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.site-logo {
+  display: block;
+  height: 48px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+}
+.site-logo-gfp {
+  text-decoration: none;
+}
+.site-logo-gfp img {
+  height: 52px;
+  width: auto;
+  max-width: 150px;
+  object-fit: contain;
+  display: block;
+}
+.site-logo-seco { height: 46px; max-width: 210px; }
+.site-logo-basel { height: 42px; max-width: 180px; }
+
+.navbar {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border-bottom: none;
+  padding: 0;
+  position: static;
+  box-shadow: none;
+  margin-left: auto;
+}
+.navbar .brand { display: none; }
 .nav-tabs {
   display: flex;
   list-style: none;
   margin: 0;
   padding: 0;
-  flex: 1;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .nav-tabs button {
   border: none;
   background: none;
-  padding: 1rem 1.25rem;
+  padding: 0.55rem 1rem;
   cursor: pointer;
-  color: #555;
-  font-weight: 600;
-  border-bottom: 3px solid transparent;
+  color: #003DA5;
+  font-weight: 700;
+  font-size: 0.92rem;
+  border-radius: 999px;
+  border-bottom: none;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-tabs button:hover {
+  background: rgba(0, 61, 165, 0.08);
 }
 .nav-tabs button.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
+  color: #fff;
+  background: #003DA5;
+  border-bottom-color: transparent;
+  box-shadow: 0 4px 12px rgba(0, 61, 165, 0.28);
+}
+.nav-tabs button i { margin-right: 6px; }
+
+@media (max-width: 900px) {
+  .site-header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .site-logos {
+    justify-content: center;
+    gap: 1rem;
+  }
+  .site-logo,
+  .site-logo-gfp img { height: 40px; }
+  .site-logo-seco { height: 38px; }
+  .site-logo-basel { height: 34px; }
+  .navbar { margin-left: 0; justify-content: center; }
+  .nav-tabs { justify-content: center; }
+  .nav-tabs button { font-size: 0.82rem; padding: 0.45rem 0.75rem; }
 }
 
 .tab-panel { display: none; padding: 0 1rem 2rem; }

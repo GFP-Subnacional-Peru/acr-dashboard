@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260713d" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260713e" />
 </head>
 <body>
   <div id="app-loading" class="app-loading">
@@ -19,15 +19,25 @@
       <div class="app-loading-bar"><span></span></div>
     </div>
   </div>
-  <nav class="navbar">
-    <div class="brand"><i class="fas fa-leaf"></i> Dashboard ACR</div>
-    <ul class="nav-tabs">
-      <li><button type="button" class="active" data-tab="dashboard"><i class="fas fa-chart-bar"></i> Dashboard</button></li>
-      <li><button type="button" data-tab="metodologia"><i class="fas fa-book-open"></i> Metodología</button></li>
-      <li><button type="button" data-tab="reportes"><i class="fas fa-download"></i> Reportes y Descargas</button></li>
-      <li><button type="button" data-tab="tendencias"><i class="fas fa-chart-line"></i> Tendencias</button></li>
-    </ul>
-  </nav>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-logos" aria-label="Identidad institucional">
+        <a class="site-logo site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
+          <img src="/reportes_atd/assets/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" width="140" height="52" loading="eager"/>
+        </a>
+        <img class="site-logo site-logo-seco" src="/reportes_atd/assets/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" width="200" height="52" loading="eager"/>
+        <img class="site-logo site-logo-basel" src="/reportes_atd/assets/logo_basel.png" alt="Basel Institute on Governance" width="170" height="48" loading="eager"/>
+      </div>
+      <nav class="navbar" aria-label="Secciones del dashboard">
+        <ul class="nav-tabs">
+          <li><button type="button" class="active" data-tab="dashboard"><i class="fas fa-chart-bar"></i> Dashboard</button></li>
+          <li><button type="button" data-tab="metodologia"><i class="fas fa-book-open"></i> Metodología</button></li>
+          <li><button type="button" data-tab="reportes"><i class="fas fa-download"></i> Reportes y Descargas</button></li>
+          <li><button type="button" data-tab="tendencias"><i class="fas fa-chart-line"></i> Tendencias</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
   <!-- DASHBOARD -->
   <section id="tab-dashboard" class="tab-panel active">
