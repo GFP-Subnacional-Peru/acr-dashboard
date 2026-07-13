@@ -111,38 +111,45 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1.5rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0.75rem 1.25rem;
+  padding: 0.85rem 1.25rem;
   flex-wrap: wrap;
 }
 .site-logos {
-  display: flex;
+  display: flex !important;
   align-items: center;
-  gap: 1.75rem;
+  gap: 2rem;
   flex-wrap: wrap;
-  min-width: 0;
+  min-width: 280px;
+  min-height: 56px;
+  flex: 1 1 auto;
 }
 .site-logo {
-  display: block;
-  height: 48px;
-  width: auto;
-  max-width: 200px;
-  object-fit: contain;
-}
-.site-logo-gfp {
-  text-decoration: none;
-}
-.site-logo-gfp img {
+  display: block !important;
   height: 52px;
   width: auto;
-  max-width: 150px;
+  max-width: 220px;
   object-fit: contain;
-  display: block;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
-.site-logo-seco { height: 46px; max-width: 210px; }
-.site-logo-basel { height: 42px; max-width: 180px; }
+.site-logo-gfp {
+  display: inline-flex !important;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.site-logo-gfp img {
+  height: 56px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  display: block !important;
+}
+.site-logo-seco { height: 50px; max-width: 230px; }
+.site-logo-basel { height: 46px; max-width: 200px; }
 
 .navbar {
   display: flex;
@@ -153,6 +160,7 @@ body {
   position: static;
   box-shadow: none;
   margin-left: auto;
+  flex: 0 1 auto;
 }
 .navbar .brand { display: none; }
 .nav-tabs {
@@ -191,17 +199,18 @@ body {
   .site-header-inner {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.75rem;
+    gap: 0.85rem;
   }
   .site-logos {
     justify-content: center;
-    gap: 1rem;
+    gap: 1.1rem;
+    min-width: 0;
   }
   .site-logo,
-  .site-logo-gfp img { height: 40px; }
-  .site-logo-seco { height: 38px; }
-  .site-logo-basel { height: 34px; }
-  .navbar { margin-left: 0; justify-content: center; }
+  .site-logo-gfp img { height: 44px; }
+  .site-logo-seco { height: 40px; }
+  .site-logo-basel { height: 36px; }
+  .navbar { margin-left: 0; justify-content: center; width: 100%; }
   .nav-tabs { justify-content: center; }
   .nav-tabs button { font-size: 0.82rem; padding: 0.45rem 0.75rem; }
 }
