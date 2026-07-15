@@ -33,6 +33,8 @@ _EMPTY_KPIS = {
     "pct_natural": 0.0,
     "pct_falsa": 0.0,
     "causa_principal": "Sin datos",
+    "causa_principal_ha": 0.0,
+    "causa_principal_pct": 0.0,
 }
 
 
@@ -68,7 +70,9 @@ def _sumar_features(features: list[dict]) -> tuple[float, float, float, float, d
             fal += area
         else:
             ant += area
-            sec = str(p.get("sector") or "Sin especificar").strip() or "Sin especificar"
+            sec = str(p.get("sector") or "").strip()
+            if not sec or sec.lower() in {"nan", "none", "null", "—", "-"}:
+                sec = "Sin especificar"
             sectores[sec] = sectores.get(sec, 0.0) + area
     total = ant + nat + fal
     return total, ant, nat, fal, sectores
@@ -82,7 +86,13 @@ def _kpis_from_features(features: list[dict]) -> dict:
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0
 
-    causa = max(sectores, key=sectores.get) if sectores else "Sin datos"
+    if sectores:
+        causa = max(sectores, key=sectores.get)
+        causa_ha = float(sectores[causa])
+    else:
+        causa = "Sin datos"
+        causa_ha = 0.0
+
     return {
         "total_hectareas": round(total, 2),
         "total_antropico": round(ant, 2),
@@ -92,6 +102,8 @@ def _kpis_from_features(features: list[dict]) -> dict:
         "pct_natural": _pct(nat),
         "pct_falsa": _pct(fal),
         "causa_principal": causa,
+        "causa_principal_ha": round(causa_ha, 2),
+        "causa_principal_pct": _pct(causa_ha),
     }
 
 
@@ -104,14 +116,18 @@ def _merge_kpis(a: dict, b: dict) -> dict:
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0
 
+    ha_a = float(a.get("causa_principal_ha") or 0)
+    ha_b = float(b.get("causa_principal_ha") or 0)
     causa_a = str(a.get("causa_principal") or "Sin datos")
     causa_b = str(b.get("causa_principal") or "Sin datos")
-    if causa_a == "Sin datos":
-        causa = causa_b
-    elif causa_b == "Sin datos":
-        causa = causa_a
+    if causa_a == "Sin datos" or ha_a <= 0:
+        causa, causa_ha = causa_b, ha_b
+    elif causa_b == "Sin datos" or ha_b <= 0:
+        causa, causa_ha = causa_a, ha_a
+    elif ha_a >= ha_b:
+        causa, causa_ha = causa_a, ha_a
     else:
-        causa = causa_a if float(a.get("total_antropico") or 0) >= float(b.get("total_antropico") or 0) else causa_b
+        causa, causa_ha = causa_b, ha_b
 
     return {
         "total_hectareas": round(total, 2),
@@ -122,6 +138,8 @@ def _merge_kpis(a: dict, b: dict) -> dict:
         "pct_natural": _pct(nat),
         "pct_falsa": _pct(fal),
         "causa_principal": causa,
+        "causa_principal_ha": round(causa_ha, 2),
+        "causa_principal_pct": _pct(causa_ha),
     }
 
 

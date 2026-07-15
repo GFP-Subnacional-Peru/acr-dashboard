@@ -267,9 +267,16 @@ function renderKpis(k) {
   qs("#kpi-porcentaje .label").textContent = k.texto_ambito_kpi || "DE ORIGEN ANTRÓPICO";
   qs("#kpi-porcentaje .sub").textContent = `${fmt(k.total_antropico)} ha de ${fmt(k.total_hectareas)} ha`;
 
-  const causa = k.causa_principal || "Agricultura";
-  qs("#kpi-causa .number").textContent = causa.length > 15 ? causa.slice(0, 15) + "..." : causa;
-  qs("#kpi-causa .sub").title = causa;
+  const causa = k.causa_principal || "Sin datos";
+  const causaHa = k.causa_principal_ha ?? 0;
+  const causaPct = k.causa_principal_pct ?? 0;
+  qs("#kpi-causa .number").textContent = `${fmt(causaHa)} ha`;
+  qs("#kpi-causa .number").style.color = "#1a4d2e";
+  const causaSub = qs("#kpi-causa .sub");
+  if (causaSub) {
+    causaSub.innerHTML = `<i class="fas fa-search"></i> ${causa} · ${causaPct}% del total`;
+    causaSub.title = `${causa}: ${fmt(causaHa)} ha (${causaPct}% del total filtrado)`;
+  }
 }
 
 function renderCharts(g) {

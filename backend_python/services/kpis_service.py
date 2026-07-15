@@ -61,6 +61,10 @@ def generar_resumen_kpis(
     total_ha = calcular_total_hectareas(datos)
     causas = obtener_causas_filtradas(est, filtros, depto, ambito)
     causa_principal = identificar_causa_principal(causas)
+    if causas is not None and not causas.empty:
+        causa_ha = float(causas["Area_Ha"].max())
+    else:
+        causa_ha = 0.0
 
     total_antropico = float(datos["Antropico"].sum(skipna=True))
     total_natural = float(datos["Perdida_natural"].sum(skipna=True))
@@ -78,6 +82,8 @@ def generar_resumen_kpis(
         "pct_natural": _pct(total_natural),
         "pct_falsa": _pct(total_falsa),
         "causa_principal": causa_principal,
+        "causa_principal_ha": round(causa_ha, 2),
+        "causa_principal_pct": _pct(causa_ha),
         "n_acrs": int(len(datos)),
         "fecha_calculo": date.today().isoformat(),
     }
