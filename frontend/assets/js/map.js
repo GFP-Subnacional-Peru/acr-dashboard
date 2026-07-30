@@ -123,12 +123,14 @@ const AcrMap = (() => {
     san_martin: ["ACR_BSM", "ACR_CE", "ZI_BSM", "ZI_CE"],
     cusco: ["ACR_CHQ", "ACR_CHU", "ACR_QK", "ZI_CHQ", "ZI_CHU", "ZI_QK"],
   };
+  const VECTOR_DEPTOS = ["loreto", "san_martin", "cusco"];
+  const ALL_VECTOR_CODES = new Set(VECTOR_DEPTOS.flatMap((d) => DEPTO_CODES[d]));
 
-  function shouldUseLoretoVectors(state) {
-    if (state.departamento === "loreto") return true;
+  function shouldUseVectors(state) {
+    if (VECTOR_DEPTOS.includes(state.departamento)) return true;
     if (state.departamento === "todos") {
       if (!state.acrs.length) return true;
-      return state.acrs.some((c) => DEPTO_CODES.loreto.includes(c));
+      return state.acrs.some((c) => ALL_VECTOR_CODES.has(c));
     }
     return false;
   }
@@ -145,9 +147,8 @@ const AcrMap = (() => {
       const allowed = new Set([...state.acrs, ...state.acrs.map((c) => c.replace("ACR_", "ZI_"))]);
       pts = pts.filter((p) => allowed.has(p.codigo));
     }
-    if (opts.excludeLoreto) {
-      const loreto = new Set(DEPTO_CODES.loreto);
-      pts = pts.filter((p) => !loreto.has(p.codigo));
+    if (opts.excludeVectorCodes) {
+      pts = pts.filter((p) => !ALL_VECTOR_CODES.has(p.codigo));
     }
     if (state.annoDesde != null && state.annoHasta != null) {
       const lo = Math.min(state.annoDesde, state.annoHasta);
@@ -172,30 +173,37 @@ const AcrMap = (() => {
     </div>`;
   }
 
-  function updateLoretoMapNote(state, meta, mode) {
+  function updateMapVectorsNote(state, meta, mode) {
     const el = document.getElementById("map-loreto-info");
     if (!el) return;
     const lo = Math.min(state.annoDesde, state.annoHasta);
     const hi = Math.max(state.annoDesde, state.annoHasta);
+    const deptoLabel = {
+      loreto: "Loreto",
+      san_martin: "San Martín",
+      cusco: "Cusco",
+      todos: "Todas las regiones",
+    }[state.departamento] || state.departamento;
     if (mode === "vectors" || mode === "mixed") {
       const n = meta?.count ?? 0;
-      el.innerHTML = `<i class="fas fa-info-circle"></i> <strong>Loreto</strong>: <b>${n.toLocaleString("es-PE")}</b> polígonos acumulados (${lo}–${hi}) · GDB <em>MonitoreoDeforestacionAcumulado</em>${
-        mode === "mixed" ? " · otros deptos. en centroides" : ""
+      el.innerHTML = `<i class="fas fa-info-circle"></i> <strong>${deptoLabel}</strong>: <b>${n.toLocaleString("es-PE")}</b> polígonos acumulados (${lo}–${hi}) · GDB <em>MonitoreoDeforestacionAcumulado</em>${
+        mode === "mixed" ? " · resto en centroides" : ""
       }`;
     } else {
-      el.innerHTML = `<i class="fas fa-info-circle"></i> Deforestación en centroides precalculados (${lo}–${hi}). En <strong>Loreto</strong> use el filtro de departamento o recargue si el servidor acaba de reiniciarse.`;
+      el.innerHTML = `<i class="fas fa-info-circle"></i> Deforestación en centroides precalculados (${lo}–${hi}).`;
     }
   }
 
-  async function loadDeforestationVectors(state, loretoAcrs) {
+  async function loadDeforestationVectors(state, acrFilter) {
     const note = document.getElementById("map-loreto-info");
+    const deptoApi = VECTOR_DEPTOS.includes(state.departamento) ? state.departamento : "todos";
     if (note) {
-      note.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Cargando polígonos Loreto (${state.annoDesde}–${state.annoHasta})…`;
+      note.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Cargando polígonos (${deptoApi}, ${state.annoDesde}–${state.annoHasta})…`;
     }
     const params = {
-      departamento: "loreto",
+      departamento: deptoApi,
       ambito: state.ambito || "acr",
-      acr: loretoAcrs?.length ? loretoAcrs : undefined,
+      acr: acrFilter?.length ? acrFilter : undefined,
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,
       limit: 0,
@@ -205,7 +213,7 @@ const AcrMap = (() => {
     const meta = geo.meta || {};
     if (!features.length) {
       console.info("Sin polígonos acumulados para los filtros activos.");
-      updateLoretoMapNote(state, meta, "vectors");
+      updateMapVectorsNote(state, meta, "vectors");
       return { ok: false, meta };
     }
     defoLayer.clearLayers();
@@ -228,8 +236,8 @@ const AcrMap = (() => {
       },
     }).eachLayer((l) => defoLayer.addLayer(l));
     map.addLayer(defoLayer);
-    console.info(`Mapa: ${features.length} polígonos acumulados (GDB Loreto, ${state.annoDesde}–${state.annoHasta}).`);
-    updateLoretoMapNote(state, meta, "vectors");
+    console.info(`Mapa: ${features.length} polígonos acumulados (${deptoApi}, ${state.annoDesde}–${state.annoHasta}).`);
+    updateMapVectorsNote(state, meta, "vectors");
     return { ok: true, meta };
   }
 
@@ -274,31 +282,31 @@ const AcrMap = (() => {
   async function loadDeforestation(state) {
     let hasVectors = false;
     let vectorMeta = null;
-    if (shouldUseLoretoVectors(state)) {
-      const loretoAcrs = state.acrs.filter((c) => DEPTO_CODES.loreto.includes(c));
+    if (shouldUseVectors(state)) {
+      const vectorAcrs = state.acrs.filter((c) => ALL_VECTOR_CODES.has(c));
       try {
         const res = await loadDeforestationVectors(
           state,
-          loretoAcrs.length ? loretoAcrs : undefined
+          vectorAcrs.length ? vectorAcrs : undefined
         );
         hasVectors = res?.ok;
         vectorMeta = res?.meta;
       } catch (err) {
-        console.warn("Vectores Loreto no disponibles (¿reinició el servidor?):", err);
-        updateLoretoMapNote(state, null, "centroids");
+        console.warn("Vectores GDB no disponibles (¿reinició el servidor?):", err);
+        updateMapVectorsNote(state, null, "centroids");
       }
     }
 
-    const needsCentroids = state.departamento !== "loreto" || !hasVectors;
+    const needsCentroids = !VECTOR_DEPTOS.includes(state.departamento) || !hasVectors;
     if (needsCentroids) {
-      await loadDeforestationCentroids(state, { excludeLoreto: hasVectors });
+      await loadDeforestationCentroids(state, { excludeVectorCodes: hasVectors });
     }
 
     if (hasVectors && needsCentroids) map._defoMode = "mixed";
     else if (hasVectors) map._defoMode = "vectors";
     else map._defoMode = "centroids";
 
-    if (hasVectors) updateLoretoMapNote(state, vectorMeta, map._defoMode);
+    if (hasVectors) updateMapVectorsNote(state, vectorMeta, map._defoMode);
   }
 
   async function refresh(state) {

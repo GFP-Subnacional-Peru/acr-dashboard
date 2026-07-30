@@ -1,0 +1,34 @@
+{
+  "zonas": {
+    "ACR_CHQ": {
+      "slug": "choquequirao",
+      "zona_key": "Choquequirao",
+      "n": 4337
+    },
+    "ACR_CHU": {
+      "slug": "chuyapi_urusayhua",
+      "zona_key": "Chuyapi Urusayhua",
+      "n": 5047
+    },
+    "ACR_QK": {
+      "slug": "qeros_kosnipata",
+      "zona_key": "Qeros Kosnipata",
+      "n": 4166
+    },
+    "ZI_CHQ": {
+      "slug": "zi_chq",
+      "zona_key": "ZI Choquequirao",
+      "n": 261
+    },
+    "ZI_CHU": {
+      "slug": "zi_chu",
+      "zona_key": "ZI Chuyapi",
+      "n": 3119
+    },
+    "ZI_QK": {
+      "slug": "zi_qk",
+      "zona_key": "ZI Qeros",
+      "n": 580
+    }
+  }
+}

@@ -1,4 +1,4 @@
-"""Polígonos MonitoreoDeforestacionAcumulado (Loreto) para el mapa principal."""
+"""Polígonos MonitoreoDeforestacionAcumulado (Loreto, San Martín, Cusco)."""
 from __future__ import annotations
 
 import json
@@ -6,23 +6,42 @@ from pathlib import Path
 
 from core.config import PROJECT_ROOT
 
-ACUMULADO_DIR = PROJECT_ROOT / "www" / "reportes_atd" / "loreto" / "acumulado"
+ATD_ROOT = PROJECT_ROOT / "www" / "reportes_atd"
 
-CODIGO_SLUGS: dict[str, str] = {
-    "ACR_AA": "ampiyacu_apayacu",
-    "ACR_ANPCH": "nanay",
-    "ACR_MK": "maijuna_kichwa",
-    "ACR_CTT": "comunal_tahuayo",
-    "ZI_AA": "zi_aa",
-    "ZI_ANPCH": "zi_anpch",
-    "ZI_CTT": "zi_ctt",
-    "ZI_MK": "zi_mk",
+# codigo dashboard → (departamento_folder, slug archivo)
+CODIGO_SLUGS: dict[str, tuple[str, str]] = {
+    # Loreto
+    "ACR_AA": ("loreto", "ampiyacu_apayacu"),
+    "ACR_ANPCH": ("loreto", "nanay"),
+    "ACR_MK": ("loreto", "maijuna_kichwa"),
+    "ACR_CTT": ("loreto", "comunal_tahuayo"),
+    "ZI_AA": ("loreto", "zi_aa"),
+    "ZI_ANPCH": ("loreto", "zi_anpch"),
+    "ZI_CTT": ("loreto", "zi_ctt"),
+    "ZI_MK": ("loreto", "zi_mk"),
+    # San Martín
+    "ACR_BSM": ("san_martin", "bosques_shunte"),
+    "ACR_CE": ("san_martin", "cordillera_escalera"),
+    "ZI_BSM": ("san_martin", "zi_bsm"),
+    "ZI_CE": ("san_martin", "zi_ce"),
+    # Cusco
+    "ACR_CHQ": ("cusco", "choquequirao"),
+    "ACR_CHU": ("cusco", "chuyapi_urusayhua"),
+    "ACR_QK": ("cusco", "qeros_kosnipata"),
+    "ZI_CHQ": ("cusco", "zi_chq"),
+    "ZI_CHU": ("cusco", "zi_chu"),
+    "ZI_QK": ("cusco", "zi_qk"),
 }
 
-LORETO_ACR = {"ACR_AA", "ACR_ANPCH", "ACR_MK", "ACR_CTT"}
-LORETO_ZI = {"ZI_AA", "ZI_ANPCH", "ZI_CTT", "ZI_MK"}
-LORETO_CODIGOS = LORETO_ACR | LORETO_ZI
-SLUG_TO_CODIGO = {v: k for k, v in CODIGO_SLUGS.items()}
+DEPT_CODES: dict[str, set[str]] = {
+    "loreto": {c for c, (d, _) in CODIGO_SLUGS.items() if d == "loreto"},
+    "san_martin": {c for c, (d, _) in CODIGO_SLUGS.items() if d == "san_martin"},
+    "cusco": {c for c, (d, _) in CODIGO_SLUGS.items() if d == "cusco"},
+}
+
+VECTOR_DEPTOS = set(DEPT_CODES.keys())
+LORETO_CODIGOS = DEPT_CODES["loreto"]  # compat exports antiguos
+ALL_VECTOR_CODIGOS = set(CODIGO_SLUGS.keys())
 
 _EMPTY_KPIS = {
     "total_hectareas": 0.0,
@@ -39,13 +58,26 @@ _EMPTY_KPIS = {
 
 
 def loreto_en_alcance(departamento: str, acrs: list[str] | None) -> bool:
-    if departamento == "loreto":
+    """Compat: True si Loreto entra en el filtro (también usado en main)."""
+    return vectors_en_alcance(departamento, acrs, only="loreto")
+
+
+def vectors_en_alcance(
+    departamento: str,
+    acrs: list[str] | None,
+    only: str | None = None,
+) -> bool:
+    deptos = {only} if only else VECTOR_DEPTOS
+    if departamento in deptos:
         return True
     if departamento != "todos":
         return False
     if not acrs:
         return True
-    return any(c in LORETO_CODIGOS for c in acrs)
+    codes = set()
+    for d in deptos:
+        codes |= DEPT_CODES[d]
+    return any(c in codes for c in acrs)
 
 
 def _clasificar_tipo(tipo: str) -> str:
@@ -205,7 +237,7 @@ def graficos_desde_acumulado(
         nombres = dict(zip(ACR_DECRETOS["codigo"], ACR_DECRETOS["nombre_completo"]))
         rows = []
         for codigo in acrs or []:
-            if codigo not in LORETO_CODIGOS:
+            if codigo not in ALL_VECTOR_CODIGOS:
                 continue
             sub = [f for f in features if (f.get("properties") or {}).get("codigo") == codigo]
             if not sub:
@@ -225,22 +257,39 @@ def graficos_desde_acumulado(
 
     return out
 
+
 def _slugs_for_filters(
     departamento: str,
     ambito: str,
     acrs: list[str] | None,
-) -> list[str]:
-    if departamento != "loreto":
-        return []
+) -> list[tuple[str, str, str]]:
+    """Lista de (departamento_folder, slug, codigo)."""
     if acrs:
-        return [CODIGO_SLUGS[c] for c in acrs if c in CODIGO_SLUGS]
-    if ambito == "acr":
-        codes = LORETO_ACR
-    elif ambito == "zi":
-        codes = LORETO_ZI
+        out = []
+        for c in acrs:
+            if c in CODIGO_SLUGS:
+                folder, slug = CODIGO_SLUGS[c]
+                if departamento in ("todos", folder) or (
+                    departamento == "san_martin" and folder == "san_martin"
+                ) or (departamento == "cusco" and folder == "cusco") or (
+                    departamento == "loreto" and folder == "loreto"
+                ):
+                    out.append((folder, slug, c))
+        return out
+
+    if departamento == "todos":
+        codes = set(ALL_VECTOR_CODIGOS)
+    elif departamento in DEPT_CODES:
+        codes = set(DEPT_CODES[departamento])
     else:
-        codes = LORETO_ACR | LORETO_ZI
-    return [CODIGO_SLUGS[c] for c in sorted(codes) if c in CODIGO_SLUGS]
+        return []
+
+    if ambito == "acr":
+        codes = {c for c in codes if c.startswith("ACR_")}
+    elif ambito == "zi":
+        codes = {c for c in codes if c.startswith("ZI_")}
+
+    return [(CODIGO_SLUGS[c][0], CODIGO_SLUGS[c][1], c) for c in sorted(codes)]
 
 
 def load_acumulado_vectors(
@@ -251,8 +300,8 @@ def load_acumulado_vectors(
     anno_hasta: int | None = None,
     limit: int = 0,
 ) -> dict:
-    slugs = _slugs_for_filters(departamento, ambito, acrs)
-    if not slugs or not ACUMULADO_DIR.is_dir():
+    targets = _slugs_for_filters(departamento, ambito, acrs)
+    if not targets:
         return {
             "type": "FeatureCollection",
             "features": [],
@@ -265,33 +314,32 @@ def load_acumulado_vectors(
         lo, hi = hi, lo
 
     features: list[dict] = []
-    for slug in slugs:
-        path = ACUMULADO_DIR / f"{slug}.geojson"
+    loaded_slugs: list[str] = []
+    for folder, slug, codigo in targets:
+        path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
         if not path.exists():
             continue
+        loaded_slugs.append(f"{folder}/{slug}")
         data = json.loads(path.read_text(encoding="utf-8"))
         for f in data.get("features", []):
             props = dict(f.get("properties") or {})
             anno = props.get("anno")
-            if anno is not None:
-                try:
-                    y = int(anno)
-                    if y < lo or y > hi:
-                        continue
-                except (TypeError, ValueError):
-                    continue
-            else:
+            if anno is None:
                 continue
-            codigo = SLUG_TO_CODIGO.get(slug)
-            if codigo:
-                props["codigo"] = codigo
-            feat = {**f, "properties": props}
-            features.append(feat)
+            try:
+                y = int(anno)
+                if y < lo or y > hi:
+                    continue
+            except (TypeError, ValueError):
+                continue
+            props["codigo"] = codigo
+            features.append({**f, "properties": props})
             if limit > 0 and len(features) >= limit:
                 break
         if limit > 0 and len(features) >= limit:
             break
 
+    available = bool(loaded_slugs)
     return {
         "type": "FeatureCollection",
         "features": features,
@@ -299,9 +347,9 @@ def load_acumulado_vectors(
             "source": "MonitoreoDeforestacionAcumulado",
             "departamento": departamento,
             "count": len(features),
-            "slugs": slugs,
+            "slugs": loaded_slugs,
             "anno_desde": lo,
             "anno_hasta": hi,
-            "available": True,
+            "available": available,
         },
     }

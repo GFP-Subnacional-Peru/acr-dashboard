@@ -37,12 +37,15 @@ from services.decretos_service import ACR_DECRETOS, obtener_info_decreto
 from core.rds_bridge import load_centroides_deforestacion
 from services.deforestacion_service import filtrar_centroides, resumen_centroides_por_region
 from services.deforestacion_vectors_service import (
+    ALL_VECTOR_CODIGOS,
     LORETO_CODIGOS,
+    VECTOR_DEPTOS,
     _merge_kpis,
     graficos_desde_acumulado,
     kpis_desde_acumulado,
     load_acumulado_vectors,
     loreto_en_alcance,
+    vectors_en_alcance,
 )
 from services.estadisticas_service import estadisticas_a_catalogo
 from services.filtros_config import ACR_OPCIONES_POR_DEPTO
@@ -79,7 +82,22 @@ def _loreto_acrs_seleccionados(acrs: list[str] | None) -> list[str]:
     return [c for c in acrs if c in LORETO_CODIGOS]
 
 
-def _centroides_excluyendo_loreto(
+def _vector_acrs_seleccionados(acrs: list[str] | None, departamento: str) -> list[str] | None:
+    if not acrs:
+        return None
+    if departamento in VECTOR_DEPTOS:
+        from services.deforestacion_vectors_service import DEPT_CODES
+
+        allowed = DEPT_CODES[departamento]
+        sel = [c for c in acrs if c in allowed]
+        return sel or None
+    if departamento == "todos":
+        sel = [c for c in acrs if c in ALL_VECTOR_CODIGOS]
+        return sel or None
+    return None
+
+
+def _centroides_excluyendo_vectores(
     centroides_df: pd.DataFrame,
     departamento: str,
     ambito: str,
@@ -87,19 +105,19 @@ def _centroides_excluyendo_loreto(
     anno_desde: int | None,
     anno_hasta: int | None,
 ) -> pd.DataFrame:
-    otros = [c for c in (acr_filtros or []) if c not in LORETO_CODIGOS]
-    depto = departamento
-    if depto == "loreto":
+    """Centroides solo para códigos sin vectores GDB (fallback)."""
+    if departamento in VECTOR_DEPTOS:
         return pd.DataFrame()
-    if depto == "todos" and acr_filtros and not otros:
+    otros = [c for c in (acr_filtros or []) if c not in ALL_VECTOR_CODIGOS]
+    if departamento == "todos" and acr_filtros and not otros:
         return pd.DataFrame()
     filtros = otros if acr_filtros else acr_filtros
     df = filtrar_centroides(
-        centroides_df, depto, ambito, filtros, anno_desde=anno_desde, anno_hasta=anno_hasta
+        centroides_df, departamento, ambito, filtros, anno_desde=anno_desde, anno_hasta=anno_hasta
     )
     if df.empty:
         return df
-    return df[~df["codigo"].isin(LORETO_CODIGOS)]
+    return df[~df["codigo"].isin(ALL_VECTOR_CODIGOS)]
 
 
 def _kpis_combinados(
@@ -110,27 +128,27 @@ def _kpis_combinados(
     anno_desde: int | None,
     anno_hasta: int | None,
 ) -> dict | None:
-    loreto_k = None
-    if loreto_en_alcance(departamento, acr_filtros):
-        loreto_sel = _loreto_acrs_seleccionados(acr_filtros) or None
-        loreto_k = kpis_desde_acumulado(
-            "loreto", ambito, loreto_sel, anno_desde=anno_desde, anno_hasta=anno_hasta
+    vec_k = None
+    if vectors_en_alcance(departamento, acr_filtros):
+        depto_vec = departamento if departamento in VECTOR_DEPTOS else "todos"
+        sel = _vector_acrs_seleccionados(acr_filtros, depto_vec)
+        vec_k = kpis_desde_acumulado(
+            depto_vec, ambito, sel, anno_desde=anno_desde, anno_hasta=anno_hasta
         )
 
     otros_k = None
-    if departamento != "loreto":
-        df = _centroides_excluyendo_loreto(
-            centroides_df, departamento, ambito, acr_filtros, anno_desde, anno_hasta
+    df = _centroides_excluyendo_vectores(
+        centroides_df, departamento, ambito, acr_filtros, anno_desde, anno_hasta
+    )
+    if not df.empty:
+        otros_k = kpis_desde_centroides(
+            df, departamento if departamento != "todos" else "todos", ambito, None,
+            anno_desde=anno_desde, anno_hasta=anno_hasta,
         )
-        if not df.empty:
-            otros_k = kpis_desde_centroides(
-                df, departamento if departamento != "todos" else "todos", ambito, None,
-                anno_desde=anno_desde, anno_hasta=anno_hasta,
-            )
 
-    if loreto_k and otros_k:
-        return _merge_kpis(loreto_k, otros_k)
-    return loreto_k or otros_k
+    if vec_k and otros_k:
+        return _merge_kpis(vec_k, otros_k)
+    return vec_k or otros_k
 
 
 def _graficos_combinados(
@@ -143,41 +161,54 @@ def _graficos_combinados(
 ) -> dict | None:
     amb = ambito or "acr"
     acrs = acr_filtros or []
-    loreto_sel = _loreto_acrs_seleccionados(acrs)
-    otros_sel = [c for c in acrs if c not in LORETO_CODIGOS]
 
-    g_loreto = None
-    if loreto_en_alcance(departamento, acr_filtros):
-        if not acrs or loreto_sel:
-            g_loreto = graficos_desde_acumulado(
-                "loreto", amb, loreto_sel or None, anno_desde=anno_desde, anno_hasta=anno_hasta
+    g_vec = None
+    if vectors_en_alcance(departamento, acr_filtros):
+        depto_vec = departamento if departamento in VECTOR_DEPTOS else "todos"
+        sel = _vector_acrs_seleccionados(acrs, depto_vec)
+        if not acrs or sel:
+            g_vec = graficos_desde_acumulado(
+                depto_vec, amb, sel, anno_desde=anno_desde, anno_hasta=anno_hasta
             )
 
     g_otros = None
-    if departamento != "loreto" and (not acrs or otros_sel):
-        df = _centroides_excluyendo_loreto(
-            centroides_df, departamento, amb, acr_filtros, anno_desde, anno_hasta
+    df = _centroides_excluyendo_vectores(
+        centroides_df, departamento, amb, acr_filtros, anno_desde, anno_hasta
+    )
+    if not df.empty:
+        g_otros = graficos_desde_centroides(
+            df, departamento if departamento != "todos" else "todos", amb, None,
+            anno_desde=anno_desde, anno_hasta=anno_hasta,
         )
-        if not df.empty:
-            g_otros = graficos_desde_centroides(
-                df, departamento if departamento != "todos" else "todos", amb, None,
-                anno_desde=anno_desde, anno_hasta=anno_hasta,
-            )
 
-    if g_loreto and not g_otros:
-        return g_loreto
-    if g_otros and not g_loreto:
+    if g_vec and not g_otros:
+        return g_vec
+    if g_otros and not g_vec:
         return g_otros
-    if g_loreto and g_otros:
+    if g_vec and g_otros:
         if len(acrs) == 1:
-            return g_loreto
-        if g_loreto.get("modo") == "comparativa" and g_otros.get("modo") == "comparativa":
-            merged = dict(g_loreto)
-            merged["comparativa"] = (g_loreto.get("comparativa") or []) + (g_otros.get("comparativa") or [])
+            return g_vec
+        if g_vec.get("modo") == "comparativa" and g_otros.get("modo") == "comparativa":
+            merged = dict(g_vec)
+            merged["comparativa"] = (g_vec.get("comparativa") or []) + (g_otros.get("comparativa") or [])
             merged["modo"] = "comparativa"
             return merged
-        return g_loreto if loreto_sel and not otros_sel else g_otros
+        return g_vec
     return None
+
+
+def _centroides_excluyendo_loreto(
+    centroides_df: pd.DataFrame,
+    departamento: str,
+    ambito: str,
+    acr_filtros: list[str] | None,
+    anno_desde: int | None,
+    anno_hasta: int | None,
+) -> pd.DataFrame:
+    """Compatibilidad: delega a exclusión de todos los deptos con vectores."""
+    return _centroides_excluyendo_vectores(
+        centroides_df, departamento, ambito, acr_filtros, anno_desde, anno_hasta
+    )
 
 
 @asynccontextmanager
@@ -405,7 +436,7 @@ def deforestacion_vectors_endpoint(
     anno_hasta: int | None = Query(None, ge=2001, le=2030),
     limit: int = Query(0, ge=0, le=50000),
 ) -> dict:
-    """Polígonos MonitoreoDeforestacionAcumulado (Loreto)."""
+    """Polígonos MonitoreoDeforestacionAcumulado (Loreto, San Martín, Cusco)."""
     return load_acumulado_vectors(
         departamento=departamento,
         ambito=ambito or "acr",
