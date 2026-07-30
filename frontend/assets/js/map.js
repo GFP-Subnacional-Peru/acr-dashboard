@@ -82,21 +82,62 @@ const AcrMap = (() => {
     map._legend = L.control({ position: "bottomright" });
     map._legend.onAdd = () => {
       const div = L.DomUtil.create("div", "map-legend");
-      let defoLine = `<span style="color:#d32f2f">●</span> Deforestación (centroides)`;
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.disableScrollPropagation(div);
+
+      let defoRows = `
+        <li class="map-legend-item">
+          <span class="map-legend-swatch map-legend-swatch--dot map-legend-swatch--defo"></span>
+          <span>Deforestación (centroides)</span>
+        </li>`;
       if (mode === "vectors" || mode === "mixed") {
-        defoLine = `<span style="color:#e74c3c">■</span> Deforestación acumulada (polígonos)<br>
-           <span style="color:#27ae60">■</span> Natural · <span style="color:#e74c3c">■</span> Antropogénico`;
+        defoRows = `
+        <li class="map-legend-item">
+          <span class="map-legend-swatch map-legend-swatch--fill map-legend-swatch--defo"></span>
+          <span>Deforestación acumulada</span>
+        </li>
+        <li class="map-legend-item map-legend-item--causes">
+          <span class="map-legend-cause">
+            <span class="map-legend-swatch map-legend-swatch--fill map-legend-swatch--antropico"></span>
+            <span>Antrópico</span>
+          </span>
+          <span class="map-legend-sep" aria-hidden="true">·</span>
+          <span class="map-legend-cause">
+            <span class="map-legend-swatch map-legend-swatch--fill map-legend-swatch--natural"></span>
+            <span>Natural</span>
+          </span>
+        </li>`;
         if (mode === "mixed") {
-          defoLine += `<br><span style="color:#d32f2f">●</span> Otros deptos. (centroides)`;
+          defoRows += `
+        <li class="map-legend-item">
+          <span class="map-legend-swatch map-legend-swatch--dot map-legend-swatch--defo"></span>
+          <span>Otros deptos. (centroides)</span>
+        </li>`;
         }
       }
-      div.innerHTML = `<div style="background:#fff;padding:10px;border-radius:6px;font-size:12px;line-height:1.6">
-        <b>🔍 Leyenda del Mapa</b><br>
-        <span style="color:#2E7D32">□</span> ACR (solo borde)<br>
-        <span style="color:#616161">□</span> Zona de Influencia (solo borde)<br>
-        <span style="color:#E30613">—</span> Límites departamentales<br>
-        ${defoLine}
-      </div>`;
+
+      div.innerHTML = `
+        <div class="map-legend-card">
+          <div class="map-legend-title">
+            <i class="fas fa-layer-group" aria-hidden="true"></i>
+            <span>Leyenda del mapa</span>
+          </div>
+          <ul class="map-legend-list">
+            <li class="map-legend-item">
+              <span class="map-legend-swatch map-legend-swatch--outline map-legend-swatch--acr"></span>
+              <span>ACR (solo borde)</span>
+            </li>
+            <li class="map-legend-item">
+              <span class="map-legend-swatch map-legend-swatch--outline map-legend-swatch--zi"></span>
+              <span>Zona de Influencia (solo borde)</span>
+            </li>
+            <li class="map-legend-item">
+              <span class="map-legend-swatch map-legend-swatch--line map-legend-swatch--limites"></span>
+              <span>Límites departamentales</span>
+            </li>
+            ${defoRows}
+          </ul>
+        </div>`;
       return div;
     };
     map._legend.addTo(map);
