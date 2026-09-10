@@ -100,6 +100,19 @@ def _anno_i(val) -> int | None:
         return None
 
 
+def _area_ha(val) -> float:
+    """md_sup → ha; None/NaN no deben llegar al GeoJSON."""
+    try:
+        if val is None or (isinstance(val, float) and pd.isna(val)) or pd.isna(val):
+            return 0.0
+        x = float(val)
+        if pd.isna(x):
+            return 0.0
+        return round(x, 4)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def _feature_row(row, zona_key: str, codigo: str) -> dict:
     causa = _causa_i(row.get("md_causa"))
     return {
@@ -112,7 +125,7 @@ def _feature_row(row, zona_key: str, codigo: str) -> dict:
             "sector": str(row.get("ac_nomb") or ""),
             "tipo": CAUSA_TIPO.get(causa, "Antropogenico"),
             "causa": causa,
-            "area_ha": round(float(row.get("md_sup") or 0), 4),
+            "area_ha": _area_ha(row.get("md_sup")),
             "anno": _anno_i(row.get("md_anno")),
             "fuente": str(row.get("md_fuente") or ""),
             "conf": str(row.get("md_conf") or ""),

@@ -116,12 +116,25 @@ def _zona_key_acum(row) -> str:
     return ACR_ZONA_KEY.get(anp, anp)
 
 
+def _codigo_acum(row, zona_key: str) -> str:
+    """Dashboard codigo: ACR_*/ZI_* for KPIs; keep ZI labels as-is."""
+    zi = row.get("zi_codi")
+    if pd.notna(zi) and str(zi).strip():
+        z = str(zi).strip()
+        return ZI_CODIGO.get(z, z.replace(" ", "_").upper())
+    anp = str(row.get("anp_codi") or "").strip().upper()
+    return ACR_CODE.get(anp, anp)
+
+
 def export_acumulado(gdb: Path) -> dict[str, int]:
     gdf = gpd.read_file(gdb, layer="MonitoreoDeforestacionAcumulado").to_crs(4326)
+    gdf = gdf[gdf.geometry.notna() & ~gdf.geometry.is_empty].copy()
     gdf["geometry"] = gdf.geometry.simplify(0.00025, preserve_topology=True)
+    gdf = gdf[gdf.geometry.notna() & ~gdf.geometry.is_empty].copy()
     gdf["zona_key"] = gdf.apply(_zona_key_acum, axis=1)
     ACUMULADO_DIR.mkdir(parents=True, exist_ok=True)
     counts: dict[str, int] = {}
+    area_by_codigo: dict[str, float] = {}
     for zona_key, grp in gdf.groupby("zona_key"):
         slug = ZONA_SLUG.get(zona_key, str(zona_key).lower().replace(" ", "_"))
         features = []
@@ -136,16 +149,20 @@ def export_acumulado(gdb: Path) -> dict[str, int]:
                 anno_i = int(float(anno)) if pd.notna(anno) else None
             except (TypeError, ValueError):
                 anno_i = None
+            area = round(float(row.get("md_sup") or 0), 4)
+            codigo = _codigo_acum(row, zona_key)
+            area_by_codigo[codigo] = area_by_codigo.get(codigo, 0.0) + float(row.get("md_sup") or 0)
             features.append({
                 "type": "Feature",
                 "properties": {
                     "zona_key": zona_key,
+                    "codigo": codigo,
                     "anp_codi": str(row.get("anp_codi") or ""),
                     "zi_codi": str(row.get("zi_codi") or "") if pd.notna(row.get("zi_codi")) else "",
                     "sector": str(row.get("ac_nomb") or ""),
                     "tipo": CAUSA_TIPO.get(causa_i, "Antropogenico"),
                     "causa": causa_i,
-                    "area_ha": round(float(row.get("md_sup") or 0), 4),
+                    "area_ha": area,
                     "anno": anno_i,
                     "fuente": str(row.get("md_fuente") or ""),
                     "conf": str(row.get("md_conf") or ""),
@@ -159,10 +176,33 @@ def export_acumulado(gdb: Path) -> dict[str, int]:
             encoding="utf-8",
         )
         counts[zona_key] = len(features)
-    manifest = {"zonas": {k: {"slug": ZONA_SLUG.get(k, k), "n": v} for k, v in counts.items()}}
+    manifest = {
+        "zonas": {
+            k: {
+                "slug": ZONA_SLUG.get(k, str(k).lower().replace(" ", "_")),
+                "n": v,
+            }
+            for k, v in counts.items()
+        }
+    }
     (ACUMULADO_DIR / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    # Compare GeoJSON-derived sums vs raw GDB md_sup by codigo
+    print("\n=== area_ha sum by codigo (exported) vs GDB md_sup ===")
+    gdb_sum = (
+        gdf.assign(
+            _codigo=gdf.apply(lambda r: _codigo_acum(r, r["zona_key"]), axis=1),
+            _sup=pd.to_numeric(gdf["md_sup"], errors="coerce").fillna(0),
+        )
+        .groupby("_codigo")["_sup"]
+        .sum()
+    )
+    for codigo in sorted(set(area_by_codigo) | set(gdb_sum.index)):
+        exp = area_by_codigo.get(codigo, 0.0)
+        gdb_v = float(gdb_sum.get(codigo, 0.0))
+        diff_pct = abs(exp - gdb_v) / gdb_v * 100 if gdb_v else (0.0 if exp == 0 else 100.0)
+        print(f"  {codigo:12s}  geojson={exp:12.4f}  gdb={gdb_v:12.4f}  diff%={diff_pct:.4f}")
     return counts
 
 
@@ -207,26 +247,28 @@ def export_monitoreo(gdb: Path) -> list[dict]:
 
 
 def main() -> int:
+    import sys
+
+    only_acum = "--acumulado-only" in sys.argv or "acumulado" in [a.lower() for a in sys.argv[1:]]
     gdb = _find_gdb()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"OK GDB: {gdb}")
 
-    boundaries = export_boundaries(gdb)
-    VECTORES_OUT.write_text(
-        json.dumps({"type": "FeatureCollection", "features": boundaries}, ensure_ascii=False),
-        encoding="utf-8",
-    )
-
-    monitoreo = export_monitoreo(gdb)
-    MONITOREO_OUT.write_text(
-        json.dumps({"type": "FeatureCollection", "features": monitoreo}, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    if not only_acum:
+        boundaries = export_boundaries(gdb)
+        VECTORES_OUT.write_text(
+            json.dumps({"type": "FeatureCollection", "features": boundaries}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        monitoreo = export_monitoreo(gdb)
+        MONITOREO_OUT.write_text(
+            json.dumps({"type": "FeatureCollection", "features": monitoreo}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        print(f"  {len(boundaries)} límites -> {VECTORES_OUT.name}")
+        print(f"  {len(monitoreo)} alertas MonitoreoDeforestacion -> {MONITOREO_OUT.name}")
 
     acumulado = export_acumulado(gdb)
-
-    print(f"OK GDB: {gdb.name}")
-    print(f"  {len(boundaries)} límites -> {VECTORES_OUT.name}")
-    print(f"  {len(monitoreo)} alertas MonitoreoDeforestacion -> {MONITOREO_OUT.name}")
     print(f"  {sum(acumulado.values())} polígonos acumulado -> {ACUMULADO_DIR.name}/")
     for z, n in sorted(acumulado.items(), key=lambda x: -x[1]):
         print(f"    {z}: {n}")

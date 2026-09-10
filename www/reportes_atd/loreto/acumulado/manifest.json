@@ -1,36 +1,48 @@
 {
   "zonas": {
+    "ACR34": {
+      "slug": "acr34",
+      "n": 538
+    },
+    "ACR37": {
+      "slug": "acr37",
+      "n": 2087
+    },
     "Ampiyacu Apayacu": {
       "slug": "ampiyacu_apayacu",
-      "n": 770
+      "n": 700
     },
     "Comunal Tahuayo": {
       "slug": "comunal_tahuayo",
-      "n": 894
+      "n": 897
     },
     "Maijuna Kichwa": {
       "slug": "maijuna_kichwa",
-      "n": 1176
+      "n": 1386
     },
     "Nanay": {
       "slug": "nanay",
-      "n": 2439
+      "n": 2417
     },
     "ZI AA": {
       "slug": "zi_aa",
-      "n": 8513
+      "n": 8146
+    },
+    "ZI ACM": {
+      "slug": "zi_acm",
+      "n": 6444
     },
     "ZI ANPCH": {
       "slug": "zi_anpch",
-      "n": 10629
+      "n": 10579
     },
     "ZI CTT": {
       "slug": "zi_ctt",
-      "n": 7262
+      "n": 7226
     },
     "ZI MK": {
       "slug": "zi_mk",
-      "n": 6268
+      "n": 6151
     }
   }
 }

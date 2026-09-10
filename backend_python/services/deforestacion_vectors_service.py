@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 from core.config import PROJECT_ROOT
@@ -80,6 +81,23 @@ def vectors_en_alcance(
     return any(c in codes for c in acrs)
 
 
+def _safe_float(val, default: float = 0.0) -> float:
+    """Convierte a float; None / NaN / Inf / 'nan' → default (no propaga nan a KPIs)."""
+    if val is None:
+        return default
+    if isinstance(val, str):
+        s = val.strip().lower()
+        if not s or s in {"nan", "none", "null", "inf", "-inf", "+inf"}:
+            return default
+    try:
+        x = float(val)
+    except (TypeError, ValueError):
+        return default
+    if math.isnan(x) or math.isinf(x):
+        return default
+    return x
+
+
 def _clasificar_tipo(tipo: str) -> str:
     t = str(tipo or "").strip().lower()
     if "natural" in t:
@@ -94,7 +112,7 @@ def _sumar_features(features: list[dict]) -> tuple[float, float, float, float, d
     sectores: dict[str, float] = {}
     for f in features:
         p = f.get("properties") or {}
-        area = float(p.get("area_ha") or 0)
+        area = _safe_float(p.get("area_ha"))
         cat = _clasificar_tipo(p.get("tipo"))
         if cat == "natural":
             nat += area
@@ -120,7 +138,7 @@ def _kpis_from_features(features: list[dict]) -> dict:
 
     if sectores:
         causa = max(sectores, key=sectores.get)
-        causa_ha = float(sectores[causa])
+        causa_ha = _safe_float(sectores[causa])
     else:
         causa = "Sin datos"
         causa_ha = 0.0
@@ -140,16 +158,16 @@ def _kpis_from_features(features: list[dict]) -> dict:
 
 
 def _merge_kpis(a: dict, b: dict) -> dict:
-    total = float(a.get("total_hectareas") or 0) + float(b.get("total_hectareas") or 0)
-    ant = float(a.get("total_antropico") or 0) + float(b.get("total_antropico") or 0)
-    nat = float(a.get("total_natural") or 0) + float(b.get("total_natural") or 0)
-    fal = float(a.get("total_falsa") or 0) + float(b.get("total_falsa") or 0)
+    total = _safe_float(a.get("total_hectareas")) + _safe_float(b.get("total_hectareas"))
+    ant = _safe_float(a.get("total_antropico")) + _safe_float(b.get("total_antropico"))
+    nat = _safe_float(a.get("total_natural")) + _safe_float(b.get("total_natural"))
+    fal = _safe_float(a.get("total_falsa")) + _safe_float(b.get("total_falsa"))
 
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0
 
-    ha_a = float(a.get("causa_principal_ha") or 0)
-    ha_b = float(b.get("causa_principal_ha") or 0)
+    ha_a = _safe_float(a.get("causa_principal_ha"))
+    ha_b = _safe_float(b.get("causa_principal_ha"))
     causa_a = str(a.get("causa_principal") or "Sin datos")
     causa_b = str(b.get("causa_principal") or "Sin datos")
     if causa_a == "Sin datos" or ha_a <= 0:
@@ -309,7 +327,7 @@ def load_acumulado_vectors(
         }
 
     lo = anno_desde if anno_desde is not None else 2001
-    hi = anno_hasta if anno_hasta is not None else 2025
+    hi = anno_hasta if anno_hasta is not None else 2026
     if lo > hi:
         lo, hi = hi, lo
 
