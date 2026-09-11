@@ -227,9 +227,13 @@ const AcrMap = (() => {
     }[state.departamento] || state.departamento;
     if (mode === "vectors" || mode === "mixed") {
       const n = meta?.count ?? 0;
+      const hitLimit = !!(meta?.limited || (meta?.limit > 0 && n >= meta.limit));
+      const limitNote = hitLimit
+        ? ` · <em>mostrando ${n.toLocaleString("es-PE")} de muchos — filtre ACR o años</em>`
+        : "";
       el.innerHTML = `<i class="fas fa-info-circle"></i> <strong>${deptoLabel}</strong>: <b>${n.toLocaleString("es-PE")}</b> polígonos acumulados (${lo}–${hi}) · GDB <em>MonitoreoDeforestacionAcumulado</em>${
         mode === "mixed" ? " · resto en centroides" : ""
-      }`;
+      }${limitNote}`;
     } else {
       el.innerHTML = `<i class="fas fa-info-circle"></i> Deforestación en centroides precalculados (${lo}–${hi}).`;
     }
@@ -241,13 +245,20 @@ const AcrMap = (() => {
     if (note) {
       note.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Cargando polígonos (${deptoApi}, ${state.annoDesde}–${state.annoHasta})…`;
     }
+    const yearSpan =
+      Math.abs(Number(state.annoHasta) - Number(state.annoDesde)) + 1;
+    const heavyView =
+      state.departamento === "todos" ||
+      yearSpan > 10 ||
+      (state.ambito || "acr") === "zi";
+    const limit = heavyView ? 12000 : 0;
     const params = {
       departamento: deptoApi,
       ambito: state.ambito || "acr",
       acr: acrFilter?.length ? acrFilter : undefined,
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,
-      limit: 0,
+      limit,
     };
     const geo = await apiGet("/api/deforestacion/vectors", params);
     const features = geo.features || [];
@@ -277,7 +288,7 @@ const AcrMap = (() => {
       },
     }).eachLayer((l) => defoLayer.addLayer(l));
     map.addLayer(defoLayer);
-    console.info(`Mapa: ${features.length} polígonos acumulados (${deptoApi}, ${state.annoDesde}–${state.annoHasta}).`);
+    console.info(`Mapa: ${features.length} polígonos acumulados (${deptoApi}, ${state.annoDesde}–${state.annoHasta}, limit=${limit}).`);
     updateMapVectorsNote(state, meta, "vectors");
     return { ok: true, meta };
   }

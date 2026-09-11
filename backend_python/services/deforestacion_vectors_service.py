@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
+from typing import Iterator
 
 from core.config import PROJECT_ROOT
 
@@ -43,6 +44,8 @@ DEPT_CODES: dict[str, set[str]] = {
 VECTOR_DEPTOS = set(DEPT_CODES.keys())
 LORETO_CODIGOS = DEPT_CODES["loreto"]  # compat exports antiguos
 ALL_VECTOR_CODIGOS = set(CODIGO_SLUGS.keys())
+
+_GEOJSON_CACHE: dict[str, dict] = {}
 
 _EMPTY_KPIS = {
     "total_hectareas": 0.0,
@@ -107,11 +110,37 @@ def _clasificar_tipo(tipo: str) -> str:
     return "antropico"
 
 
-def _sumar_features(features: list[dict]) -> tuple[float, float, float, float, dict[str, float]]:
+def _read_geojson(path: Path) -> dict:
+    """Carga GeoJSON una sola vez; cache por ruta resuelta."""
+    key = str(path.resolve())
+    cached = _GEOJSON_CACHE.get(key)
+    if cached is not None:
+        return cached
+    data = json.loads(path.read_text(encoding="utf-8"))
+    _GEOJSON_CACHE[key] = data
+    return data
+
+
+def warmup_acumulado_cache(ambito: str = "acr") -> int:
+    """Precarga GeoJSON ACR (o ZI) en memoria. Devuelve cantidad de archivos cargados."""
+    n = 0
+    for codigo, (folder, slug) in CODIGO_SLUGS.items():
+        if ambito == "acr" and not codigo.startswith("ACR_"):
+            continue
+        if ambito == "zi" and not codigo.startswith("ZI_"):
+            continue
+        path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
+        if not path.exists():
+            continue
+        _read_geojson(path)
+        n += 1
+    return n
+
+
+def _sumar_props(props_list: list[dict]) -> tuple[float, float, float, float, dict[str, float]]:
     ant = nat = fal = 0.0
     sectores: dict[str, float] = {}
-    for f in features:
-        p = f.get("properties") or {}
+    for p in props_list:
         area = _safe_float(p.get("area_ha"))
         cat = _clasificar_tipo(p.get("tipo"))
         if cat == "natural":
@@ -128,10 +157,14 @@ def _sumar_features(features: list[dict]) -> tuple[float, float, float, float, d
     return total, ant, nat, fal, sectores
 
 
-def _kpis_from_features(features: list[dict]) -> dict:
-    if not features:
+def _sumar_features(features: list[dict]) -> tuple[float, float, float, float, dict[str, float]]:
+    return _sumar_props([(f.get("properties") or {}) for f in features])
+
+
+def _kpis_from_props(props_list: list[dict]) -> dict:
+    if not props_list:
         return dict(_EMPTY_KPIS)
-    total, ant, nat, fal, sectores = _sumar_features(features)
+    total, ant, nat, fal, sectores = _sumar_props(props_list)
 
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0
@@ -155,6 +188,10 @@ def _kpis_from_features(features: list[dict]) -> dict:
         "causa_principal_ha": round(causa_ha, 2),
         "causa_principal_pct": _pct(causa_ha),
     }
+
+
+def _kpis_from_features(features: list[dict]) -> dict:
+    return _kpis_from_props([(f.get("properties") or {}) for f in features])
 
 
 def _merge_kpis(a: dict, b: dict) -> dict:
@@ -193,6 +230,64 @@ def _merge_kpis(a: dict, b: dict) -> dict:
     }
 
 
+def _anno_range(anno_desde: int | None, anno_hasta: int | None) -> tuple[int, int]:
+    lo = anno_desde if anno_desde is not None else 2001
+    hi = anno_hasta if anno_hasta is not None else 2026
+    if lo > hi:
+        lo, hi = hi, lo
+    return lo, hi
+
+
+def _any_acumulado_available(
+    departamento: str,
+    ambito: str,
+    acrs: list[str] | None,
+) -> bool:
+    targets = _slugs_for_filters(departamento, ambito, acrs)
+    if not targets:
+        return False
+    for folder, slug, _ in targets:
+        if (ATD_ROOT / folder / "acumulado" / f"{slug}.geojson").exists():
+            return True
+    return False
+
+
+def iter_acumulado_properties(
+    departamento: str = "loreto",
+    ambito: str = "acr",
+    acrs: list[str] | None = None,
+    anno_desde: int | None = None,
+    anno_hasta: int | None = None,
+) -> Iterator[dict]:
+    """Yields property dicts (codigo, area_ha, tipo, anno, sector) without geometries."""
+    targets = _slugs_for_filters(departamento, ambito, acrs)
+    lo, hi = _anno_range(anno_desde, anno_hasta)
+
+    for folder, slug, codigo in targets:
+        path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
+        if not path.exists():
+            continue
+        data = _read_geojson(path)
+        for f in data.get("features", []):
+            raw = f.get("properties") or {}
+            anno = raw.get("anno")
+            if anno is None:
+                continue
+            try:
+                y = int(anno)
+                if y < lo or y > hi:
+                    continue
+            except (TypeError, ValueError):
+                continue
+            yield {
+                "codigo": codigo,
+                "area_ha": raw.get("area_ha"),
+                "tipo": raw.get("tipo"),
+                "anno": y,
+                "sector": raw.get("sector"),
+            }
+
+
 def kpis_desde_acumulado(
     departamento: str = "loreto",
     ambito: str = "acr",
@@ -200,10 +295,12 @@ def kpis_desde_acumulado(
     anno_desde: int | None = None,
     anno_hasta: int | None = None,
 ) -> dict | None:
-    geo = load_acumulado_vectors(departamento, ambito, acrs, anno_desde, anno_hasta)
-    if not geo["meta"].get("available"):
+    if not _any_acumulado_available(departamento, ambito, acrs):
         return None
-    return _kpis_from_features(geo.get("features") or [])
+    props = list(
+        iter_acumulado_properties(departamento, ambito, acrs, anno_desde, anno_hasta)
+    )
+    return _kpis_from_props(props)
 
 
 def graficos_desde_acumulado(
@@ -213,11 +310,12 @@ def graficos_desde_acumulado(
     anno_desde: int | None = None,
     anno_hasta: int | None = None,
 ) -> dict | None:
-    geo = load_acumulado_vectors(departamento, ambito, acrs, anno_desde, anno_hasta)
-    if not geo["meta"].get("available"):
+    if not _any_acumulado_available(departamento, ambito, acrs):
         return None
 
-    features = geo.get("features") or []
+    props = list(
+        iter_acumulado_properties(departamento, ambito, acrs, anno_desde, anno_hasta)
+    )
     n_filtros = len(acrs) if acrs else 0
     out: dict = {
         "modo": "nacional",
@@ -226,12 +324,12 @@ def graficos_desde_acumulado(
         "distribucion": None,
         "comparativa": None,
     }
-    if not features:
+    if not props:
         return out
 
     if n_filtros == 1:
         out["modo"] = "individual"
-        total, ant, nat, fal, sectores = _sumar_features(features)
+        total, ant, nat, fal, sectores = _sumar_props(props)
         out["composicion"] = [
             {"Categoria": "Antrópico", "Hectareas": ant, "Color": "#d9534f"},
             {"Categoria": "Natural", "Hectareas": nat, "Color": "#5cb85c"},
@@ -257,10 +355,10 @@ def graficos_desde_acumulado(
         for codigo in acrs or []:
             if codigo not in ALL_VECTOR_CODIGOS:
                 continue
-            sub = [f for f in features if (f.get("properties") or {}).get("codigo") == codigo]
+            sub = [p for p in props if p.get("codigo") == codigo]
             if not sub:
                 continue
-            total, ant, nat, fal, _ = _sumar_features(sub)
+            total, ant, nat, fal, _ = _sumar_props(sub)
             nombre = nombres.get(codigo, codigo).replace("ACR ", "")
             rows.append(
                 {
@@ -326,19 +424,17 @@ def load_acumulado_vectors(
             "meta": {"source": "MonitoreoDeforestacionAcumulado", "available": False},
         }
 
-    lo = anno_desde if anno_desde is not None else 2001
-    hi = anno_hasta if anno_hasta is not None else 2026
-    if lo > hi:
-        lo, hi = hi, lo
+    lo, hi = _anno_range(anno_desde, anno_hasta)
 
     features: list[dict] = []
     loaded_slugs: list[str] = []
+    limited = False
     for folder, slug, codigo in targets:
         path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
         if not path.exists():
             continue
         loaded_slugs.append(f"{folder}/{slug}")
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = _read_geojson(path)
         for f in data.get("features", []):
             props = dict(f.get("properties") or {})
             anno = props.get("anno")
@@ -353,8 +449,9 @@ def load_acumulado_vectors(
             props["codigo"] = codigo
             features.append({**f, "properties": props})
             if limit > 0 and len(features) >= limit:
+                limited = True
                 break
-        if limit > 0 and len(features) >= limit:
+        if limited:
             break
 
     available = bool(loaded_slugs)
@@ -369,5 +466,7 @@ def load_acumulado_vectors(
             "anno_desde": lo,
             "anno_hasta": hi,
             "available": available,
+            "limited": limited,
+            "limit": limit if limit > 0 else None,
         },
     }

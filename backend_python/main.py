@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import io
 import sys
+import threading
 import zipfile
 from contextlib import asynccontextmanager
 from datetime import date
@@ -46,6 +47,7 @@ from services.deforestacion_vectors_service import (
     load_acumulado_vectors,
     loreto_en_alcance,
     vectors_en_alcance,
+    warmup_acumulado_cache,
 )
 from services.estadisticas_service import estadisticas_a_catalogo
 from services.filtros_config import ACR_OPCIONES_POR_DEPTO
@@ -95,6 +97,20 @@ def _vector_acrs_seleccionados(acrs: list[str] | None, departamento: str) -> lis
         sel = [c for c in acrs if c in ALL_VECTOR_CODIGOS]
         return sel or None
     return None
+
+
+def _request_fully_covered_by_vectors(
+    departamento: str,
+    acr_filtros: list[str] | None,
+) -> bool:
+    """True si KPIs/gráficos no necesitan CSV de centroides (solo vectores)."""
+    if departamento in VECTOR_DEPTOS:
+        return True
+    if departamento == "todos":
+        if not acr_filtros:
+            return True
+        return all(c in ALL_VECTOR_CODIGOS for c in acr_filtros)
+    return False
 
 
 def _centroides_excluyendo_vectores(
@@ -226,6 +242,15 @@ async def lifespan(app: FastAPI):
             flush=True,
         )
     print("Servidor listo. Abra: http://127.0.0.1:8000", flush=True)
+
+    def _warmup_vectors() -> None:
+        try:
+            warmup_acumulado_cache(ambito="acr")
+            print("Cache vectores ACR listo", flush=True)
+        except Exception as exc:  # noqa: BLE001 — no tumbar el arranque
+            print(f"Warmup vectores ACR falló: {exc}", flush=True)
+
+    threading.Thread(target=_warmup_vectors, daemon=True, name="warmup-acr-geojson").start()
     yield
     _APP_STATE.clear()
 
@@ -321,11 +346,15 @@ def kpis_endpoint(
     anno_hasta: int | None = Query(None, ge=2001, le=2030),
 ) -> dict:
     est = _APP_STATE["estadisticas"]
-    cent = _get_centroides_cached()
+    # Fast path: no cargar CSV de centroides si el filtro está cubierto por GeoJSON
+    if _request_fully_covered_by_vectors(departamento, acr):
+        cent = pd.DataFrame()
+    else:
+        cent = _get_centroides_cached()
     kpis = _kpis_combinados(
         cent, departamento, ambito, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
     )
-    if kpis is None:
+    if kpis is None and not cent.empty:
         kpis = kpis_desde_centroides(
             cent, departamento, ambito, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
         )
@@ -352,11 +381,14 @@ def graficos_endpoint(
 ) -> dict:
     est = _APP_STATE["estadisticas"]
     amb = ambito if ambito else None
-    cent = _get_centroides_cached()
+    if _request_fully_covered_by_vectors(departamento, acr):
+        cent = pd.DataFrame()
+    else:
+        cent = _get_centroides_cached()
     graficos = _graficos_combinados(
         cent, departamento, amb, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
     )
-    if graficos is None:
+    if graficos is None and not cent.empty:
         graficos = graficos_desde_centroides(
             cent, departamento, amb or "acr", acr, anno_desde=anno_desde, anno_hasta=anno_hasta
         )
@@ -434,7 +466,8 @@ def deforestacion_vectors_endpoint(
     acr: list[str] | None = Query(None),
     anno_desde: int | None = Query(None, ge=2001, le=2030),
     anno_hasta: int | None = Query(None, ge=2001, le=2030),
-    limit: int = Query(0, ge=0, le=50000),
+    # limit=0 = sin tope (pesado); el frontend pasa tope práctico en vistas amplias
+    limit: int = Query(0, ge=0, le=100000),
 ) -> dict:
     """Polígonos MonitoreoDeforestacionAcumulado (Loreto, San Martín, Cusco)."""
     return load_acumulado_vectors(

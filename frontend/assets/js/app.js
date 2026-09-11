@@ -300,13 +300,13 @@ async function refreshDashboard() {
     anno_desde: state.annoDesde,
     anno_hasta: state.annoHasta,
   };
-  const [kpis, graficos] = await Promise.all([
-    apiGet("/api/kpis", params),
-    apiGet("/api/graficos", { ...params, ambito: state.ambito }),
+  // 1) KPIs first (fast path — sin geometrías / sin CSV si vectores cubren)
+  renderKpis(await apiGet("/api/kpis", params));
+  // 2) charts + map in parallel without blocking KPIs
+  await Promise.all([
+    apiGet("/api/graficos", { ...params, ambito: state.ambito }).then(renderCharts),
+    AcrMap.refresh(state),
   ]);
-  renderKpis(kpis);
-  renderCharts(graficos);
-  await AcrMap.refresh(state);
   Modals.bind(state);
 }
 
