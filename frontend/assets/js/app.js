@@ -5,7 +5,7 @@ const state = {
   departamento: "todos",
   ambito: "acr",
   acrs: [],
-  annoDesde: 2001,
+  annoDesde: 2015,
   annoHasta: 2025,
 };
 
@@ -302,11 +302,14 @@ async function refreshDashboard() {
   };
   // 1) KPIs first (fast path — sin geometrías / sin CSV si vectores cubren)
   renderKpis(await apiGet("/api/kpis", params));
-  // 2) charts + map in parallel without blocking KPIs
-  await Promise.all([
-    apiGet("/api/graficos", { ...params, ambito: state.ambito }).then(renderCharts),
-    AcrMap.refresh(state),
-  ]);
+  // 2) Charts only when ACR selected; nacional placeholder needs no fetch
+  if (state.acrs.length) {
+    await apiGet("/api/graficos", { ...params, ambito: state.ambito }).then(renderCharts);
+  } else {
+    renderCharts({ modo: "nacional" });
+  }
+  // 3) Map fire-and-forget so KPIs/charts paint without waiting for polygons
+  AcrMap.refresh(state).catch((err) => console.warn("Mapa:", err));
   Modals.bind(state);
 }
 

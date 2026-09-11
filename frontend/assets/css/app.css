@@ -2210,6 +2210,9 @@ body {
   font-weight: 500;
   line-height: 1.45;
 }
+.dash-hero-eyebrow { margin:0 0 0.4rem; font-size:0.8rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; opacity:0.9; color:#E85D04; }
+.section-hero { min-height: 200px; }
+.section-hero .dash-hero-copy h1 { font-size: clamp(1.15rem, 2vw, 1.55rem); }
 .dash-hero-accent {
   display: flex;
   align-items: stretch;

@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260911e" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260911h" />
 </head>
 <body>
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
@@ -176,10 +176,18 @@
 
   <!-- METODOLOGÍA (texto completo ui.R) -->
   <section id="tab-metodologia" class="tab-panel">
-    <div class="hero-red">Metodología Científica</div>
-    <div class="hero-blue">
-      <h2>Sistema de monitoreo y evaluación de deforestación en Áreas de Conservación Regional del Perú</h2>
-      <p>Análisis basado en imágenes satelitales de alta resolución (Sentinel-2, Landsat 7/8, PlanetScope) procesadas con algoritmos de detección de cambios espectrales. La metodología sigue estándares internacionales establecidos por Hansen et al. (2013) y el protocolo del MINAM para el monitoreo de bosques amazónicos.</p>
+    <div class="dash-hero section-hero">
+      <div class="dash-hero-inner">
+        <div class="dash-hero-copy">
+          <p class="dash-hero-eyebrow">Metodología Científica</p>
+          <h1>Sistema de monitoreo y evaluación de deforestación en Áreas de Conservación Regional del Perú</h1>
+          <p class="dash-hero-sub">Análisis con Sentinel-2, Landsat y PlanetScope · estándares Hansen et al. y protocolo MINAM.</p>
+        </div>
+        <div class="dash-hero-accent" aria-hidden="true">
+          <span class="dash-hero-accent-bar"></span>
+          <p>Territorios que conservan oportunidades</p>
+        </div>
+      </div>
     </div>
     <div class="panelbox metodologia-content">
       <h3><i class="fas fa-book"></i> 1. Marco Normativo y Conceptual</h3>
@@ -265,10 +273,18 @@
 
   <!-- REPORTES (ui.R tab 3) -->
   <section id="tab-reportes" class="tab-panel">
-    <div class="hero-red">Productos Cartográficos y Alertas Tempranas</div>
-    <div class="hero-blue">
-      <h2>Reportes, mapas y validación ATD GeoBosques</h2>
-      <p>Mapas de línea base de deforestación por ACR y <strong>reportes de Alertas Tempranas de Deforestación (ATD)</strong> generados con el toolbox GFP Subnacional: descarga MINAM, fotointerpretación satelital y informe PDF validado.</p>
+    <div class="dash-hero section-hero">
+      <div class="dash-hero-inner">
+        <div class="dash-hero-copy">
+          <p class="dash-hero-eyebrow">Productos Cartográficos y Alertas Tempranas</p>
+          <h1>Reportes, mapas y validación ATD GeoBosques</h1>
+          <p class="dash-hero-sub">Mapas de línea base por ACR y reportes ATD con el toolbox GFP Subnacional: descarga MINAM, fotointerpretación satelital e informe PDF validado.</p>
+        </div>
+        <div class="dash-hero-accent" aria-hidden="true">
+          <span class="dash-hero-accent-bar"></span>
+          <p>Territorios que conservan oportunidades</p>
+        </div>
+      </div>
     </div>
 
     <div class="reportes-subtabs" role="tablist">
@@ -320,10 +336,18 @@
 
   <!-- TENDENCIAS (mod_prediccion.R) -->
   <section id="tab-tendencias" class="tab-panel">
-    <div class="hero-red">Análisis de Tendencias Temporales</div>
-    <div class="hero-blue">
-      <h2>Análisis histórico de deforestación en ACRs</h2>
-      <p>Análisis histórico de la deforestación en las ACRs del Programa GFP Subnacional (2001-2025). Visualización de tendencias temporales y análisis de patrones de deforestación basados en series de tiempo.</p>
+    <div class="dash-hero section-hero">
+      <div class="dash-hero-inner">
+        <div class="dash-hero-copy">
+          <p class="dash-hero-eyebrow">Análisis de Tendencias Temporales</p>
+          <h1>Análisis histórico de deforestación en ACRs</h1>
+          <p class="dash-hero-sub">Serie histórica 2001–2025 · tendencias temporales y patrones de deforestación en ACRs del Programa GFP Subnacional.</p>
+        </div>
+        <div class="dash-hero-accent" aria-hidden="true">
+          <span class="dash-hero-accent-bar"></span>
+          <p>Territorios que conservan oportunidades</p>
+        </div>
+      </div>
     </div>
     <div class="layout-dashboard">
       <aside class="well-panel">
@@ -362,12 +386,12 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260911g"></script>
+  <script src="/assets/js/map.js?v=20260911h"></script>
   <script src="/assets/js/modals.js"></script>
   <script src="/assets/js/atd-demo.js?v=20260709d"></script>
   <script src="/assets/js/region-insights.js"></script>
   <script src="/assets/js/reportes.js?v=20260709b"></script>
   <script src="/assets/js/tendencias.js?v=20260910a"></script>
-  <script src="/assets/js/app.js?v=20260911g"></script>
+  <script src="/assets/js/app.js?v=20260911h"></script>
 </body>
 </html>

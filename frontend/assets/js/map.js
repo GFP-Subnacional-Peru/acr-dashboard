@@ -247,11 +247,15 @@ const AcrMap = (() => {
     }
     const yearSpan =
       Math.abs(Number(state.annoHasta) - Number(state.annoDesde)) + 1;
+    const singleAcr =
+      (Array.isArray(acrFilter) && acrFilter.length === 1) ||
+      (Array.isArray(state.acrs) && state.acrs.length === 1);
     const heavyView =
       state.departamento === "todos" ||
       yearSpan > 10 ||
       (state.ambito || "acr") === "zi";
-    const limit = heavyView ? 12000 : 0;
+    // Wide filters: cap polygons; single ACR stays unlimited
+    const limit = singleAcr ? 0 : heavyView ? 6000 : 0;
     const params = {
       departamento: deptoApi,
       ambito: state.ambito || "acr",
