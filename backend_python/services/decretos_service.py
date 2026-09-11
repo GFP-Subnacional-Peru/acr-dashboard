@@ -10,9 +10,11 @@ ACR_DECRETOS = pd.DataFrame(
             "ACR_BSM", "ACR_CE",
             "ACR_CHQ", "ACR_CHU", "ACR_QK",
         ],
+        # Nombres alineados a filtros_config (AA=Ampiyacu, ANPCH=Alto Nanay).
+        # Decreto/fecha/superficie de AA↔ANPCH corregidos junto con el nombre.
         "nombre_completo": [
-            "ACR Alto Nanay - Pintuyacu Chambira",
             "ACR Ampiyacu Apayacu",
+            "ACR Alto Nanay - Pintuyacu Chambira",
             "ACR Comunal Tamshiyacu Tahuayo",
             "ACR Maijuna Kichwa",
             "ACR Bosques de Shunté y Mishollo",
@@ -22,8 +24,8 @@ ACR_DECRETOS = pd.DataFrame(
             "ACR Q'eros Kosñipata",
         ],
         "decreto_supremo": [
-            "D.S. N° 005-2015-MINAM",
             "D.S. N° 006-2010-MINAM",
+            "D.S. N° 005-2015-MINAM",
             "D.S. N° 010-2009-MINAM",
             "D.S. N° 008-2015-MINAM",
             "D.S. N° 011-2017-MINAM",
@@ -33,12 +35,12 @@ ACR_DECRETOS = pd.DataFrame(
             "D.S. N° 008-2014-MINAM",
         ],
         "fecha_creacion": [
-            "29/01/2015", "14/01/2010", "20/05/2009", "29/01/2015",
+            "14/01/2010", "29/01/2015", "20/05/2009", "29/01/2015",
             "04/08/2017", "22/12/2005",
             "08/04/2010", "21/01/2014", "21/01/2014",
         ],
         "superficie_ha": [
-            943.87, 434.13, 420.08, 391.04,
+            434.13, 943.87, 420.08, 391.04,
             28588.86, 149870.23,
             103814.39, 66514.49, 39345.85,
         ],

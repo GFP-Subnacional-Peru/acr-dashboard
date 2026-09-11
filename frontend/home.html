@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portal ACR — Monitoreo de Deforestación | GFP Subnacional</title>
+  <!-- GFP WordPress iframe: apuntar a /mapa (o /?embed=1 que redirige a /mapa). La home (/) es el portal. -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20260911e" />
+</head>
+<body class="portal-body">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-logos" aria-label="Identidad institucional GFP · SECO · Basel">
+        <a class="site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
+          <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="78" loading="eager"/>
+        </a>
+        <img class="site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="70" loading="eager"/>
+        <img class="site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="62" loading="eager"/>
+      </div>
+      <nav class="navbar" aria-label="Navegación del portal">
+        <ul class="nav-tabs">
+          <li><a class="active" href="/"><i class="fas fa-home"></i> Inicio</a></li>
+          <li><a href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
+          <li><a href="/datos"><i class="fas fa-database"></i> Datos</a></li>
+          <li><a href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
+          <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Tendencias</a></li>
+          <li><a href="/mapa?tab=reportes"><i class="fas fa-download"></i> Reportes</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="portal-main">
+    <section class="portal-hero" aria-label="Portada">
+      <div class="portal-hero-inner">
+        <span class="portal-hero-eyebrow">Programa GFP Subnacional</span>
+        <h1>Áreas de Conservación Regional</h1>
+        <p>Portal de monitoreo de deforestación en 9 ACR de Loreto, San Martín y Cusco. Explore el mapa interactivo, indicadores y reportes basados en evidencia satelital.</p>
+        <div>
+          <a class="portal-cta" href="/mapa"><i class="fas fa-map-marked-alt"></i> Explorar el mapa</a>
+          <a class="portal-cta portal-cta-secondary" href="/datos"><i class="fas fa-database"></i> Catálogo de datos</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="portal-section" aria-labelledby="acrs-title">
+      <div class="portal-section-head">
+        <h2 id="acrs-title">9 Áreas de Conservación Regional</h2>
+        <p>Seleccione un ACR para ver su ficha (decreto, región y acceso rápido al mapa filtrado).</p>
+      </div>
+      <div class="depto-grid">
+        <div class="depto-col">
+          <h3><i class="fas fa-map-marker-alt"></i> Loreto</h3>
+          <a class="acr-card" href="/acr/ampiyacu-apayacu">
+            <span class="acr-card-code">ACR_AA</span>
+            <span class="acr-card-name">Ampiyacu Apayacu</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+          <a class="acr-card" href="/acr/alto-nanay">
+            <span class="acr-card-code">ACR_ANPCH</span>
+            <span class="acr-card-name">Alto Nanay Pintuyacu Chambira</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+          <a class="acr-card" href="/acr/maijuna-kichwa">
+            <span class="acr-card-code">ACR_MK</span>
+            <span class="acr-card-name">Maijuna Kichwa</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+          <a class="acr-card" href="/acr/tahuayo">
+            <span class="acr-card-code">ACR_CTT</span>
+            <span class="acr-card-name">Comunal Tamshiyacu Tahuayo</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+        </div>
+        <div class="depto-col">
+          <h3><i class="fas fa-map-marker-alt"></i> San Martín</h3>
+          <a class="acr-card" href="/acr/bosques-shunte">
+            <span class="acr-card-code">ACR_BSM</span>
+            <span class="acr-card-name">Bosques de Shunté y Mishollo</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+          <a class="acr-card" href="/acr/cordillera-escalera">
+            <span class="acr-card-code">ACR_CE</span>
+            <span class="acr-card-name">Cordillera Escalera</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+        </div>
+        <div class="depto-col">
+          <h3><i class="fas fa-map-marker-alt"></i> Cusco</h3>
+          <a class="acr-card" href="/acr/choquequirao">
+            <span class="acr-card-code">ACR_CHQ</span>
+            <span class="acr-card-name">Choquequirao</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+          <a class="acr-card" href="/acr/chuyapi-urusayhua">
+            <span class="acr-card-code">ACR_CHU</span>
+            <span class="acr-card-name">Chuyapi Urusayhua</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+          <a class="acr-card" href="/acr/qeros-kosnipata">
+            <span class="acr-card-code">ACR_QK</span>
+            <span class="acr-card-name">Q'eros Kosñipata</span>
+            <span class="acr-card-meta">Ver ficha →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="portal-footer">
+    <div class="portal-footer-inner">
+      <div>
+        <strong>GFP Subnacional — Suiza apoyando al Perú</strong>
+        <p>Monitoreo de deforestación en Áreas de Conservación Regional. Datos satelitales y gestión territorial basada en evidencia.</p>
+      </div>
+      <a href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer">gfpsubnacional.pe <i class="fas fa-external-link-alt"></i></a>
+    </div>
+  </footer>
+</body>
+</html>

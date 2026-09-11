@@ -23,9 +23,9 @@ if str(_BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(_BACKEND_ROOT))
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from core.serializers import dataframe_to_records
@@ -564,20 +564,39 @@ if _WWW_MAPAS.exists():
 if _FRONTEND_DIR.exists():
     app.mount("/assets", StaticFiles(directory=str(_FRONTEND_DIR / "assets")), name="assets")
 
+    _NO_CACHE_HTML = {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
+
+    def _html(name: str) -> FileResponse:
+        return FileResponse(_FRONTEND_DIR / name, headers=_NO_CACHE_HTML)
+
     @app.get("/favicon.ico", include_in_schema=False)
     def favicon():
         return FileResponse(_FRONTEND_DIR / "index.html")  # evita 404 en logs
 
     @app.get("/")
-    def index():
-        return FileResponse(
-            _FRONTEND_DIR / "index.html",
-            headers={
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0",
-            },
-        )
+    def portal_home(request: Request):
+        # WordPress embed legacy: /?embed=1 → dashboard mapa
+        if request.query_params.get("embed") == "1":
+            return RedirectResponse(url="/mapa", status_code=302)
+        return _html("home.html")
+
+    @app.get("/mapa")
+    def portal_mapa():
+        return _html("index.html")
+
+    @app.get("/datos")
+    def portal_datos():
+        return _html("datos.html")
+
+    @app.get("/acr/{slug}")
+    def portal_acr(slug: str):
+        # Validación de slug en el cliente (acr.html / acr.js)
+        _ = slug
+        return _html("acr.html")
 else:
 
     @app.get("/")

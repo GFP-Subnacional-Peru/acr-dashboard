@@ -172,7 +172,8 @@ body {
   flex-wrap: wrap;
   justify-content: flex-end;
 }
-.nav-tabs button {
+.nav-tabs button,
+.nav-tabs a.nav-link-ext {
   border: none;
   background: none;
   padding: 0.55rem 1rem;
@@ -183,17 +184,23 @@ body {
   border-radius: 999px;
   border-bottom: none;
   transition: background 0.15s, color 0.15s;
+  text-decoration: none;
+  display: inline-block;
+  font-family: inherit;
 }
-.nav-tabs button:hover {
+.nav-tabs button:hover,
+.nav-tabs a.nav-link-ext:hover {
   background: rgba(0, 61, 165, 0.08);
 }
-.nav-tabs button.active {
+.nav-tabs button.active,
+.nav-tabs a.nav-link-ext.active {
   color: #fff;
   background: #003DA5;
   border-bottom-color: transparent;
   box-shadow: 0 4px 12px rgba(0, 61, 165, 0.28);
 }
-.nav-tabs button i { margin-right: 6px; }
+.nav-tabs button i,
+.nav-tabs a.nav-link-ext i { margin-right: 6px; }
 
 @media (max-width: 900px) {
   .site-header-inner {
@@ -214,7 +221,8 @@ body {
   .site-logo-basel { height: 44px; max-width: 190px; }
   .navbar { margin-left: 0; justify-content: center; width: 100%; }
   .nav-tabs { justify-content: center; }
-  .nav-tabs button { font-size: 0.82rem; padding: 0.45rem 0.75rem; }
+  .nav-tabs button,
+  .nav-tabs a.nav-link-ext { font-size: 0.82rem; padding: 0.45rem 0.75rem; }
 }
 
 .tab-panel { display: none; padding: 0 1rem 2rem; }

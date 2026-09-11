@@ -114,21 +114,69 @@ function startServerHeartbeat() {
   setInterval(ping, 8 * 60 * 1000);
 }
 
+function activateTab(tabName) {
+  const allowed = new Set(["dashboard", "metodologia", "reportes", "tendencias"]);
+  const tab = allowed.has(tabName) ? tabName : "dashboard";
+  document.querySelectorAll(".nav-tabs button").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+  const btn = document.querySelector(`.nav-tabs button[data-tab="${tab}"]`);
+  if (btn) btn.classList.add("active");
+  const panel = qs(`#tab-${tab}`);
+  if (panel) panel.classList.add("active");
+  if (tab === "dashboard") {
+    setTimeout(() => AcrMap.init()?.invalidateSize(), 250);
+  }
+  if (tab === "reportes" && !window._reportesReady) {
+    window._reportesReady = true;
+    Reportes.init();
+  }
+}
+
 document.querySelectorAll(".nav-tabs button").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".nav-tabs button").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
-    btn.classList.add("active");
-    qs(`#tab-${btn.dataset.tab}`).classList.add("active");
-    if (btn.dataset.tab === "dashboard") {
-      setTimeout(() => AcrMap.init()?.invalidateSize(), 250);
-    }
-    if (btn.dataset.tab === "reportes" && !window._reportesReady) {
-      window._reportesReady = true;
-      Reportes.init();
-    }
+    activateTab(btn.dataset.tab);
   });
 });
+
+const ACR_DEPTO = {
+  ACR_AA: "loreto",
+  ACR_ANPCH: "loreto",
+  ACR_MK: "loreto",
+  ACR_CTT: "loreto",
+  ACR_BSM: "san_martin",
+  ACR_CE: "san_martin",
+  ACR_CHQ: "cusco",
+  ACR_CHU: "cusco",
+  ACR_QK: "cusco",
+};
+
+/** Aplica ?tab=… y ?acr=… desde la URL (portal → mapa). */
+async function applyUrlQueryParams() {
+  const params = new URLSearchParams(window.location.search);
+  const tab = (params.get("tab") || "").toLowerCase();
+  if (tab) activateTab(tab === "mapa" ? "dashboard" : tab);
+
+  let acrParam = params.get("acr") || params.get("ACR");
+  if (!acrParam) return;
+  acrParam = acrParam.trim().toUpperCase();
+  if (!ACR_DEPTO[acrParam]) return;
+
+  const depto = ACR_DEPTO[acrParam];
+  state.departamento = depto;
+  state.ambito = "acr";
+  if (qs("#departamento")) qs("#departamento").value = depto;
+  if (qs("#ambito")) qs("#ambito").value = "acr";
+  await loadAcrOptions();
+  const sel = qs("#nombre_acr");
+  if (sel) {
+    Array.from(sel.options).forEach((opt) => {
+      opt.selected = opt.value === acrParam;
+    });
+  }
+  state.acrs = [acrParam];
+  updateFilterInfo();
+  await refreshDashboard();
+}
 
 function initYearFilters() {
   const desde = qs("#anno_desde");
@@ -395,6 +443,7 @@ qs("#btn-limpiar").addEventListener("click", async () => {
 (async function init() {
   try {
     await bootstrapDashboard();
+    await applyUrlQueryParams();
   } catch (err) {
     console.error(err);
     hideLoading();
