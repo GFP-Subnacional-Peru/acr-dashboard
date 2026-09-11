@@ -31,27 +31,23 @@ function buildQuery(params) {
   return p.toString() ? `?${p}` : "";
 }
 
-async function apiGet(path, params = {}, retries = 45) {
+async function apiGet(path, params = {}, retries = 3) {
   let lastErr;
   for (let i = 0; i < retries; i++) {
     try {
-      const res = await fetch(`${API}${path}${buildQuery(params)}`);
+      const res = await fetch(`${API}${path}${buildQuery(params)}`, { cache: "no-store" });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     } catch (err) {
       lastErr = err;
-      const delay = Math.min(750 + i * 200, 3000);
-      if (i < retries - 1) await new Promise((r) => setTimeout(r, delay));
+      if (i < retries - 1) await new Promise((r) => setTimeout(r, 400 + i * 350));
     }
   }
   throw lastErr;
 }
 
-function showLoading(message) {
-  const overlay = qs("#app-loading");
-  const status = qs("#loading-status");
-  if (overlay) overlay.classList.remove("hidden");
-  if (status && message) status.textContent = message;
+function showLoading() {
+  /* no-op: sin splash a pantalla completa */
 }
 
 function hideLoading() {
@@ -75,7 +71,6 @@ function showOfflineBanner() {
       <button type="button" id="btn-retry-load" class="btn btn-primary" style="margin-top:16px">
         <i class="fas fa-redo"></i> Reintentar
       </button>
-      ${isRemote ? "" : `<p style="opacity:.8;font-size:14px;margin-top:12px">Luego abra: <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a></p>`}
     </div>`;
   document.body.appendChild(box);
   qs("#btn-retry-load")?.addEventListener("click", () => {
@@ -85,21 +80,44 @@ function showOfflineBanner() {
 }
 
 async function bootstrapDashboard() {
-  showLoading("Conectando con el servidor…");
-  try {
-    await apiGet("/api/health");
-  } catch (err) {
-    hideLoading();
-    showOfflineBanner();
-    throw err;
-  }
-  showLoading("Cargando filtros y datos del mapa…");
-  initYearFilters();
-  await loadAcrOptions();
-  Tendencias.init();
-  await RegionInsights.load();
-  await refreshDashboard();
   hideLoading();
+  initYearFilters();
+  Tendencias.init();
+
+  // Health en paralelo (no bloquea la UI); si falla del todo, banner offline
+  const healthP = apiGet("/api/health", {}, 8).catch(() => null);
+
+  // URL ?acr= / ?tab= antes del primer refresh para no cargar dos veces
+  await applyUrlQueryParams({ skipRefresh: true });
+
+  await loadAcrOptions();
+  if (state._pendingAcr) {
+    const code = state._pendingAcr;
+    delete state._pendingAcr;
+    const sel = qs("#nombre_acr");
+    if (sel) {
+      Array.from(sel.options).forEach((opt) => {
+        opt.selected = opt.value === code;
+      });
+    }
+    state.acrs = [code];
+    updateFilterInfo();
+  }
+
+  // Mapa + KPIs al toque; insights en segundo plano
+  const dashP = refreshDashboard();
+  RegionInsights.load().catch((e) => console.warn("insights", e));
+
+  const health = await healthP;
+  if (!health) {
+    try {
+      await apiGet("/api/health", {}, 12);
+    } catch (err) {
+      showOfflineBanner();
+      throw err;
+    }
+  }
+  await dashP;
   startServerHeartbeat();
 }
 
@@ -151,31 +169,37 @@ const ACR_DEPTO = {
 };
 
 /** Aplica ?tab=… y ?acr=… desde la URL (portal → mapa). */
-async function applyUrlQueryParams() {
+async function applyUrlQueryParams(opts = {}) {
+  const { skipRefresh = false } = opts;
   const params = new URLSearchParams(window.location.search);
   const tab = (params.get("tab") || "").toLowerCase();
   if (tab) activateTab(tab === "mapa" ? "dashboard" : tab);
 
   let acrParam = params.get("acr") || params.get("ACR");
-  if (!acrParam) return;
+  if (!acrParam) return false;
   acrParam = acrParam.trim().toUpperCase();
-  if (!ACR_DEPTO[acrParam]) return;
+  if (!ACR_DEPTO[acrParam]) return false;
 
   const depto = ACR_DEPTO[acrParam];
   state.departamento = depto;
   state.ambito = "acr";
   if (qs("#departamento")) qs("#departamento").value = depto;
   if (qs("#ambito")) qs("#ambito").value = "acr";
-  await loadAcrOptions();
-  const sel = qs("#nombre_acr");
-  if (sel) {
-    Array.from(sel.options).forEach((opt) => {
-      opt.selected = opt.value === acrParam;
-    });
+  if (!skipRefresh) await loadAcrOptions();
+  // Si skipRefresh, loadAcrOptions lo hará el bootstrap después; marcar intención
+  state._pendingAcr = acrParam;
+  if (!skipRefresh) {
+    const sel = qs("#nombre_acr");
+    if (sel) {
+      Array.from(sel.options).forEach((opt) => {
+        opt.selected = opt.value === acrParam;
+      });
+    }
+    state.acrs = [acrParam];
+    updateFilterInfo();
+    await refreshDashboard();
   }
-  state.acrs = [acrParam];
-  updateFilterInfo();
-  await refreshDashboard();
+  return true;
 }
 
 function initYearFilters() {
@@ -443,10 +467,9 @@ qs("#btn-limpiar").addEventListener("click", async () => {
 (async function init() {
   try {
     await bootstrapDashboard();
-    await applyUrlQueryParams();
   } catch (err) {
     console.error(err);
     hideLoading();
-    showOfflineBanner();
+    if (!qs("#server-offline-banner")) showOfflineBanner();
   }
 })();
