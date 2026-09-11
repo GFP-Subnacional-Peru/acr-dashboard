@@ -3,7 +3,7 @@ const API = "";
 
 const state = {
   departamento: "todos",
-  ambito: "",
+  ambito: "acr",
   acrs: [],
   annoDesde: 2001,
   annoHasta: 2025,
@@ -161,12 +161,14 @@ function readYearFilters() {
 }
 
 function syncYearFilterLabel() {
-  const label = qs("#anno-range-label");
-  if (!label) return;
   const full = state.annoDesde === ANNO_MIN && state.annoHasta === ANNO_MAX;
-  label.textContent = full
+  const text = full
     ? `Periodo: ${ANNO_MIN} – ${ANNO_MAX}`
     : `Periodo: ${state.annoDesde} – ${state.annoHasta}`;
+  const label = qs("#anno-range-label");
+  if (label) label.textContent = text;
+  const mapPeriod = qs("#dash-map-period");
+  if (mapPeriod) mapPeriod.textContent = text.replace("Periodo", "Período");
 }
 
 function isYearFilterActive() {
@@ -196,24 +198,26 @@ function getSelectedAcrs() {
 
 function updateFilterInfo() {
   const info = qs("#filter-info");
-  const has = state.ambito || state.acrs.length || isYearFilterActive();
+  const hasDepto = state.departamento && state.departamento !== "todos";
+  const hasAmbito = state.ambito && state.ambito !== "acr";
+  const has = hasDepto || hasAmbito || state.acrs.length || isYearFilterActive();
   if (!has) {
     info.classList.remove("visible");
     return;
   }
-  let html = "<strong>Filtro Activo:</strong><br>";
+  let html = "<strong>Filtro activo:</strong> ";
+  const parts = [];
+  if (hasDepto) parts.push(`Depto: ${state.departamento}`);
   if (state.ambito) {
     const t =
       state.ambito === "acr" ? "ACR" : state.ambito === "zi" ? "Zona de Influencia" : "ACR + ZI";
-    html += `<small>Ámbito: ${t}</small><br>`;
+    parts.push(`Ámbito: ${t}`);
   }
-  if (state.acrs.length) html += `<small>ACRs: ${state.acrs.length}</small><br>`;
-  if (isYearFilterActive()) {
-    html += `<small>Periodo: ${state.annoDesde}–${state.annoHasta}</small>`;
-  }
+  if (state.acrs.length) parts.push(`ACRs: ${state.acrs.length}`);
+  if (isYearFilterActive()) parts.push(`Periodo: ${state.annoDesde}–${state.annoHasta}`);
+  html += parts.join(" · ");
   info.innerHTML = html;
   info.classList.add("visible");
-  qs("#btn-limpiar").classList.toggle("hidden", !has);
 }
 
 async function refreshDashboard() {
@@ -264,8 +268,10 @@ function renderKpis(k) {
   const colorPct = pct < 30 ? "#5cb85c" : pct < 60 ? "#f39c12" : "#d9534f";
   qs("#kpi-porcentaje .number").textContent = `${pct}%`;
   qs("#kpi-porcentaje .number").style.color = colorPct;
-  qs("#kpi-porcentaje .label").textContent = k.texto_ambito_kpi || "DE ORIGEN ANTRÓPICO";
-  qs("#kpi-porcentaje .sub").textContent = `${fmt(k.total_antropico)} ha de ${fmt(k.total_hectareas)} ha`;
+  const pctSub = k.texto_ambito_kpi
+    ? `${k.texto_ambito_kpi} · ${fmt(k.total_antropico)} ha de ${fmt(k.total_hectareas)} ha`
+    : `${fmt(k.total_antropico)} ha de ${fmt(k.total_hectareas)} ha`;
+  qs("#kpi-porcentaje .sub").textContent = pctSub;
 
   const causa = k.causa_principal || "Sin datos";
   const causaHa = k.causa_principal_ha ?? 0;
@@ -282,35 +288,37 @@ function renderKpis(k) {
 function renderCharts(g) {
   const ind = qs("#charts-individual");
   const comp = qs("#charts-comparativa");
-  ind.classList.add("hidden");
-  comp.classList.add("hidden");
+  const nac = qs("#charts-nacional");
+  ind?.classList.add("hidden");
+  comp?.classList.add("hidden");
+  nac?.classList.add("hidden");
 
   if (g.modo === "individual" && g.composicion) {
-    ind.classList.remove("hidden");
+    ind?.classList.remove("hidden");
     Plotly.newPlot(
       "chart-composicion",
       [{ x: g.composicion.map((d) => d.Categoria), y: g.composicion.map((d) => d.Hectareas), type: "bar", marker: { color: g.composicion.map((d) => d.Color) }, textposition: "outside" }],
-      { yaxis: { title: "Hectáreas" }, showlegend: false, margin: { t: 20 } },
-      { responsive: true }
+      { yaxis: { title: "Hectáreas" }, showlegend: false, margin: { t: 20, b: 40 }, height: 260 },
+      { responsive: true, displayModeBar: false }
     );
     if (g.causas_top5) {
       Plotly.newPlot(
         "chart-causas",
         [{ y: g.causas_top5.map((d) => d.Causa), x: g.causas_top5.map((d) => d.Area_Ha), type: "bar", orientation: "h", marker: { color: "#66c2a5" } }],
-        { margin: { l: 150 }, xaxis: { title: "Hectáreas" } },
-        { responsive: true }
+        { margin: { l: 120, t: 20, b: 40 }, xaxis: { title: "Hectáreas" }, height: 260 },
+        { responsive: true, displayModeBar: false }
       );
     }
     if (g.distribucion) {
       Plotly.newPlot(
         "chart-distribucion",
         [{ labels: g.distribucion.items.map((d) => d.Categoria), values: g.distribucion.items.map((d) => d.Hectareas), type: "pie", hole: 0.4, marker: { colors: g.distribucion.items.map((d) => d.Color) }, textinfo: "label+percent" }],
-        { annotations: [{ text: `<b>${fmt(g.distribucion.total)} ha</b>`, showarrow: false, font: { size: 18 } }] },
-        { responsive: true }
+        { annotations: [{ text: `<b>${fmt(g.distribucion.total)} ha</b>`, showarrow: false, font: { size: 14 } }], margin: { t: 20, b: 20 }, height: 280 },
+        { responsive: true, displayModeBar: false }
       );
     }
   } else if (g.modo === "comparativa" && g.comparativa) {
-    comp.classList.remove("hidden");
+    comp?.classList.remove("hidden");
     const names = g.comparativa.map((d) => d.Nombre_corto);
     Plotly.newPlot(
       "chart-comparativa",
@@ -319,10 +327,21 @@ function renderCharts(g) {
         { x: names, y: g.comparativa.map((d) => d.Perdida_natural), name: "Natural", type: "bar", marker: { color: "#5cb85c" } },
         { x: names, y: g.comparativa.map((d) => d.Falsa_alerta), name: "Falsa Alerta", type: "bar", marker: { color: "#f0ad4e" } },
       ],
-      { barmode: "group", margin: { b: 120 }, xaxis: { tickangle: -45 }, yaxis: { title: "Área (ha)" }, legend: { orientation: "h", y: -0.3 } },
-      { responsive: true }
+      { barmode: "group", margin: { b: 100, t: 20 }, xaxis: { tickangle: -35 }, yaxis: { title: "Área (ha)" }, legend: { orientation: "h", y: -0.25 }, height: 360 },
+      { responsive: true, displayModeBar: false }
     );
+  } else {
+    nac?.classList.remove("hidden");
   }
+}
+
+async function applyFiltersFromDom() {
+  state.departamento = qs("#departamento")?.value || "todos";
+  state.ambito = qs("#ambito")?.value || "acr";
+  state.acrs = getSelectedAcrs();
+  readYearFilters();
+  updateFilterInfo();
+  await refreshDashboard();
 }
 
 qs("#departamento").addEventListener("change", async (e) => {
@@ -334,7 +353,7 @@ qs("#departamento").addEventListener("change", async (e) => {
 });
 
 qs("#ambito").addEventListener("change", (e) => {
-  state.ambito = e.target.value;
+  state.ambito = e.target.value || "acr";
   updateFilterInfo();
   refreshDashboard();
 });
@@ -354,14 +373,16 @@ function onYearFilterChange() {
 qs("#anno_desde")?.addEventListener("change", onYearFilterChange);
 qs("#anno_hasta")?.addEventListener("change", onYearFilterChange);
 
+qs("#btn-aplicar")?.addEventListener("click", () => applyFiltersFromDom());
+
 qs("#btn-limpiar").addEventListener("click", async () => {
   qs("#departamento").value = "todos";
-  qs("#ambito").value = "";
+  qs("#ambito").value = "acr";
   qs("#nombre_acr").selectedIndex = -1;
   qs("#anno_desde").value = String(ANNO_MIN);
   qs("#anno_hasta").value = String(ANNO_MAX);
   state.departamento = "todos";
-  state.ambito = "";
+  state.ambito = "acr";
   state.acrs = [];
   state.annoDesde = ANNO_MIN;
   state.annoHasta = ANNO_MAX;

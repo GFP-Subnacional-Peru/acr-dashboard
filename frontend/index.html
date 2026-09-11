@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260730c" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260911a" />
 </head>
 <body>
   <div id="app-loading" class="app-loading">
@@ -41,89 +41,134 @@
 
   <!-- DASHBOARD -->
   <section id="tab-dashboard" class="tab-panel active">
-    <div class="hero-red">Conservación de la biodiversidad y lucha contra el cambio climático</div>
-    <div class="hero-blue">
-      <h2>Monitoreo de la deforestación en Áreas de Conservación Regional de la Amazonía Peruana</h2>
-      <p>En el marco de la asistencia técnica del <strong>Programa GFP Subnacional de la Cooperación Económica Suiza – SECO</strong>, implementado por el <strong>Basel Institute on Governance</strong>, y en coordinación con los Gobiernos Regionales de Loreto, San Martín y Cusco, se desarrolló el <strong>Dashboard de Línea Base de Deforestación de nueve Áreas de Conservación Regional</strong>, basado en la evaluación de información satelital de 25 años (2001 – 2025).</p>
+    <div class="dash-hero">
+      <div class="dash-hero-inner">
+        <div class="dash-hero-copy">
+          <h1>Monitoreo de la deforestación en Áreas de Conservación Regional</h1>
+          <p class="dash-hero-sub">Información para una gestión territorial basada en evidencia</p>
+        </div>
+        <div class="dash-hero-accent" aria-hidden="true">
+          <span class="dash-hero-accent-bar"></span>
+          <p>Territorios que conservan oportunidades</p>
+        </div>
+      </div>
     </div>
 
-    <div class="layout-dashboard">
-      <aside class="well-panel">
-        <h5><i class="fas fa-filter"></i> Filtros de Búsqueda</h5>
-        <label for="departamento">Departamento:</label>
-        <select id="departamento">
-          <option value="todos">Todos</option>
-          <option value="loreto">Loreto</option>
-          <option value="san_martin">San Martín</option>
-          <option value="cusco">Cusco</option>
-        </select>
-        <label for="ambito">Sub categoría territorial:</label>
-        <select id="ambito">
-          <option value="">Seleccionar...</option>
-          <option value="acr">ACR</option>
-          <option value="zi">Zona de Influencia</option>
-          <option value="ambos">Ambos (ACR + ZI)</option>
-        </select>
-        <label for="nombre_acr">Nombre ACR (selección múltiple):</label>
-        <select id="nombre_acr" multiple></select>
-        <label for="anno_desde"><i class="fas fa-calendar-alt"></i> Periodo de deforestación:</label>
-        <div class="year-range-row">
-          <select id="anno_desde" aria-label="Año desde"></select>
-          <span class="year-range-sep">–</span>
-          <select id="anno_hasta" aria-label="Año hasta"></select>
-        </div>
-        <p id="anno-range-label" class="year-range-hint">Periodo: 2001 – 2025</p>
+    <div class="dash-filters-bar well-panel">
+      <div class="dash-filters-head">
+        <h5><i class="fas fa-filter"></i> Filtros de consulta</h5>
         <div id="filter-info" class="filter-info"></div>
-        <button type="button" id="btn-limpiar" class="btn btn-warning btn-block hidden"><i class="fas fa-eraser"></i> Limpiar Filtros</button>
-      </aside>
-
-      <main>
-        <h5 class="section-title"><i class="fas fa-tachometer-alt"></i> Indicadores Clave</h5>
-        <div class="kpi-grid">
-          <div id="kpi-hectareas" class="value-box" style="border-left-color:#d9534f">
-            <p class="number">—</p>
-            <p class="label">HECTÁREAS DEFORESTADAS</p>
-            <span class="sub">🔍 Datos en tiempo real vía API</span>
-          </div>
-          <div id="kpi-variacion" class="value-box kpi-dynamic" style="border-left-color:#f39c12">
-            <i class="kpi-bg-icon fas fa-minus" aria-hidden="true"></i>
-            <p class="number">—</p>
-            <p class="label">VARIACIÓN ANUAL</p>
-            <span class="sub"><i class="sub-icon fas fa-minus"></i> <span class="sub-text">2025 vs 2024</span></span>
-          </div>
-          <div id="kpi-porcentaje" class="value-box">
-            <p class="number">—</p>
-            <p class="label">DE ORIGEN ANTRÓPICO</p>
-            <span class="sub">—</span>
-          </div>
-          <div id="kpi-causa" class="value-box" style="border-left-color:#5cb85c;background:linear-gradient(135deg,#fff,#f0fff4)">
-            <p class="number">—</p>
-            <p class="label">PRINCIPAL CAUSA ESTIMADA</p>
-            <span class="sub"><i class="fas fa-search"></i> Según filtros activos</span>
-          </div>
+      </div>
+      <div class="dash-filters-grid">
+        <div class="dash-filter-field">
+          <label for="departamento">Departamento</label>
+          <select id="departamento">
+            <option value="todos">Todos</option>
+            <option value="loreto">Loreto</option>
+            <option value="san_martin">San Martín</option>
+            <option value="cusco">Cusco</option>
+          </select>
         </div>
-
-        <div class="panelbox" style="margin-top:1.5rem">
-          <h5 class="section-title"><i class="fas fa-map-marked-alt"></i> Mapa Interactivo de ACRs</h5>
-          <p id="map-loreto-info" class="map-loreto-info"><i class="fas fa-info-circle"></i> En <strong>Loreto, San Martín y Cusco</strong>, los polígonos de deforestación vienen del GDB <em>MonitoreoDeforestacionAcumulado</em> y respetan los filtros laterales (departamento, ACR/ZI, años).</p>
-          <div id="map"></div>
+        <div class="dash-filter-field">
+          <label for="ambito">Ámbito</label>
+          <select id="ambito">
+            <option value="acr" selected>ACR</option>
+            <option value="zi">Zona de Influencia</option>
+            <option value="ambos">Ambos (ACR + ZI)</option>
+          </select>
         </div>
-
-        <div id="charts-individual" class="hidden">
-          <div class="charts-row">
-            <div class="panelbox"><h5 class="section-title"><i class="fas fa-chart-bar"></i> Composición de Deforestación</h5><div id="chart-composicion"></div></div>
-            <div class="panelbox"><h5 class="section-title"><i class="fas fa-tractor"></i> Principales Causas Antrópicas</h5><div id="chart-causas"></div></div>
+        <div class="dash-filter-field dash-filter-acr">
+          <label for="nombre_acr">Nombre ACR</label>
+          <select id="nombre_acr" multiple></select>
+        </div>
+        <div class="dash-filter-field dash-filter-periodo">
+          <label for="anno_desde">Período</label>
+          <div class="year-range-row">
+            <select id="anno_desde" aria-label="Año desde"></select>
+            <span class="year-range-sep">–</span>
+            <select id="anno_hasta" aria-label="Año hasta"></select>
           </div>
-          <div class="panelbox"><h5 class="section-title"><i class="fas fa-chart-pie"></i> Distribución Porcentual</h5><div id="chart-distribucion"></div></div>
+          <p id="anno-range-label" class="year-range-hint">Periodo: 2001 – 2025</p>
         </div>
-        <div id="charts-comparativa" class="hidden">
-          <div class="panelbox"><h5 class="section-title"><i class="fas fa-balance-scale"></i> Análisis Comparativo Detallado</h5><div id="chart-comparativa"></div></div>
+        <div class="dash-filter-actions">
+          <button type="button" id="btn-aplicar" class="btn btn-aplicar"><i class="fas fa-check"></i> Aplicar filtros</button>
+          <button type="button" id="btn-limpiar" class="btn btn-restablecer"><i class="fas fa-undo"></i> Restablecer</button>
         </div>
-
-        <h5 class="section-title"><i class="fas fa-lightbulb"></i> Datos Relevantes por Región</h5>
-        <div id="region-insights-root" class="region-insights-root" aria-live="polite"></div>
-      </main>
+      </div>
     </div>
+
+    <div class="dash-main-grid">
+      <div class="dash-col-left">
+        <section class="panelbox dash-kpi-card">
+          <h5 class="section-title"><i class="fas fa-tachometer-alt"></i> Indicadores clave</h5>
+          <div class="kpi-list">
+            <div id="kpi-hectareas" class="value-box kpi-row" style="border-left-color:#d9534f">
+              <div class="kpi-icon" aria-hidden="true"><i class="fas fa-tree"></i></div>
+              <div class="kpi-body">
+                <p class="label">Hectáreas deforestadas</p>
+                <p class="number">—</p>
+                <span class="sub">Datos en tiempo real vía API</span>
+              </div>
+            </div>
+            <div id="kpi-variacion" class="value-box kpi-row kpi-dynamic" style="border-left-color:#f39c12">
+              <i class="kpi-bg-icon fas fa-minus" aria-hidden="true"></i>
+              <div class="kpi-icon" aria-hidden="true"><i class="fas fa-chart-line"></i></div>
+              <div class="kpi-body">
+                <p class="label">Variación anual</p>
+                <p class="number">—</p>
+                <span class="sub"><i class="sub-icon fas fa-minus"></i> <span class="sub-text">2025 vs 2024</span></span>
+              </div>
+            </div>
+            <div id="kpi-porcentaje" class="value-box kpi-row">
+              <div class="kpi-icon" aria-hidden="true"><i class="fas fa-user"></i></div>
+              <div class="kpi-body">
+                <p class="label">De origen antrópico</p>
+                <p class="number">—</p>
+                <span class="sub">—</span>
+              </div>
+            </div>
+            <div id="kpi-causa" class="value-box kpi-row" style="border-left-color:#5cb85c">
+              <div class="kpi-icon" aria-hidden="true"><i class="fas fa-search"></i></div>
+              <div class="kpi-body">
+                <p class="label">Principal causa estimada</p>
+                <p class="number">—</p>
+                <span class="sub"><i class="fas fa-search"></i> Según filtros activos</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panelbox dash-analysis-card">
+          <h5 class="section-title"><i class="fas fa-chart-pie"></i> Análisis de la deforestación</h5>
+          <div id="charts-nacional" class="charts-placeholder">
+            <i class="fas fa-info-circle"></i>
+            <p>Seleccione uno o más ACR en los filtros para ver la composición, causas y distribución de la deforestación.</p>
+          </div>
+          <div id="charts-individual" class="hidden">
+            <div class="charts-stack">
+              <div class="chart-block"><h6><i class="fas fa-chart-bar"></i> Composición de deforestación</h6><div id="chart-composicion"></div></div>
+              <div class="chart-block"><h6><i class="fas fa-tractor"></i> Principales causas antrópicas</h6><div id="chart-causas"></div></div>
+              <div class="chart-block"><h6><i class="fas fa-chart-pie"></i> Distribución porcentual</h6><div id="chart-distribucion"></div></div>
+            </div>
+          </div>
+          <div id="charts-comparativa" class="hidden">
+            <div class="chart-block"><h6><i class="fas fa-balance-scale"></i> Análisis comparativo detallado</h6><div id="chart-comparativa"></div></div>
+          </div>
+        </section>
+
+        <div id="region-insights-root" class="region-insights-root region-insights-compact" aria-live="polite"></div>
+      </div>
+
+      <div class="dash-col-right">
+        <section class="panelbox dash-map-card">
+          <h5 class="section-title"><i class="fas fa-map-marked-alt"></i> Mapa de deforestación en Áreas de Conservación Regional</h5>
+          <p class="dash-map-period" id="dash-map-period">Período: 2001 – 2025</p>
+          <p id="map-loreto-info" class="map-loreto-info"><i class="fas fa-info-circle"></i> En <strong>Loreto, San Martín y Cusco</strong>, los polígonos de deforestación vienen del GDB <em>MonitoreoDeforestacionAcumulado</em> y respetan los filtros (departamento, ACR/ZI, años).</p>
+          <div id="map" class="dash-map"></div>
+        </section>
+      </div>
+    </div>
+
     <footer class="footer-simple">
       <div class="footer-logo"><i class="fas fa-leaf"></i></div>
       <p style="font-style:italic;color:#1a4d2e;font-weight:500">Conservando nuestros bosques amazónicos</p>
@@ -318,12 +363,12 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260730c"></script>
+  <script src="/assets/js/map.js?v=20260911a"></script>
   <script src="/assets/js/modals.js"></script>
   <script src="/assets/js/atd-demo.js?v=20260709d"></script>
   <script src="/assets/js/region-insights.js"></script>
   <script src="/assets/js/reportes.js?v=20260709b"></script>
   <script src="/assets/js/tendencias.js?v=20260910a"></script>
-  <script src="/assets/js/app.js?v=20260910a"></script>
+  <script src="/assets/js/app.js?v=20260911a"></script>
 </body>
 </html>
