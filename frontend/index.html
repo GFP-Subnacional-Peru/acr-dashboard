@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260911c" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260911d" />
 </head>
 <body>
   <div id="app-loading" class="app-loading">
@@ -99,34 +99,35 @@
       <div class="dash-col-left">
         <section class="panelbox dash-kpi-card">
           <h5 class="section-title"><i class="fas fa-tachometer-alt"></i> Indicadores clave</h5>
+          <p class="dash-kpi-subtitle">Resumen de la deforestación en las Áreas de Conservación Regional</p>
           <div class="kpi-list">
-            <div id="kpi-hectareas" class="value-box kpi-row" style="border-left-color:#d9534f">
-              <div class="kpi-icon" aria-hidden="true"><i class="fas fa-tree"></i></div>
+            <div id="kpi-hectareas" class="value-box kpi-row kpi-row--ha">
+              <div class="kpi-icon kpi-icon--tree" aria-hidden="true"><i class="fas fa-tree"></i></div>
               <div class="kpi-body">
                 <p class="label">Hectáreas deforestadas</p>
                 <p class="number">—</p>
                 <span class="sub">Datos en tiempo real vía API</span>
               </div>
             </div>
-            <div id="kpi-variacion" class="value-box kpi-row kpi-dynamic" style="border-left-color:#f39c12">
+            <div id="kpi-variacion" class="value-box kpi-row kpi-row--var kpi-dynamic">
               <i class="kpi-bg-icon fas fa-minus" aria-hidden="true"></i>
-              <div class="kpi-icon" aria-hidden="true"><i class="fas fa-chart-line"></i></div>
+              <div class="kpi-icon kpi-icon--chart" aria-hidden="true"><i class="fas fa-chart-bar"></i></div>
               <div class="kpi-body">
                 <p class="label">Variación anual</p>
                 <p class="number">—</p>
                 <span class="sub"><i class="sub-icon fas fa-minus"></i> <span class="sub-text">2025 vs 2024</span></span>
               </div>
             </div>
-            <div id="kpi-porcentaje" class="value-box kpi-row">
-              <div class="kpi-icon" aria-hidden="true"><i class="fas fa-user"></i></div>
+            <div id="kpi-porcentaje" class="value-box kpi-row kpi-row--ant">
+              <div class="kpi-icon kpi-icon--pie" aria-hidden="true"><i class="fas fa-chart-pie"></i></div>
               <div class="kpi-body">
                 <p class="label">De origen antrópico</p>
                 <p class="number">—</p>
                 <span class="sub">—</span>
               </div>
             </div>
-            <div id="kpi-causa" class="value-box kpi-row" style="border-left-color:#5cb85c">
-              <div class="kpi-icon" aria-hidden="true"><i class="fas fa-search"></i></div>
+            <div id="kpi-causa" class="value-box kpi-row kpi-row--causa">
+              <div class="kpi-icon kpi-icon--gear" aria-hidden="true"><i class="fas fa-cog"></i></div>
               <div class="kpi-body">
                 <p class="label">Principal causa estimada</p>
                 <p class="number">—</p>
