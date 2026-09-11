@@ -553,17 +553,8 @@ def descargar_datos_completo() -> StreamingResponse:
     )
 
 
-# --- Archivos estáticos (mapas Shiny www/mapas) ---
-_ATD_REPORTES = _PROJECT_ROOT / "www" / "reportes_atd"
-if _ATD_REPORTES.exists():
-    app.mount("/reportes_atd", StaticFiles(directory=str(_ATD_REPORTES)), name="reportes_atd")
-
-if _WWW_MAPAS.exists():
-    app.mount("/mapas", StaticFiles(directory=str(_WWW_MAPAS)), name="mapas")
-
+# --- Portal HTML (antes de mounts estáticos para evitar ambigüedad de rutas) ---
 if _FRONTEND_DIR.exists():
-    app.mount("/assets", StaticFiles(directory=str(_FRONTEND_DIR / "assets")), name="assets")
-
     _NO_CACHE_HTML = {
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache",
@@ -588,6 +579,10 @@ if _FRONTEND_DIR.exists():
     def portal_mapa():
         return _html("index.html")
 
+    @app.get("/visor")
+    def portal_visor():
+        return _html("index.html")
+
     @app.get("/datos")
     def portal_datos():
         return _html("datos.html")
@@ -605,3 +600,14 @@ else:
             "mensaje": "Frontend no encontrado. Verifique la carpeta /frontend.",
             "api_docs": "/docs",
         }
+
+# --- Archivos estáticos (mapas Shiny www/mapas) ---
+_ATD_REPORTES = _PROJECT_ROOT / "www" / "reportes_atd"
+if _ATD_REPORTES.exists():
+    app.mount("/reportes_atd", StaticFiles(directory=str(_ATD_REPORTES)), name="reportes_atd")
+
+if _WWW_MAPAS.exists():
+    app.mount("/mapas", StaticFiles(directory=str(_WWW_MAPAS)), name="mapas")
+
+if _FRONTEND_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(_FRONTEND_DIR / "assets")), name="assets")
