@@ -340,13 +340,13 @@ body.portal-body {
   display: flex;
   flex-direction: column;
   background: #fff;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid #e2e9f0;
-  padding: 1.15rem 1.15rem 1.05rem;
-  min-height: 210px;
+  padding: 1.05rem 1.15rem 1.1rem;
+  min-height: 280px;
   overflow: hidden;
-  box-shadow: 0 6px 22px rgba(10, 40, 80, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s;
+  box-shadow: 0 8px 28px rgba(10, 40, 80, 0.07);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.2s;
 }
 .acr-tile::before {
   content: "";
@@ -360,8 +360,8 @@ body.portal-body {
 .acr-tile--sm::before { background: linear-gradient(180deg, #e85d04, #f0a202); }
 .acr-tile--cusco::before { background: linear-gradient(180deg, #003da5, #2c7be5); }
 .acr-tile:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 16px 36px rgba(10, 40, 80, 0.12);
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(10, 40, 80, 0.14);
   border-color: #c5d4e6;
 }
 .acr-tile.hidden { display: none; }
@@ -370,7 +370,7 @@ body.portal-body {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.75rem;
   padding-left: 0.35rem;
 }
 .acr-tile-depto {
@@ -391,26 +391,54 @@ body.portal-body {
 }
 .acr-tile--sm .acr-tile-code { background: var(--portal-orange); }
 .acr-tile--cusco .acr-tile-code { background: var(--portal-navy); }
-.acr-tile-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+
+/* Placa de marca: logo oficial ACR (identidad > ícono genérico) */
+.acr-tile-brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 109, 91, 0.1);
-  color: var(--portal-teal);
-  font-size: 1.15rem;
-  margin: 0 0 0.75rem 0.35rem;
+  height: 118px;
+  margin: 0 0 0.85rem 0.2rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(0, 109, 91, 0.07), rgba(255, 255, 255, 0.95) 55%),
+    #f4f7fa;
+  border: 1px solid rgba(0, 109, 91, 0.12);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.acr-tile--sm .acr-tile-icon {
-  background: rgba(232, 93, 4, 0.12);
-  color: var(--portal-orange);
+.acr-tile--sm .acr-tile-brand {
+  background:
+    linear-gradient(145deg, rgba(232, 93, 4, 0.08), rgba(255, 255, 255, 0.95) 55%),
+    #faf6f2;
+  border-color: rgba(232, 93, 4, 0.14);
 }
-.acr-tile--cusco .acr-tile-icon {
-  background: rgba(0, 61, 165, 0.1);
-  color: var(--portal-navy);
+.acr-tile--cusco .acr-tile-brand {
+  background:
+    linear-gradient(145deg, rgba(0, 61, 165, 0.08), rgba(255, 255, 255, 0.95) 55%),
+    #f3f6fb;
+  border-color: rgba(0, 61, 165, 0.12);
 }
+.acr-tile--dark-logo .acr-tile-brand {
+  background: #0b0b0b;
+  border-color: #222;
+}
+.acr-tile:hover .acr-tile-brand {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+.acr-tile-brand img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+}
+.acr-tile--dark-logo .acr-tile-brand img {
+  filter: none;
+}
+
 .acr-tile h3 {
   margin: 0 0 0.35rem;
   padding-left: 0.35rem;
