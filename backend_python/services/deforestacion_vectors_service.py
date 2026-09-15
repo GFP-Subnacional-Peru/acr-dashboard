@@ -80,6 +80,20 @@ MD_CAUSA_NOMBRES: dict[int, str] = {
     99: "Falsa alerta",
 }
 
+# Dominio GDB FuenteDeforestacion_1 (md_fuente)
+MD_FUENTE_NOMBRES: dict[int, str] = {
+    1: "Planet",
+    2: "GLAD S2",
+    3: "PNCB Landsat",
+    4: "PeruSAT-1",
+    5: "SPOT",
+    6: "WorldView",
+    7: "Sentinel-1",
+    8: "Global Forest Watch",
+    9: "Sentinel-2",
+    10: "CBERS-4",
+}
+
 
 def loreto_en_alcance(departamento: str, acrs: list[str] | None) -> bool:
     """Compat: True si Loreto entra en el filtro (también usado en main)."""
@@ -133,8 +147,20 @@ def _causa_code(val) -> int | None:
 def _causa_nombre(val) -> str:
     code = _causa_code(val)
     if code is None:
+        s = str(val or "").strip()
+        if s and s.lower() not in {"nan", "none", "null", ""}:
+            # Ya viene texto (centroides legacy)
+            return s
         return "Sin especificar"
     return MD_CAUSA_NOMBRES.get(code, f"Causa {code}")
+
+
+def _fuente_nombre(val) -> str:
+    code = _causa_code(val)  # same int parse
+    if code is None:
+        s = str(val or "").strip()
+        return s if s and s.lower() not in {"nan", "none", "null"} else ""
+    return MD_FUENTE_NOMBRES.get(code, str(code))
 
 
 def _tipo_desde_causa(val, tipo_fallback: str | None = None) -> str:
@@ -264,18 +290,43 @@ def _merge_kpis(a: dict, b: dict) -> dict:
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0
 
+    def _causa_ok(nombre: str, ha: float) -> bool:
+        n = str(nombre or "").strip().lower()
+        if ha <= 0:
+            return False
+        if not n or n in {
+            "sin datos",
+            "sin especificar",
+            "n/a",
+            "na",
+            "none",
+            "null",
+            "nan",
+        }:
+            return False
+        return True
+
     ha_a = _safe_float(a.get("causa_principal_ha"))
     ha_b = _safe_float(b.get("causa_principal_ha"))
     causa_a = str(a.get("causa_principal") or "Sin datos")
     causa_b = str(b.get("causa_principal") or "Sin datos")
-    if causa_a == "Sin datos" or ha_a <= 0:
+    ok_a = _causa_ok(causa_a, ha_a)
+    ok_b = _causa_ok(causa_b, ha_b)
+
+    if ok_a and ok_b:
+        # Misma causa → sumar; si distinta, quedarse con la de mayor ha
+        if causa_a.strip().lower() == causa_b.strip().lower():
+            causa, causa_ha = causa_a, ha_a + ha_b
+        elif ha_a >= ha_b:
+            causa, causa_ha = causa_a, ha_a
+        else:
+            causa, causa_ha = causa_b, ha_b
+    elif ok_a:
+        causa, causa_ha = causa_a, ha_a
+    elif ok_b:
         causa, causa_ha = causa_b, ha_b
-    elif causa_b == "Sin datos" or ha_b <= 0:
-        causa, causa_ha = causa_a, ha_a
-    elif ha_a >= ha_b:
-        causa, causa_ha = causa_a, ha_a
     else:
-        causa, causa_ha = causa_b, ha_b
+        causa, causa_ha = "Sin datos", 0.0
 
     return {
         "total_hectareas": round(total, 2),
@@ -536,6 +587,7 @@ def load_acumulado_vectors(
             props["codigo"] = codigo
             props["tipo"] = _tipo_desde_causa(props.get("causa"), props.get("tipo"))
             props["causa_nombre"] = _causa_nombre(props.get("causa"))
+            props["fuente_nombre"] = _fuente_nombre(props.get("fuente"))
             features.append({**f, "properties": props})
             if limit > 0 and len(features) >= limit:
                 limited = True

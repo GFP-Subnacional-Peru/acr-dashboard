@@ -13,10 +13,19 @@ _NOMBRE_POR_CODIGO = dict(zip(ACR_DECRETOS["codigo"], ACR_DECRETOS["nombre_compl
 
 def _clasificar_categoria(causa: str) -> str:
     c = str(causa or "").strip().lower()
-    if c == "natural":
+    if c == "natural" or c == "14":
         return "natural"
-    if "falsa" in c and "alerta" in c:
+    if ("falsa" in c and "alerta" in c) or c == "99":
         return "falsa"
+    # Códigos numéricos antrópicos conocidos
+    try:
+        code = int(float(c))
+        if code == 14:
+            return "natural"
+        if code == 99:
+            return "falsa"
+    except (TypeError, ValueError):
+        pass
     return "antropico"
 
 
@@ -27,7 +36,18 @@ def _preparar(df: pd.DataFrame) -> pd.DataFrame:
     out["area"] = pd.to_numeric(out["area"], errors="coerce").fillna(0.0)
     if "causa" not in out.columns:
         out["causa"] = "Sin especificar"
-    out["causa"] = out["causa"].fillna("Sin especificar").astype(str)
+    out["causa"] = out["causa"].fillna("Sin especificar")
+
+    # Mapear códigos md_causa (1=Agricultura, …) a nombre de dominio GDB
+    from services.deforestacion_vectors_service import MD_CAUSA_NOMBRES, _causa_code, _causa_nombre
+
+    def _norm_causa(val):
+        code = _causa_code(val)
+        if code is not None:
+            return MD_CAUSA_NOMBRES.get(code, f"Causa {code}")
+        return _causa_nombre(val)
+
+    out["causa"] = out["causa"].map(_norm_causa).astype(str)
     out["categoria"] = out["causa"].map(_clasificar_categoria)
     return out
 
@@ -82,8 +102,15 @@ def kpis_desde_centroides(
         causa_ha = 0.0
     else:
         por_causa = ant_df.groupby("causa")["area"].sum()
-        causa_principal = str(por_causa.idxmax())
-        causa_ha = float(por_causa.max())
+        # Ignorar vacíos / sin especificar al elegir la principal
+        valid = por_causa[
+            ~por_causa.index.astype(str).str.strip().str.lower().isin(
+                {"sin especificar", "sin datos", "n/a", "na", "none", "null", "nan", ""}
+            )
+        ]
+        use = valid if not valid.empty else por_causa
+        causa_principal = str(use.idxmax())
+        causa_ha = float(use.max())
 
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0

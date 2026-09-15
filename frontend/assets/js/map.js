@@ -22,23 +22,24 @@ const AcrMap = (() => {
 
   function defoStyle(tipo) {
     const fill = TIPO_COLORS[tipo] || TIPO_COLORS.Antropogenico;
+    const soft = tipo === "Natural" ? 0.32 : tipo === "Falsa alerta" ? 0.22 : 0.36;
     return {
-      color: "#ffffff",
-      weight: 0.9,
-      opacity: 0.85,
+      color: fill,
+      weight: 0.7,
+      opacity: 0.55,
       fillColor: fill,
-      fillOpacity: tipo === "Natural" ? 0.38 : tipo === "Falsa alerta" ? 0.28 : 0.42,
+      fillOpacity: soft,
     };
   }
 
   function defoStyleHover(tipo) {
     const fill = TIPO_COLORS[tipo] || TIPO_COLORS.Antropogenico;
     return {
-      color: fill,
-      weight: 1.6,
+      color: "#ffffff",
+      weight: 1.8,
       opacity: 1,
       fillColor: fill,
-      fillOpacity: 0.62,
+      fillOpacity: 0.58,
     };
   }
 
@@ -235,16 +236,28 @@ const AcrMap = (() => {
 
   function vectorPopup(p) {
     const tipo = p.tipo || "—";
-    const causa = p.causa_nombre || "";
+    const causa = (p.causa_nombre || "").trim();
+    const fuente = (p.fuente_nombre || "").trim();
     const color = TIPO_COLORS[tipo] || "#c0392b";
-    return `<div style="font-family:'Segoe UI',Arial,sans-serif;min-width:210px;line-height:1.45">
-      <h4 style="color:${color};margin:0 0 8px;font-size:0.95rem">Deforestación acumulada</h4>
-      <b>Zona:</b> ${p.zona_key || "—"}<br>
-      ${p.sector ? `<b>Sector:</b> ${p.sector}<br>` : ""}
-      <b>Tipo:</b> ${tipo}${causa && causa !== tipo ? ` · ${causa}` : ""}<br>
-      <b>Año:</b> ${p.anno || "N/A"}<br>
-      <b>Área:</b> <span style="color:${color};font-weight:700">${fmtHa(p.area_ha, 1)} ha</span>
-      ${p.fuente ? `<br><b>Fuente:</b> ${p.fuente}` : ""}
+    const tipoLabel = tipo === "Antropogenico" ? "Antrópico" : tipo;
+    const showCausa =
+      causa &&
+      !["Natural", "Falsa alerta", "Sin especificar", "Sin datos"].includes(causa) &&
+      tipoLabel === "Antrópico";
+    return `<div class="defo-popup" style="font-family:'Segoe UI',Arial,sans-serif;min-width:220px;line-height:1.5">
+      <div style="display:flex;align-items:center;gap:8px;margin:0 0 10px">
+        <span style="width:10px;height:10px;border-radius:2px;background:${color};box-shadow:0 0 0 1px rgba(255,255,255,.85)"></span>
+        <strong style="color:${color};font-size:0.95rem">Deforestación acumulada</strong>
+      </div>
+      <div style="font-size:0.86rem;color:#334155">
+        <div><span style="color:#64748b">Zona</span> · <b>${p.zona_key || "—"}</b></div>
+        ${p.sector ? `<div><span style="color:#64748b">Sector</span> · ${p.sector}</div>` : ""}
+        <div><span style="color:#64748b">Tipo</span> · <b style="color:${color}">${tipoLabel}</b></div>
+        ${showCausa ? `<div><span style="color:#64748b">Causa</span> · <b>${causa}</b></div>` : ""}
+        <div><span style="color:#64748b">Año</span> · ${p.anno || "N/A"}</div>
+        <div style="margin-top:6px"><span style="color:#64748b">Área</span> · <b style="color:${color};font-size:1.05rem">${fmtHa(p.area_ha, 1)} ha</b></div>
+        ${fuente ? `<div><span style="color:#64748b">Fuente</span> · ${fuente}</div>` : ""}
+      </div>
     </div>`;
   }
 
