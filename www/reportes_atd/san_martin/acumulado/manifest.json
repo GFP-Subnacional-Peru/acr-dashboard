@@ -1,5 +1,15 @@
 {
   "zonas": {
+    "ACR_BSM": {
+      "slug": "bosques_shunte",
+      "zona_key": "Bosques de Shunte y Mishollo",
+      "n": 6982
+    },
+    "ACR_CE": {
+      "slug": "cordillera_escalera",
+      "zona_key": "Cordillera Escalera",
+      "n": 12881
+    },
     "ZI_CE": {
       "slug": "zi_ce",
       "zona_key": "ZI Cordillera Escalera",
@@ -9,16 +19,6 @@
       "slug": "zi_bsm",
       "zona_key": "ZI BOSHUMI",
       "n": 27957
-    },
-    "ACR_CE": {
-      "slug": "cordillera_escalera",
-      "zona_key": "Cordillera Escalera",
-      "n": 12881
-    },
-    "ACR_BSM": {
-      "slug": "bosques_shunte",
-      "zona_key": "Bosques de Shunte y Mishollo",
-      "n": 6982
     }
   }
 }
