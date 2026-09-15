@@ -22,11 +22,11 @@ const AcrMap = (() => {
 
   function defoStyle(tipo) {
     const fill = TIPO_COLORS[tipo] || TIPO_COLORS.Antropogenico;
-    const soft = tipo === "Natural" ? 0.32 : tipo === "Falsa alerta" ? 0.22 : 0.36;
+    const soft = tipo === "Natural" ? 0.55 : tipo === "Falsa alerta" ? 0.4 : 0.58;
     return {
       color: fill,
-      weight: 0.7,
-      opacity: 0.55,
+      weight: 1.1,
+      opacity: 0.9,
       fillColor: fill,
       fillOpacity: soft,
     };
@@ -36,10 +36,10 @@ const AcrMap = (() => {
     const fill = TIPO_COLORS[tipo] || TIPO_COLORS.Antropogenico;
     return {
       color: "#ffffff",
-      weight: 1.8,
+      weight: 2,
       opacity: 1,
       fillColor: fill,
-      fillOpacity: 0.58,
+      fillOpacity: 0.75,
     };
   }
 

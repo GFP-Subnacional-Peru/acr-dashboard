@@ -129,7 +129,7 @@ def _codigo_acum(row, zona_key: str) -> str:
 def export_acumulado(gdb: Path) -> dict[str, int]:
     gdf = gpd.read_file(gdb, layer="MonitoreoDeforestacionAcumulado").to_crs(4326)
     gdf = gdf[gdf.geometry.notna() & ~gdf.geometry.is_empty].copy()
-    gdf["geometry"] = gdf.geometry.simplify(0.00025, preserve_topology=True)
+    # Sin simplify: vértices = Feature Class GDB
     gdf = gdf[gdf.geometry.notna() & ~gdf.geometry.is_empty].copy()
     gdf["zona_key"] = gdf.apply(_zona_key_acum, axis=1)
     ACUMULADO_DIR.mkdir(parents=True, exist_ok=True)

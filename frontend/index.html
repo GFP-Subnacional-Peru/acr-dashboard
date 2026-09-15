@@ -1,24 +1,24 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard ACRs - Monitoreo de Deforestación</title>
+  <title>Dashboard ACRs - Monitoreo de DeforestaciÃ³n</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260915b" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260915c" />
 </head>
 <body>
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
   <header class="site-header">
     <div class="site-header-inner">
-      <div class="site-logos" aria-label="Identidad institucional GFP · SECO · Basel">
+      <div class="site-logos" aria-label="Identidad institucional GFP Â· SECO Â· Basel">
         <a class="site-logo site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
-          <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="78" loading="eager"/>
+          <img src="/assets/img/logo_gfp.png" alt="GFP â€” Suiza apoyando al PerÃº" height="78" loading="eager"/>
         </a>
-        <img class="site-logo site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="70" loading="eager"/>
+        <img class="site-logo site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el PerÃº â€” SECO" height="70" loading="eager"/>
         <img class="site-logo site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="62" loading="eager"/>
       </div>
       <nav class="navbar" aria-label="Secciones del dashboard">
@@ -26,7 +26,7 @@
           <li><a class="nav-link-ext" href="/"><i class="fas fa-home"></i> Inicio</a></li>
           <li><button type="button" class="active" data-tab="dashboard"><i class="fas fa-map"></i> Mapa</button></li>
           <li><a class="nav-link-ext" href="/datos"><i class="fas fa-database"></i> Datos</a></li>
-          <li><button type="button" data-tab="metodologia"><i class="fas fa-book-open"></i> Metodología</button></li>
+          <li><button type="button" data-tab="metodologia"><i class="fas fa-book-open"></i> MetodologÃ­a</button></li>
           <li><button type="button" data-tab="reportes"><i class="fas fa-download"></i> Reportes y Descargas</button></li>
           <li><button type="button" data-tab="tendencias"><i class="fas fa-chart-line"></i> Tendencias</button></li>
         </ul>
@@ -39,8 +39,8 @@
     <div class="dash-hero">
       <div class="dash-hero-inner">
         <div class="dash-hero-copy">
-          <h1>Monitoreo de la deforestación en Áreas de Conservación Regional</h1>
-          <p class="dash-hero-sub">Información para una gestión territorial basada en evidencia</p>
+          <h1>Monitoreo de la deforestaciÃ³n en Ãreas de ConservaciÃ³n Regional</h1>
+          <p class="dash-hero-sub">InformaciÃ³n para una gestiÃ³n territorial basada en evidencia</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -57,12 +57,12 @@
           <select id="departamento">
             <option value="todos">Todos</option>
             <option value="loreto">Loreto</option>
-            <option value="san_martin">San Martín</option>
+            <option value="san_martin">San MartÃ­n</option>
             <option value="cusco">Cusco</option>
           </select>
         </div>
         <div class="dash-filter-field">
-          <label for="ambito"><i class="fas fa-layer-group"></i> Ámbito</label>
+          <label for="ambito"><i class="fas fa-layer-group"></i> Ãmbito</label>
           <select id="ambito">
             <option value="acr" selected>ACR</option>
             <option value="zi">Zona de Influencia</option>
@@ -74,13 +74,13 @@
           <select id="nombre_acr" multiple></select>
         </div>
         <div class="dash-filter-field dash-filter-periodo">
-          <label for="anno_desde"><i class="fas fa-calendar-alt"></i> Período</label>
+          <label for="anno_desde"><i class="fas fa-calendar-alt"></i> PerÃ­odo</label>
           <div class="year-range-row">
-            <select id="anno_desde" aria-label="Año desde"></select>
-            <span class="year-range-sep">–</span>
-            <select id="anno_hasta" aria-label="Año hasta"></select>
+            <select id="anno_desde" aria-label="AÃ±o desde"></select>
+            <span class="year-range-sep">â€“</span>
+            <select id="anno_hasta" aria-label="AÃ±o hasta"></select>
           </div>
-          <p id="anno-range-label" class="year-range-hint">Periodo: 2001 – 2025</p>
+          <p id="anno-range-label" class="year-range-hint">Periodo: 2001 â€“ 2025</p>
         </div>
         <div class="dash-filter-actions">
           <button type="button" id="btn-aplicar" class="btn btn-aplicar"><i class="fas fa-search"></i> Aplicar</button>
@@ -94,68 +94,68 @@
       <div class="dash-col-left">
         <section class="panelbox dash-kpi-card">
           <h5 class="section-title"><i class="fas fa-tachometer-alt"></i> Indicadores clave</h5>
-          <p class="dash-kpi-subtitle">Resumen de la deforestación en las Áreas de Conservación Regional</p>
+          <p class="dash-kpi-subtitle">Resumen de la deforestaciÃ³n en las Ãreas de ConservaciÃ³n Regional</p>
           <div class="kpi-list">
             <div id="kpi-hectareas" class="value-box kpi-row kpi-row--ha">
               <div class="kpi-icon kpi-icon--tree" aria-hidden="true"><i class="fas fa-tree"></i></div>
               <div class="kpi-body">
-                <p class="label">Hectáreas deforestadas</p>
-                <p class="number">—</p>
-                <span class="sub">Datos en tiempo real vía API</span>
+                <p class="label">HectÃ¡reas deforestadas</p>
+                <p class="number">â€”</p>
+                <span class="sub">Datos en tiempo real vÃ­a API</span>
               </div>
             </div>
             <div id="kpi-variacion" class="value-box kpi-row kpi-row--var kpi-dynamic">
               <i class="kpi-bg-icon fas fa-minus" aria-hidden="true"></i>
               <div class="kpi-icon kpi-icon--chart" aria-hidden="true"><i class="fas fa-chart-bar"></i></div>
               <div class="kpi-body">
-                <p class="label">Variación anual</p>
-                <p class="number">—</p>
+                <p class="label">VariaciÃ³n anual</p>
+                <p class="number">â€”</p>
                 <span class="sub"><i class="sub-icon fas fa-minus"></i> <span class="sub-text">2025 vs 2024</span></span>
               </div>
             </div>
             <div id="kpi-porcentaje" class="value-box kpi-row kpi-row--ant">
               <div class="kpi-icon kpi-icon--pie" aria-hidden="true"><i class="fas fa-chart-pie"></i></div>
               <div class="kpi-body">
-                <p class="label">De origen antrópico</p>
-                <p class="number">—</p>
-                <span class="sub">—</span>
+                <p class="label">De origen antrÃ³pico</p>
+                <p class="number">â€”</p>
+                <span class="sub">â€”</span>
               </div>
             </div>
             <div id="kpi-causa" class="value-box kpi-row kpi-row--causa">
               <div class="kpi-icon kpi-icon--gear" aria-hidden="true"><i class="fas fa-cog"></i></div>
               <div class="kpi-body">
                 <p class="label">Principal causa estimada</p>
-                <p class="number">—</p>
-                <span class="sub"><i class="fas fa-search"></i> Según filtros activos</span>
+                <p class="number">â€”</p>
+                <span class="sub"><i class="fas fa-search"></i> SegÃºn filtros activos</span>
               </div>
             </div>
           </div>
         </section>
 
         <section class="panelbox dash-analysis-card">
-          <h5 class="section-title"><i class="fas fa-chart-pie"></i> Análisis de la deforestación</h5>
+          <h5 class="section-title"><i class="fas fa-chart-pie"></i> AnÃ¡lisis de la deforestaciÃ³n</h5>
           <div id="charts-nacional" class="charts-placeholder">
             <i class="fas fa-info-circle"></i>
-            <p>Seleccione uno o más ACR en los filtros para ver la composición, causas y distribución de la deforestación.</p>
+            <p>Seleccione uno o mÃ¡s ACR en los filtros para ver la composiciÃ³n, causas y distribuciÃ³n de la deforestaciÃ³n.</p>
           </div>
           <div id="charts-individual" class="hidden">
             <div class="charts-stack">
-              <div class="chart-block"><h6><i class="fas fa-chart-bar"></i> Composición de deforestación</h6><div id="chart-composicion"></div></div>
-              <div class="chart-block"><h6><i class="fas fa-tractor"></i> Principales causas antrópicas</h6><div id="chart-causas"></div></div>
-              <div class="chart-block"><h6><i class="fas fa-chart-pie"></i> Distribución porcentual</h6><div id="chart-distribucion"></div></div>
+              <div class="chart-block"><h6><i class="fas fa-chart-bar"></i> ComposiciÃ³n de deforestaciÃ³n</h6><div id="chart-composicion"></div></div>
+              <div class="chart-block"><h6><i class="fas fa-tractor"></i> Principales causas antrÃ³picas</h6><div id="chart-causas"></div></div>
+              <div class="chart-block"><h6><i class="fas fa-chart-pie"></i> DistribuciÃ³n porcentual</h6><div id="chart-distribucion"></div></div>
             </div>
           </div>
           <div id="charts-comparativa" class="hidden">
-            <div class="chart-block"><h6><i class="fas fa-balance-scale"></i> Análisis comparativo detallado</h6><div id="chart-comparativa"></div></div>
+            <div class="chart-block"><h6><i class="fas fa-balance-scale"></i> AnÃ¡lisis comparativo detallado</h6><div id="chart-comparativa"></div></div>
           </div>
         </section>
       </div>
 
       <div class="dash-col-right">
         <section class="panelbox dash-map-card">
-          <h5 class="section-title"><i class="fas fa-map-marked-alt"></i> Mapa de deforestación en Áreas de Conservación Regional</h5>
-          <p class="dash-map-period" id="dash-map-period">Período: 2001 – 2025</p>
-          <p id="map-loreto-info" class="map-loreto-info"><i class="fas fa-info-circle"></i> En <strong>Loreto, San Martín y Cusco</strong>, los polígonos de deforestación vienen del GDB <em>MonitoreoDeforestacionAcumulado</em> y respetan los filtros (departamento, ACR/ZI, años).</p>
+          <h5 class="section-title"><i class="fas fa-map-marked-alt"></i> Mapa de deforestaciÃ³n en Ãreas de ConservaciÃ³n Regional</h5>
+          <p class="dash-map-period" id="dash-map-period">PerÃ­odo: 2001 â€“ 2025</p>
+          <p id="map-loreto-info" class="map-loreto-info"><i class="fas fa-info-circle"></i> En <strong>Loreto, San MartÃ­n y Cusco</strong>, los polÃ­gonos de deforestaciÃ³n vienen del GDB <em>MonitoreoDeforestacionAcumulado</em> y respetan los filtros (departamento, ACR/ZI, aÃ±os).</p>
           <div id="map" class="dash-map"></div>
         </section>
       </div>
@@ -163,25 +163,25 @@
 
     <section class="region-insights-section" aria-labelledby="region-insights-title">
       <h3 id="region-insights-title" class="region-insights-section-title">
-        <i class="fas fa-globe-americas"></i> Datos relevantes por región
+        <i class="fas fa-globe-americas"></i> Datos relevantes por regiÃ³n
       </h3>
       <div id="region-insights-root" class="region-insights-root" aria-live="polite"></div>
     </section>
 
     <footer class="footer-simple">
       <div class="footer-logo"><i class="fas fa-leaf"></i></div>
-      <p style="font-style:italic;color:#1a4d2e;font-weight:500">Conservando nuestros bosques amazónicos</p>
+      <p style="font-style:italic;color:#1a4d2e;font-weight:500">Conservando nuestros bosques amazÃ³nicos</p>
     </footer>
   </section>
 
-  <!-- METODOLOGÍA (texto completo ui.R) -->
+  <!-- METODOLOGÃA (texto completo ui.R) -->
   <section id="tab-metodologia" class="tab-panel">
     <div class="dash-hero section-hero">
       <div class="dash-hero-inner">
         <div class="dash-hero-copy">
-          <p class="dash-hero-eyebrow">Metodología Científica</p>
-          <h1>Sistema de monitoreo y evaluación de deforestación en Áreas de Conservación Regional del Perú</h1>
-          <p class="dash-hero-sub">Análisis con Sentinel-2, Landsat y PlanetScope · estándares Hansen et al. y protocolo MINAM.</p>
+          <p class="dash-hero-eyebrow">MetodologÃ­a CientÃ­fica</p>
+          <h1>Sistema de monitoreo y evaluaciÃ³n de deforestaciÃ³n en Ãreas de ConservaciÃ³n Regional del PerÃº</h1>
+          <p class="dash-hero-sub">AnÃ¡lisis con Sentinel-2, Landsat y PlanetScope Â· estÃ¡ndares Hansen et al. y protocolo MINAM.</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -191,84 +191,84 @@
     </div>
     <div class="panelbox metodologia-content">
       <h3><i class="fas fa-book"></i> 1. Marco Normativo y Conceptual</h3>
-      <p class="metodologia-p"><strong>Base legal:</strong> Según el Decreto Supremo N.º 006-2008-MINAM, se establece el procedimiento para la aprobación de Áreas de Conservación Regional (ACRs). El análisis de línea base de deforestación es un requisito fundamental establecido en el marco legal peruano para evaluar la efectividad de las medidas de conservación implementadas y para la planificación de estrategias de gestión territorial sostenible.</p>
-      <blockquote class="metodologia-quote">Las ACRs son espacios naturales bajo gestión regional que buscan conservar la diversidad biológica, los servicios ecosistémicos y los valores culturales asociados, integrando a las comunidades locales en la gestión sostenible de estos territorios.</blockquote>
+      <p class="metodologia-p"><strong>Base legal:</strong> SegÃºn el Decreto Supremo N.Âº 006-2008-MINAM, se establece el procedimiento para la aprobaciÃ³n de Ãreas de ConservaciÃ³n Regional (ACRs). El anÃ¡lisis de lÃ­nea base de deforestaciÃ³n es un requisito fundamental establecido en el marco legal peruano para evaluar la efectividad de las medidas de conservaciÃ³n implementadas y para la planificaciÃ³n de estrategias de gestiÃ³n territorial sostenible.</p>
+      <blockquote class="metodologia-quote">Las ACRs son espacios naturales bajo gestiÃ³n regional que buscan conservar la diversidad biolÃ³gica, los servicios ecosistÃ©micos y los valores culturales asociados, integrando a las comunidades locales en la gestiÃ³n sostenible de estos territorios.</blockquote>
       <hr />
-      <h3><i class="fas fa-satellite"></i> 2. Fuentes de Información y Datos</h3>
+      <h3><i class="fas fa-satellite"></i> 2. Fuentes de InformaciÃ³n y Datos</h3>
       <ul class="metodologia-list">
         <li><strong>Fuente primaria:</strong> Plataforma <a href="https://geobosques.minam.gob.pe" target="_blank" rel="noopener">GeoBosques</a> del Ministerio del Ambiente (MINAM)</li>
-        <li><strong>Período temporal:</strong> 2001-2025 (25 años de serie histórica)</li>
-        <li><strong>Resolución espacial:</strong> 30 metros (imágenes Landsat 7 ETM+, Landsat 8 OLI/TIRS)</li>
-        <li><strong>Frecuencia de actualización:</strong> Anual, con alertas trimestrales</li>
-        <li><strong>Cobertura geográfica:</strong> 9 ACRs en 3 departamentos (Loreto, San Martín, Cusco)</li>
+        <li><strong>PerÃ­odo temporal:</strong> 2001-2025 (25 aÃ±os de serie histÃ³rica)</li>
+        <li><strong>ResoluciÃ³n espacial:</strong> 30 metros (imÃ¡genes Landsat 7 ETM+, Landsat 8 OLI/TIRS)</li>
+        <li><strong>Frecuencia de actualizaciÃ³n:</strong> Anual, con alertas trimestrales</li>
+        <li><strong>Cobertura geogrÃ¡fica:</strong> 9 ACRs en 3 departamentos (Loreto, San MartÃ­n, Cusco)</li>
       </ul>
-      <p class="metodologia-p">Los datos de pérdida de cobertura forestal fueron procesados mediante <strong>análisis multitemporal de imágenes satelitales</strong>, utilizando algoritmos de detección de cambios espectrales. La metodología sigue los estándares internacionales establecidos por Hansen et al. (2013) para el monitoreo global de bosques.</p>
+      <p class="metodologia-p">Los datos de pÃ©rdida de cobertura forestal fueron procesados mediante <strong>anÃ¡lisis multitemporal de imÃ¡genes satelitales</strong>, utilizando algoritmos de detecciÃ³n de cambios espectrales. La metodologÃ­a sigue los estÃ¡ndares internacionales establecidos por Hansen et al. (2013) para el monitoreo global de bosques.</p>
       <hr />
-      <h3><i class="fas fa-cogs"></i> 3. Procesamiento y Análisis</h3>
+      <h3><i class="fas fa-cogs"></i> 3. Procesamiento y AnÃ¡lisis</h3>
       <ol class="metodologia-list">
-        <li><strong>Descarga de capas vectoriales:</strong> Se obtuvieron los polígonos de pérdida de cobertura forestal desde GeoBosques en formato shapefile (.shp), segmentados por año</li>
-        <li><strong>Normalización geométrica:</strong> Transformación al sistema de coordenadas WGS84 (EPSG:4326) y simplificación de geometrías para optimización computacional</li>
-        <li><strong>Intersección espacial:</strong> Cruce de capas de deforestación con polígonos de ACRs y sus respectivas zonas de influencia (buffer de 5 km)</li>
-        <li><strong>Clasificación de alertas:</strong> Cada polígono de pérdida fue clasificado en:
+        <li><strong>Descarga de capas vectoriales:</strong> Se obtuvieron los polÃ­gonos de pÃ©rdida de cobertura forestal desde GeoBosques en formato shapefile (.shp), segmentados por aÃ±o</li>
+        <li><strong>NormalizaciÃ³n geomÃ©trica:</strong> TransformaciÃ³n al sistema de coordenadas WGS84 (EPSG:4326) y simplificaciÃ³n de geometrÃ­as para optimizaciÃ³n computacional</li>
+        <li><strong>IntersecciÃ³n espacial:</strong> Cruce de capas de deforestaciÃ³n con polÃ­gonos de ACRs y sus respectivas zonas de influencia (buffer de 5 km)</li>
+        <li><strong>ClasificaciÃ³n de alertas:</strong> Cada polÃ­gono de pÃ©rdida fue clasificado en:
           <ul>
-            <li><strong>Antrópico:</strong> Causas directas humanas (agricultura, ganadería, minería, infraestructura)</li>
-            <li><strong>Natural:</strong> Eventos naturales (inundaciones, deslizamientos, muerte natural de árboles)</li>
-            <li><strong>Falsa alerta:</strong> Detecciones erróneas por nubes, sombras o cambios espectrales temporales</li>
+            <li><strong>AntrÃ³pico:</strong> Causas directas humanas (agricultura, ganaderÃ­a, minerÃ­a, infraestructura)</li>
+            <li><strong>Natural:</strong> Eventos naturales (inundaciones, deslizamientos, muerte natural de Ã¡rboles)</li>
+            <li><strong>Falsa alerta:</strong> Detecciones errÃ³neas por nubes, sombras o cambios espectrales temporales</li>
           </ul>
         </li>
-        <li><strong>Cálculo de métricas:</strong> Estimación de hectáreas deforestadas por categoría, año y ACR</li>
+        <li><strong>CÃ¡lculo de mÃ©tricas:</strong> EstimaciÃ³n de hectÃ¡reas deforestadas por categorÃ­a, aÃ±o y ACR</li>
       </ol>
       <hr />
       <h3><i class="fas fa-shield-alt"></i> 4. Zona de Influencia</h3>
-      <p class="metodologia-p">Se definió una <strong>zona de influencia</strong> como un buffer de 5 km alrededor de cada ACR, con el propósito de analizar la presión antrópica en áreas adyacentes. Esta delimitación permite:</p>
+      <p class="metodologia-p">Se definiÃ³ una <strong>zona de influencia</strong> como un buffer de 5 km alrededor de cada ACR, con el propÃ³sito de analizar la presiÃ³n antrÃ³pica en Ã¡reas adyacentes. Esta delimitaciÃ³n permite:</p>
       <ul class="metodologia-list">
-        <li>Identificar frentes de deforestación que podrían avanzar hacia el ACR</li>
-        <li>Evaluar la efectividad de las ACRs como barreras contra la pérdida de bosques</li>
-        <li>Diseñar estrategias de gestión territorial que integren el paisaje circundante</li>
+        <li>Identificar frentes de deforestaciÃ³n que podrÃ­an avanzar hacia el ACR</li>
+        <li>Evaluar la efectividad de las ACRs como barreras contra la pÃ©rdida de bosques</li>
+        <li>DiseÃ±ar estrategias de gestiÃ³n territorial que integren el paisaje circundante</li>
       </ul>
       <hr />
-      <h3><i class="fas fa-chart-line"></i> 5. Análisis de Tendencias</h3>
-      <p class="metodologia-p">Se implementó un modelo de <strong>regresión lineal simple</strong> para identificar tendencias temporales de deforestación en el período 2001-2025. El modelo permite:</p>
+      <h3><i class="fas fa-chart-line"></i> 5. AnÃ¡lisis de Tendencias</h3>
+      <p class="metodologia-p">Se implementÃ³ un modelo de <strong>regresiÃ³n lineal simple</strong> para identificar tendencias temporales de deforestaciÃ³n en el perÃ­odo 2001-2025. El modelo permite:</p>
       <ul class="metodologia-list">
-        <li>Cuantificar la tasa anual promedio de cambio (hectáreas/año)</li>
-        <li>Proyectar escenarios tendenciales a 5 años (2025-2029)</li>
-        <li>Evaluar el coeficiente de determinación (R²) como medida de bondad de ajuste</li>
+        <li>Cuantificar la tasa anual promedio de cambio (hectÃ¡reas/aÃ±o)</li>
+        <li>Proyectar escenarios tendenciales a 5 aÃ±os (2025-2029)</li>
+        <li>Evaluar el coeficiente de determinaciÃ³n (RÂ²) como medida de bondad de ajuste</li>
       </ul>
       <div class="metodologia-warning">
         <i class="fas fa-exclamation-triangle"></i> <strong>Limitaciones del modelo predictivo:</strong>
         <ul>
-          <li>No incorpora cambios en políticas públicas o intervenciones de conservación futuras</li>
-          <li>Asume continuidad de patrones históricos sin eventos extraordinarios</li>
+          <li>No incorpora cambios en polÃ­ticas pÃºblicas o intervenciones de conservaciÃ³n futuras</li>
+          <li>Asume continuidad de patrones histÃ³ricos sin eventos extraordinarios</li>
           <li>Los intervalos de confianza amplios reflejan la variabilidad anual de los datos</li>
         </ul>
       </div>
       <hr />
-      <h3><i class="fas fa-database"></i> 6. Gestión de Datos</h3>
+      <h3><i class="fas fa-database"></i> 6. GestiÃ³n de Datos</h3>
       <p class="metodologia-p">El dashboard utiliza una arquitectura de datos optimizada para minimizar tiempos de carga:</p>
       <ul class="metodologia-list">
-        <li><strong>Geometrías:</strong> Almacenadas en formato RDS (R Data Serialization) con geometrías simplificadas</li>
-        <li><strong>Estadísticas:</strong> Precomputadas y cargadas en memoria durante la inicialización</li>
-        <li><strong>Visualizaciones:</strong> Generadas dinámicamente mediante Plotly y Leaflet para interactividad</li>
-        <li><strong>Tamaño total:</strong> &lt; 30 MB para cumplir límites de Shinyapps.io</li>
+        <li><strong>GeometrÃ­as:</strong> Almacenadas en formato RDS (R Data Serialization) con geometrÃ­as simplificadas</li>
+        <li><strong>EstadÃ­sticas:</strong> Precomputadas y cargadas en memoria durante la inicializaciÃ³n</li>
+        <li><strong>Visualizaciones:</strong> Generadas dinÃ¡micamente mediante Plotly y Leaflet para interactividad</li>
+        <li><strong>TamaÃ±o total:</strong> &lt; 30 MB para cumplir lÃ­mites de Shinyapps.io</li>
       </ul>
       <hr />
       <h3><i class="fas fa-users"></i> 7. Control de Calidad</h3>
-      <p class="metodologia-p">Se realizó un proceso de <strong>validación cruzada</strong> mediante:</p>
+      <p class="metodologia-p">Se realizÃ³ un proceso de <strong>validaciÃ³n cruzada</strong> mediante:</p>
       <ul class="metodologia-list">
-        <li>Comparación con reportes oficiales del MINAM y estudios académicos previos</li>
-        <li>Verificación visual de polígonos de deforestación en imágenes de alta resolución (Google Earth, Planet)</li>
-        <li>Consulta con técnicos de las Gerencias Regionales de Recursos Naturales</li>
+        <li>ComparaciÃ³n con reportes oficiales del MINAM y estudios acadÃ©micos previos</li>
+        <li>VerificaciÃ³n visual de polÃ­gonos de deforestaciÃ³n en imÃ¡genes de alta resoluciÃ³n (Google Earth, Planet)</li>
+        <li>Consulta con tÃ©cnicos de las Gerencias Regionales de Recursos Naturales</li>
       </ul>
       <hr />
-      <h3><i class="fas fa-book-open"></i> 8. Referencias Metodológicas</h3>
+      <h3><i class="fas fa-book-open"></i> 8. Referencias MetodolÃ³gicas</h3>
       <ol class="metodologia-refs">
         <li>Hansen, M. C., et al. (2013). High-resolution global maps of 21st-century forest cover change. <em>Science</em>, 342(6160), 850-853.</li>
-        <li>MINAM (2024). Metodología para el monitoreo de la pérdida de cobertura de bosque húmedo amazónico. Programa Nacional de Conservación de Bosques.</li>
-        <li>Decreto Supremo N.º 006-2008-MINAM. Reglamento de Organización y Funciones del SERNANP.</li>
+        <li>MINAM (2024). MetodologÃ­a para el monitoreo de la pÃ©rdida de cobertura de bosque hÃºmedo amazÃ³nico. Programa Nacional de ConservaciÃ³n de Bosques.</li>
+        <li>Decreto Supremo N.Âº 006-2008-MINAM. Reglamento de OrganizaciÃ³n y Funciones del SERNANP.</li>
         <li>Global Forest Watch (2024). Plataforma de monitoreo forestal en tiempo real.</li>
       </ol>
     </div>
-    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
+    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazÃ³nicos</p></footer>
   </section>
 
   <!-- REPORTES (ui.R tab 3) -->
@@ -276,9 +276,9 @@
     <div class="dash-hero section-hero">
       <div class="dash-hero-inner">
         <div class="dash-hero-copy">
-          <p class="dash-hero-eyebrow">Productos Cartográficos y Alertas Tempranas</p>
-          <h1>Reportes, mapas y validación ATD GeoBosques</h1>
-          <p class="dash-hero-sub">Mapas de línea base por ACR y reportes ATD con el toolbox GFP Subnacional: descarga MINAM, fotointerpretación satelital e informe PDF validado.</p>
+          <p class="dash-hero-eyebrow">Productos CartogrÃ¡ficos y Alertas Tempranas</p>
+          <h1>Reportes, mapas y validaciÃ³n ATD GeoBosques</h1>
+          <p class="dash-hero-sub">Mapas de lÃ­nea base por ACR y reportes ATD con el toolbox GFP Subnacional: descarga MINAM, fotointerpretaciÃ³n satelital e informe PDF validado.</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -289,7 +289,7 @@
 
     <div class="reportes-subtabs" role="tablist">
       <button type="button" class="reportes-subtab active" data-reportes-panel="mapas" role="tab">
-        <i class="fas fa-map"></i> Mapas de línea base
+        <i class="fas fa-map"></i> Mapas de lÃ­nea base
       </button>
       <button type="button" class="reportes-subtab" data-reportes-panel="atd" role="tab" id="reportes-subtab-atd">
         <i class="fas fa-bell"></i> Alertas tempranas (ATD) <span id="atd-badge" class="atd-badge hidden">0</span>
@@ -302,7 +302,7 @@
         <label for="filtro_depto_mapas"><i class="fas fa-filter"></i> Filtrar por Departamento:</label>
         <select id="filtro_depto_mapas">
           <option value="loreto">Loreto</option>
-          <option value="sanmartin">San Martín</option>
+          <option value="sanmartin">San MartÃ­n</option>
           <option value="cusco">Cusco</option>
         </select>
       </div>
@@ -315,8 +315,8 @@
     </div>
     <div class="reportes-download-bar">
       <div>
-        <h4><i class="fas fa-download"></i> Datos de línea base</h4>
-        <p>Centroides CSV, GeoJSON y productos cartográficos históricos.</p>
+        <h4><i class="fas fa-download"></i> Datos de lÃ­nea base</h4>
+        <p>Centroides CSV, GeoJSON y productos cartogrÃ¡ficos histÃ³ricos.</p>
       </div>
       <div class="reportes-download-actions">
         <button type="button" id="btn-descargar-datos" class="btn btn-success"><i class="fas fa-file-archive"></i> Descargar datos</button>
@@ -328,10 +328,10 @@
       <span>Alertas tempranas GeoBosques</span>
     </section>
     <div id="atd-root" class="atd-root hidden" aria-live="polite">
-      <div class="atd-loading atd-loading-panel"><i class="fas fa-spinner fa-spin"></i> Cargando demo ATD GeoBosques…</div>
+      <div class="atd-loading atd-loading-panel"><i class="fas fa-spinner fa-spin"></i> Cargando demo ATD GeoBosquesâ€¦</div>
     </div>
 
-    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
+    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazÃ³nicos</p></footer>
   </section>
 
   <!-- TENDENCIAS (mod_prediccion.R) -->
@@ -339,9 +339,9 @@
     <div class="dash-hero section-hero">
       <div class="dash-hero-inner">
         <div class="dash-hero-copy">
-          <p class="dash-hero-eyebrow">Análisis de Tendencias Temporales</p>
-          <h1>Análisis histórico de deforestación en ACRs</h1>
-          <p class="dash-hero-sub">Serie histórica 2001–2025 · tendencias temporales y patrones de deforestación en ACRs del Programa GFP Subnacional.</p>
+          <p class="dash-hero-eyebrow">AnÃ¡lisis de Tendencias Temporales</p>
+          <h1>AnÃ¡lisis histÃ³rico de deforestaciÃ³n en ACRs</h1>
+          <p class="dash-hero-sub">Serie histÃ³rica 2001â€“2025 Â· tendencias temporales y patrones de deforestaciÃ³n en ACRs del Programa GFP Subnacional.</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -351,8 +351,8 @@
     </div>
     <div class="layout-dashboard">
       <aside class="well-panel">
-        <h5><i class="fas fa-sliders-h"></i> Configuración de Análisis</h5>
-        <label for="tend-tipo">Tipo de Análisis:</label>
+        <h5><i class="fas fa-sliders-h"></i> ConfiguraciÃ³n de AnÃ¡lisis</h5>
+        <label for="tend-tipo">Tipo de AnÃ¡lisis:</label>
         <select id="tend-tipo">
           <option value="general">Tendencia General</option>
           <option value="individual">Por ACR Individual</option>
@@ -362,36 +362,39 @@
           <label for="tend-acr">Seleccionar ACR(s):</label>
           <select id="tend-acr" multiple></select>
         </div>
-        <label>Rango de Años: <span id="tend-rango-label">2001 – 2025</span></label>
+        <label>Rango de AÃ±os: <span id="tend-rango-label">2001 â€“ 2025</span></label>
         <input type="range" id="tend-anio-min" min="2001" max="2026" value="2001" />
         <input type="range" id="tend-anio-max" min="2001" max="2026" value="2025" />
-        <label><input type="checkbox" id="tend-mostrar-linea" checked /> Mostrar línea de tendencia</label>
-        <button type="button" id="btn-analizar-tend" class="btn btn-success btn-block"><i class="fas fa-search"></i> Generar Análisis</button>
+        <label><input type="checkbox" id="tend-mostrar-linea" checked /> Mostrar lÃ­nea de tendencia</label>
+        <button type="button" id="btn-analizar-tend" class="btn btn-success btn-block"><i class="fas fa-search"></i> Generar AnÃ¡lisis</button>
       </aside>
       <main>
         <div id="tend-welcome" class="panelbox tend-welcome">
           <i class="fas fa-chart-line"></i>
-          <h3>Análisis de Tendencias</h3>
-          <p>Configura los parámetros en el panel izquierdo y haz clic en <strong>'Generar Análisis'</strong> para visualizar las tendencias de deforestación.</p>
+          <h3>AnÃ¡lisis de Tendencias</h3>
+          <p>Configura los parÃ¡metros en el panel izquierdo y haz clic en <strong>'Generar AnÃ¡lisis'</strong> para visualizar las tendencias de deforestaciÃ³n.</p>
         </div>
         <div id="tend-chart-panel" class="panelbox hidden">
-          <h5 class="section-title"><i class="fas fa-chart-area"></i> Gráfico de Tendencia Temporal</h5>
+          <h5 class="section-title"><i class="fas fa-chart-area"></i> GrÃ¡fico de Tendencia Temporal</h5>
           <div id="chart-tendencias-full" style="min-height:420px"></div>
         </div>
       </main>
     </div>
-    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
+    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazÃ³nicos</p></footer>
   </section>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260915b"></script>
-  <script src="/assets/js/modals.js?v=20260915b"></script>
+  <script src="/assets/js/map.js?v=20260915c"></script>
+  <script src="/assets/js/modals.js?v=20260915c"></script>
   <script src="/assets/js/atd-demo.js?v=20260709d"></script>
   <script src="/assets/js/region-insights.js"></script>
   <script src="/assets/js/reportes.js?v=20260709b"></script>
   <script src="/assets/js/tendencias.js?v=20260910a"></script>
-  <script src="/assets/js/app.js?v=20260915b"></script>
+  <script src="/assets/js/app.js?v=20260915c"></script>
 </body>
 </html>
+
+
+

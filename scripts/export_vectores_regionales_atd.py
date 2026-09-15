@@ -141,17 +141,13 @@ def _write_by_codigo(
     codigo_fn,
     zona_map: dict[str, str],
     slug_map: dict[str, str],
-    simplify: float = 0.0003,
+    simplify: float = 0.0,
 ) -> dict[str, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
     gdf = gdf.to_crs(4326)
-    gdf["geometry"] = gdf.geometry.simplify(simplify, preserve_topology=True)
-    try:
-        from shapely import set_precision
-
-        gdf["geometry"] = set_precision(gdf.geometry, grid_size=1e-5)
-    except Exception:
-        pass
+    # Geometría fiel a la GDB: no simplify / no set_precision (evita “triángulos”)
+    if simplify and simplify > 0:
+        gdf["geometry"] = gdf.geometry.simplify(simplify, preserve_topology=True)
     gdf = gdf[~gdf.geometry.is_empty & gdf.geometry.notna()].copy()
 
     codes = []
@@ -232,7 +228,7 @@ def export_cusco() -> dict[str, int]:
     gdb = _find_gdb(CUSCO_GDB, "Linea_base_deforestaci*.gdb")
     print(f"Cusco GDB: {gdb}")
     gdf = gpd.read_file(gdb, layer="MonitoreoDeforestacionAcumulado")
-    return _write_by_codigo(gdf, CUSCO_OUT, codigo_cusco, CUSCO_ZONA, CUSCO_SLUG, 0.0003)
+    return _write_by_codigo(gdf, CUSCO_OUT, codigo_cusco, CUSCO_ZONA, CUSCO_SLUG, 0.0)
 
 
 def export_san_martin(only_zi: bool = False) -> dict[str, int]:
@@ -241,7 +237,7 @@ def export_san_martin(only_zi: bool = False) -> dict[str, int]:
         gdb = _find_gdb(SM_GDB, "Linea_base_deforestaci*.gdb")
         print(f"San Martín GDB ACR: {gdb}")
         gdf_acr = gpd.read_file(gdb, layer="MonitoreoDeforestacionAcumulado")
-        counts = _write_by_codigo(gdf_acr, SM_OUT, codigo_sm_acr, SM_ZONA, SM_SLUG, 0.0003)
+        counts = _write_by_codigo(gdf_acr, SM_OUT, codigo_sm_acr, SM_ZONA, SM_SLUG, 0.0)
 
     # ZI desde plantillas (capas dedicadas)
     zi_sources = [
@@ -254,14 +250,14 @@ def export_san_martin(only_zi: bool = False) -> dict[str, int]:
             continue
         print(f"  ZI layer {layer} @ {path.name}")
         gdf = gpd.read_file(path, layer=layer)
-        # ZI muy densas: simplificar más agresivo para caber en Git/Render
+        # ZI: también fiel a GDB (sin simplify)
         part = _write_by_codigo(
             gdf,
             SM_OUT,
             lambda _row, c=forced: c,
             SM_ZONA,
             SM_SLUG,
-            simplify=0.0009,
+            simplify=0.0,
         )
         counts.update(part)
 
