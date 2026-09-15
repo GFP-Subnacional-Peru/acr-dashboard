@@ -6,7 +6,7 @@
   <title>Portal ACR — Monitoreo de Deforestación | GFP Subnacional</title>
   <!-- GFP WordPress iframe: apuntar a /mapa (o /?embed=1 que redirige a /mapa). La home (/) es el portal. -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="/assets/css/portal.css?v=20260911k" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20260915e" />
 </head>
 <body class="portal-body">
   <header class="site-header">
@@ -49,7 +49,7 @@
         <div>
           <p class="acr-showcase-kicker"><i class="fas fa-leaf"></i> Red de conservación GFP</p>
           <h2 id="acrs-title">9 Áreas de Conservación Regional</h2>
-          <p>Explore cada ACR: ficha institucional o mapa filtrado al instante.</p>
+          <p>Explore cada ACR e ingrese al dashboard interactivo filtrado.</p>
         </div>
         <div class="acr-showcase-tools">
           <label class="acr-search" for="acr-search-input">
@@ -57,8 +57,8 @@
             <input id="acr-search-input" type="search" placeholder="Buscar ACR…" autocomplete="off" />
           </label>
           <div class="acr-chips" role="group" aria-label="Filtrar por departamento">
-            <button type="button" class="acr-chip active" data-depto="todos">Todos</button>
-            <button type="button" class="acr-chip" data-depto="loreto">Loreto</button>
+            <button type="button" class="acr-chip" data-depto="todos">Todos</button>
+            <button type="button" class="acr-chip active" data-depto="loreto">Loreto</button>
             <button type="button" class="acr-chip" data-depto="san_martin">San Martín</button>
             <button type="button" class="acr-chip" data-depto="cusco">Cusco</button>
           </div>
@@ -72,13 +72,12 @@
             <span class="acr-tile-code">ACR_AA</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_aa.jpeg" alt="Logo Ampiyacu Apayacu" loading="lazy" width="120" height="120" />
+            <img src="/assets/img/logos/acr/acr_aa.png?v=20260915e" alt="Logo Ampiyacu Apayacu" loading="lazy" width="120" height="120" />
           </div>
           <h3>Ampiyacu Apayacu</h3>
           <p class="acr-tile-desc">Amazonía norte · monitoreo acumulado ACR</p>
           <div class="acr-tile-actions">
-            <a href="/acr/ampiyacu-apayacu">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_AA"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_AA">Ingresar a dashboard interactivo</a>
           </div>
         </article>
         <article class="acr-tile" data-depto="loreto" data-name="alto nanay pintuyacu chambira loreto acr_anpch">
@@ -87,13 +86,12 @@
             <span class="acr-tile-code">ACR_ANPCH</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_anpch.jpeg" alt="Logo Alto Nanay Pintuyacu Chambira" loading="lazy" width="120" height="120" />
+            <img src="/assets/img/logos/acr/acr_anpch.png?v=20260915e" alt="Logo Alto Nanay Pintuyacu Chambira" loading="lazy" width="120" height="120" />
           </div>
           <h3>Alto Nanay Pintuyacu Chambira</h3>
           <p class="acr-tile-desc">Cuenca Nanay · presión antrópica y ZI</p>
           <div class="acr-tile-actions">
-            <a href="/acr/alto-nanay">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_ANPCH"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_ANPCH">Ingresar a dashboard interactivo</a>
           </div>
         </article>
         <article class="acr-tile" data-depto="loreto" data-name="maijuna kichwa loreto acr_mk">
@@ -102,13 +100,12 @@
             <span class="acr-tile-code">ACR_MK</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_mk.jpeg" alt="Logo Maijuna Kichwa" loading="lazy" width="120" height="120" />
+            <img src="/assets/img/logos/acr/acr_mk.png?v=20260915e" alt="Logo Maijuna Kichwa" loading="lazy" width="120" height="120" />
           </div>
           <h3>Maijuna Kichwa</h3>
           <p class="acr-tile-desc">Territorio indígena · línea base 2001–2025</p>
           <div class="acr-tile-actions">
-            <a href="/acr/maijuna-kichwa">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_MK"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_MK">Ingresar a dashboard interactivo</a>
           </div>
         </article>
         <article class="acr-tile" data-depto="loreto" data-name="comunal tamshiyacu tahuayo loreto acr_ctt">
@@ -117,13 +114,12 @@
             <span class="acr-tile-code">ACR_CTT</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_ctt.jpeg" alt="Logo Comunal Tamshiyacu Tahuayo" loading="lazy" width="120" height="120" />
+            <img src="/assets/img/logos/acr/acr_ctt.png?v=20260915e" alt="Logo Comunal Tamshiyacu Tahuayo" loading="lazy" width="120" height="120" />
           </div>
           <h3>Comunal Tamshiyacu Tahuayo</h3>
           <p class="acr-tile-desc">ACR comunal · alertas y causas</p>
           <div class="acr-tile-actions">
-            <a href="/acr/tahuayo">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_CTT"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_CTT">Ingresar a dashboard interactivo</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--sm" data-depto="san_martin" data-name="bosques shunte mishollo san martin acr_bsm">
@@ -132,13 +128,12 @@
             <span class="acr-tile-code">ACR_BSM</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_bsm.png" alt="Logo Bosques de Shunté y Mishollo" loading="lazy" width="120" height="120" />
+            <img src="/assets/img/logos/acr/acr_bsm.png?v=20260915e" alt="Logo Bosques de Shunté y Mishollo" loading="lazy" width="120" height="120" />
           </div>
           <h3>Bosques de Shunté y Mishollo</h3>
           <p class="acr-tile-desc">BOSHUMI · deforestación ACR + ZI</p>
           <div class="acr-tile-actions">
-            <a href="/acr/bosques-shunte">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_BSM"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_BSM">Ingresar a dashboard interactivo</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--sm" data-depto="san_martin" data-name="cordillera escalera san martin acr_ce">
@@ -147,13 +142,12 @@
             <span class="acr-tile-code">ACR_CE</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_ce.jpeg" alt="Logo Cordillera Escalera" loading="lazy" width="120" height="120" />
+            <img src="/assets/img/logos/acr/acr_ce.png?v=20260915e" alt="Logo Cordillera Escalera" loading="lazy" width="120" height="120" />
           </div>
           <h3>Cordillera Escalera</h3>
           <p class="acr-tile-desc">Mayor superficie ACR · tendencias anuales</p>
           <div class="acr-tile-actions">
-            <a href="/acr/cordillera-escalera">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_CE"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_CE">Ingresar a dashboard interactivo</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--cusco" data-depto="cusco" data-name="choquequirao cusco acr_chq">
@@ -162,13 +156,12 @@
             <span class="acr-tile-code">ACR_CHQ</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_chq.png" alt="Logo Choquequirao" loading="lazy" width="120" height="120" />
+            <img src="/assets/img/logos/acr/acr_chq.png?v=20260915e" alt="Logo Choquequirao" loading="lazy" width="120" height="120" />
           </div>
           <h3>Choquequirao</h3>
           <p class="acr-tile-desc">Andes amazónicos · línea base Cusco</p>
           <div class="acr-tile-actions">
-            <a href="/acr/choquequirao">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_CHQ"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_CHQ">Ingresar a dashboard interactivo</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--cusco" data-depto="cusco" data-name="chuyapi urusayhua cusco acr_chu">
@@ -177,13 +170,12 @@
             <span class="acr-tile-code">ACR_CHU</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_chu.png" alt="Logo Chuyapi Urusayhua" loading="lazy" width="120" height="120" />
+            <img src="/assets/img/logos/acr/acr_chu.png?v=20260915e" alt="Logo Chuyapi Urusayhua" loading="lazy" width="120" height="120" />
           </div>
           <h3>Chuyapi Urusayhua</h3>
           <p class="acr-tile-desc">Bosque montano · causas y hectáreas</p>
           <div class="acr-tile-actions">
-            <a href="/acr/chuyapi-urusayhua">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_CHU"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_CHU">Ingresar a dashboard interactivo</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--cusco" data-depto="cusco" data-name="qeros kosnipata cusco acr_qk">
@@ -192,13 +184,12 @@
             <span class="acr-tile-code">ACR_QK</span>
           </div>
           <div class="acr-tile-brand">
-            <img src="/assets/img/logos/acr/acr_qk.png?v=20260911k" alt="Logo Q'eros Kosñipata" loading="lazy" width="200" height="97" />
+            <img src="/assets/img/logos/acr/acr_qk.png?v=20260915e" alt="Logo Q'eros Kosñipata" loading="lazy" width="200" height="97" />
           </div>
           <h3>Q'eros Kosñipata</h3>
           <p class="acr-tile-desc">Kosñipata · monitoreo y reporte ATD</p>
           <div class="acr-tile-actions">
-            <a href="/acr/qeros-kosnipata">Ver ficha</a>
-            <a class="acr-tile-map" href="/mapa?acr=ACR_QK"><i class="fas fa-map"></i> Mapa</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_QK">Ingresar a dashboard interactivo</a>
           </div>
         </article>
       </div>
@@ -221,7 +212,7 @@
       const input = document.getElementById("acr-search-input");
       const empty = document.getElementById("acr-empty");
       const chips = document.querySelectorAll(".acr-chip");
-      let depto = "todos";
+      let depto = "loreto";
       function apply() {
         const q = (input.value || "").trim().toLowerCase();
         let n = 0;
