@@ -564,16 +564,29 @@ def load_acumulado_vectors(
 
     lo, hi = _anno_range(anno_desde, anno_hasta)
 
+    existing = [
+        (folder, slug, codigo)
+        for folder, slug, codigo in targets
+        if (ATD_ROOT / folder / "acumulado" / f"{slug}.geojson").exists()
+    ]
+    # Cupo por ACR/ZI: Cusco, Maijuna, Tahuayo y Escalera siempre entran
+    per_file = 0
+    if limit > 0 and existing:
+        per_file = max(200, (limit + len(existing) - 1) // len(existing))
+
     features: list[dict] = []
     loaded_slugs: list[str] = []
     limited = False
-    for folder, slug, codigo in targets:
-        path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
-        if not path.exists():
-            continue
+
+    for folder, slug, codigo in existing:
+        path_fc = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
         loaded_slugs.append(f"{folder}/{slug}")
-        data = _read_geojson(path)
+        data = _read_geojson(path_fc)
+        n_this = 0
         for f in data.get("features", []):
+            if per_file > 0 and n_this >= per_file:
+                limited = True
+                break
             props = dict(f.get("properties") or {})
             anno = props.get("anno")
             if anno is None:
@@ -589,13 +602,12 @@ def load_acumulado_vectors(
             props["causa_nombre"] = _causa_nombre(props.get("causa"))
             props["fuente_nombre"] = _fuente_nombre(props.get("fuente"))
             features.append({**f, "properties": props})
-            if limit > 0 and len(features) >= limit:
-                limited = True
-                break
-        if limited:
-            break
+            n_this += 1
 
-    available = bool(loaded_slugs)
+    if limit > 0 and len(features) > limit:
+        features = features[:limit]
+        limited = True
+
     return {
         "type": "FeatureCollection",
         "features": features,
@@ -606,8 +618,9 @@ def load_acumulado_vectors(
             "slugs": loaded_slugs,
             "anno_desde": lo,
             "anno_hasta": hi,
-            "available": available,
+            "available": bool(loaded_slugs),
             "limited": limited,
             "limit": limit if limit > 0 else None,
+            "per_file": per_file or None,
         },
     }

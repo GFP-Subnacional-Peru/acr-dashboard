@@ -297,12 +297,11 @@ const AcrMap = (() => {
     const singleAcr =
       (Array.isArray(acrFilter) && acrFilter.length === 1) ||
       (Array.isArray(state.acrs) && state.acrs.length === 1);
-    const heavyView =
-      state.departamento === "todos" ||
-      yearSpan > 10 ||
-      (state.ambito || "acr") === "zi";
-    // Wide filters: cap polygons; single ACR stays unlimited
-    const limit = singleAcr ? 0 : heavyView ? 6000 : 0;
+    const selectedAcrs =
+      (Array.isArray(acrFilter) && acrFilter.length > 0) ||
+      (Array.isArray(state.acrs) && state.acrs.length > 0);
+    // Con ACR elegidos: sin tope. Vista “todos”: tope alto; backend reparte por ACR
+    const limit = singleAcr || selectedAcrs ? 0 : state.departamento === "todos" || yearSpan > 10 ? 12000 : 0;
     const params = {
       departamento: deptoApi,
       ambito: state.ambito || "acr",
