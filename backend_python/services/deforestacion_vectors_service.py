@@ -60,6 +60,26 @@ _EMPTY_KPIS = {
     "causa_principal_pct": 0.0,
 }
 
+# Dominio GDB CausaDeforestacion_1 (md_causa)
+MD_CAUSA_NOMBRES: dict[int, str] = {
+    1: "Agricultura",
+    2: "Ganadería",
+    3: "Extracción forestal",
+    4: "Extracción de fauna",
+    5: "Hidrobiológicos",
+    6: "Minería",
+    7: "Hidrocarburos",
+    8: "Turismo",
+    9: "Energía",
+    10: "Transporte",
+    11: "Ocupación humana",
+    12: "Restos arqueológicos",
+    13: "Otros",
+    14: "Natural",
+    15: "Incendio Antrópico",
+    99: "Falsa alerta",
+}
+
 
 def loreto_en_alcance(departamento: str, acrs: list[str] | None) -> bool:
     """Compat: True si Loreto entra en el filtro (también usado en main)."""
@@ -101,7 +121,47 @@ def _safe_float(val, default: float = 0.0) -> float:
     return x
 
 
-def _clasificar_tipo(tipo: str) -> str:
+def _causa_code(val) -> int | None:
+    try:
+        if val is None or (isinstance(val, float) and math.isnan(val)):
+            return None
+        return int(float(val))
+    except (TypeError, ValueError):
+        return None
+
+
+def _causa_nombre(val) -> str:
+    code = _causa_code(val)
+    if code is None:
+        return "Sin especificar"
+    return MD_CAUSA_NOMBRES.get(code, f"Causa {code}")
+
+
+def _tipo_desde_causa(val, tipo_fallback: str | None = None) -> str:
+    """Clasifica con md_causa (fuente oficial). 14=Natural, 99=Falsa, resto=Antrópico."""
+    code = _causa_code(val)
+    if code == 14:
+        return "Natural"
+    if code == 99:
+        return "Falsa alerta"
+    if code is not None:
+        return "Antropogenico"
+    t = str(tipo_fallback or "").strip().lower()
+    if "natural" in t:
+        return "Natural"
+    if "falsa" in t:
+        return "Falsa alerta"
+    return "Antropogenico"
+
+
+def _clasificar_tipo(tipo: str, causa=None) -> str:
+    if causa is not None and _causa_code(causa) is not None:
+        t = _tipo_desde_causa(causa).lower()
+        if "natural" in t:
+            return "natural"
+        if "falsa" in t:
+            return "falsa"
+        return "antropico"
     t = str(tipo or "").strip().lower()
     if "natural" in t:
         return "natural"
@@ -138,23 +198,24 @@ def warmup_acumulado_cache(ambito: str = "acr") -> int:
 
 
 def _sumar_props(props_list: list[dict]) -> tuple[float, float, float, float, dict[str, float]]:
+    """Suma ha por categoría; el dict es causas antrópicas (md_causa → nombre)."""
     ant = nat = fal = 0.0
-    sectores: dict[str, float] = {}
+    causas_ant: dict[str, float] = {}
     for p in props_list:
         area = _safe_float(p.get("area_ha"))
-        cat = _clasificar_tipo(p.get("tipo"))
+        cat = _clasificar_tipo(p.get("tipo"), p.get("causa"))
         if cat == "natural":
             nat += area
         elif cat == "falsa":
             fal += area
         else:
             ant += area
-            sec = str(p.get("sector") or "").strip()
-            if not sec or sec.lower() in {"nan", "none", "null", "—", "-"}:
-                sec = "Sin especificar"
-            sectores[sec] = sectores.get(sec, 0.0) + area
+            nombre = _causa_nombre(p.get("causa"))
+            if nombre in {"Natural", "Falsa alerta"}:
+                nombre = "Otros"
+            causas_ant[nombre] = causas_ant.get(nombre, 0.0) + area
     total = ant + nat + fal
-    return total, ant, nat, fal, sectores
+    return total, ant, nat, fal, causas_ant
 
 
 def _sumar_features(features: list[dict]) -> tuple[float, float, float, float, dict[str, float]]:
@@ -164,14 +225,14 @@ def _sumar_features(features: list[dict]) -> tuple[float, float, float, float, d
 def _kpis_from_props(props_list: list[dict]) -> dict:
     if not props_list:
         return dict(_EMPTY_KPIS)
-    total, ant, nat, fal, sectores = _sumar_props(props_list)
+    total, ant, nat, fal, causas_ant = _sumar_props(props_list)
 
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0
 
-    if sectores:
-        causa = max(sectores, key=sectores.get)
-        causa_ha = _safe_float(sectores[causa])
+    if causas_ant:
+        causa = max(causas_ant, key=causas_ant.get)
+        causa_ha = _safe_float(causas_ant[causa])
     else:
         causa = "Sin datos"
         causa_ha = 0.0
@@ -279,10 +340,13 @@ def iter_acumulado_properties(
                     continue
             except (TypeError, ValueError):
                 continue
+            causa = raw.get("causa")
             yield {
                 "codigo": codigo,
                 "area_ha": raw.get("area_ha"),
-                "tipo": raw.get("tipo"),
+                "tipo": _tipo_desde_causa(causa, raw.get("tipo")),
+                "causa": causa,
+                "causa_nombre": _causa_nombre(causa),
                 "anno": y,
                 "sector": raw.get("sector"),
             }
@@ -301,6 +365,29 @@ def kpis_desde_acumulado(
         iter_acumulado_properties(departamento, ambito, acrs, anno_desde, anno_hasta)
     )
     return _kpis_from_props(props)
+
+
+def causas_antropicas_desde_acumulado(
+    departamento: str = "loreto",
+    ambito: str = "acr",
+    acrs: list[str] | None = None,
+    anno_desde: int | None = None,
+    anno_hasta: int | None = None,
+) -> list[dict] | None:
+    """Lista de causas antrópicas (nombre, ha) ordenada mayor→menor desde GDB/GeoJSON."""
+    if not _any_acumulado_available(departamento, ambito, acrs):
+        return None
+    props = list(
+        iter_acumulado_properties(departamento, ambito, acrs, anno_desde, anno_hasta)
+    )
+    if not props:
+        return []
+    _, _, _, _, causas_ant = _sumar_props(props)
+    return [
+        {"Causa": k, "Area_Ha": round(v, 2)}
+        for k, v in sorted(causas_ant.items(), key=lambda x: x[1], reverse=True)
+        if v > 0
+    ]
 
 
 def graficos_desde_acumulado(
@@ -329,7 +416,7 @@ def graficos_desde_acumulado(
 
     if n_filtros == 1:
         out["modo"] = "individual"
-        total, ant, nat, fal, sectores = _sumar_props(props)
+        total, ant, nat, fal, causas_ant = _sumar_props(props)
         out["composicion"] = [
             {"Categoria": "Antrópico", "Hectareas": ant, "Color": "#d9534f"},
             {"Categoria": "Natural", "Hectareas": nat, "Color": "#5cb85c"},
@@ -343,8 +430,8 @@ def graficos_desde_acumulado(
                 {"Categoria": "Falsa Alerta", "Hectareas": fal, "Porcentaje": round((fal / total) * 100, 1) if total else 0, "Color": "#f0ad4e"},
             ],
         }
-        if sectores:
-            top = sorted(sectores.items(), key=lambda x: x[1], reverse=True)[:5]
+        if causas_ant:
+            top = sorted(causas_ant.items(), key=lambda x: x[1], reverse=True)
             out["causas_top5"] = [{"Causa": k, "Area_Ha": round(v, 2)} for k, v in top]
     elif n_filtros >= 2:
         out["modo"] = "comparativa"
@@ -447,6 +534,8 @@ def load_acumulado_vectors(
             except (TypeError, ValueError):
                 continue
             props["codigo"] = codigo
+            props["tipo"] = _tipo_desde_causa(props.get("causa"), props.get("tipo"))
+            props["causa_nombre"] = _causa_nombre(props.get("causa"))
             features.append({**f, "properties": props})
             if limit > 0 and len(features) >= limit:
                 limited = True

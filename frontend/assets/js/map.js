@@ -6,10 +6,41 @@ const AcrMap = (() => {
   const layerRefs = { acr: null, zi: null, limites: null };
 
   const TIPO_COLORS = {
-    Antropogenico: "#e74c3c",
-    Natural: "#27ae60",
-    "Falsa alerta": "#f39c12",
+    Antropogenico: "#c0392b",
+    Natural: "#1e8449",
+    "Falsa alerta": "#d68910",
   };
+
+  function fmtHa(v, digits = 1) {
+    const n = Number(v || 0);
+    if (!Number.isFinite(n)) return "0";
+    return n.toLocaleString("es-PE", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+  }
+
+  function defoStyle(tipo) {
+    const fill = TIPO_COLORS[tipo] || TIPO_COLORS.Antropogenico;
+    return {
+      color: "#ffffff",
+      weight: 0.9,
+      opacity: 0.85,
+      fillColor: fill,
+      fillOpacity: tipo === "Natural" ? 0.38 : tipo === "Falsa alerta" ? 0.28 : 0.42,
+    };
+  }
+
+  function defoStyleHover(tipo) {
+    const fill = TIPO_COLORS[tipo] || TIPO_COLORS.Antropogenico;
+    return {
+      color: fill,
+      weight: 1.6,
+      opacity: 1,
+      fillColor: fill,
+      fillOpacity: 0.62,
+    };
+  }
 
   function init() {
     if (map) return map;
@@ -203,13 +234,16 @@ const AcrMap = (() => {
   }
 
   function vectorPopup(p) {
-    return `<div style="font-family:Arial;min-width:200px">
-      <h4 style="color:#d32f2f;margin:0 0 8px">Deforestación acumulada</h4>
+    const tipo = p.tipo || "—";
+    const causa = p.causa_nombre || "";
+    const color = TIPO_COLORS[tipo] || "#c0392b";
+    return `<div style="font-family:'Segoe UI',Arial,sans-serif;min-width:210px;line-height:1.45">
+      <h4 style="color:${color};margin:0 0 8px;font-size:0.95rem">Deforestación acumulada</h4>
       <b>Zona:</b> ${p.zona_key || "—"}<br>
       ${p.sector ? `<b>Sector:</b> ${p.sector}<br>` : ""}
-      <b>Tipo:</b> ${p.tipo || "—"}<br>
+      <b>Tipo:</b> ${tipo}${causa && causa !== tipo ? ` · ${causa}` : ""}<br>
       <b>Año:</b> ${p.anno || "N/A"}<br>
-      <b>Área:</b> <span style="color:#d32f2f">${Number(p.area_ha || 0).toFixed(4)} ha</span>
+      <b>Área:</b> <span style="color:${color};font-weight:700">${fmtHa(p.area_ha, 1)} ha</span>
       ${p.fuente ? `<br><b>Fuente:</b> ${p.fuente}` : ""}
     </div>`;
   }
@@ -274,21 +308,27 @@ const AcrMap = (() => {
     }
     defoLayer.clearLayers();
     L.geoJSON(geo, {
-      style: (f) => {
-        const tipo = f.properties?.tipo || "Antropogenico";
-        return {
-          color: TIPO_COLORS[tipo] || "#c0392b",
-          weight: 0.8,
-          fillColor: TIPO_COLORS[tipo] || "#e74c3c",
-          fillOpacity: 0.65,
-        };
-      },
+      style: (f) => defoStyle(f.properties?.tipo || "Antropogenico"),
       onEachFeature: (f, layer) => {
         const p = f.properties || {};
+        const tipo = p.tipo || "Antropogenico";
         layer.bindPopup(vectorPopup(p));
         if (p.anno != null) {
-          layer.bindTooltip(`${p.anno} · ${Number(p.area_ha || 0).toFixed(2)} ha`, { sticky: true });
+          layer.bindTooltip(`${p.anno} · ${fmtHa(p.area_ha, 1)} ha`, {
+            sticky: true,
+            opacity: 0.92,
+          });
         }
+        layer.on({
+          mouseover: (e) => {
+            const ly = e.target;
+            ly.setStyle(defoStyleHover(tipo));
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) ly.bringToFront();
+          },
+          mouseout: (e) => {
+            e.target.setStyle(defoStyle(tipo));
+          },
+        });
       },
     }).eachLayer((l) => defoLayer.addLayer(l));
     map.addLayer(defoLayer);
@@ -322,12 +362,12 @@ const AcrMap = (() => {
         weight: 1,
       });
       m.bindPopup(
-        `<div style="font-family:Arial;min-width:200px">
-          <h4 style="color:#d32f2f;margin:0 0 8px">🔴 Deforestación</h4>
+        `<div style="font-family:'Segoe UI',Arial,sans-serif;min-width:200px;line-height:1.45">
+          <h4 style="color:#c0392b;margin:0 0 8px;font-size:0.95rem">Deforestación</h4>
           <b>Zona:</b> ${String(p.codigo).replace(/^(ACR_|ZI_)/, "")}<br>
           <b>Tipo:</b> ${p.tipo === "acr" ? "ACR" : "ZI"}<br>
           <b>Año:</b> ${p.anno || "N/A"}<br>
-          <b>Área:</b> <span style="color:#d32f2f">${Number(p.area).toFixed(4)} ha</span>
+          <b>Área:</b> <span style="color:#c0392b;font-weight:700">${fmtHa(p.area, 1)} ha</span>
         </div>`
       );
       clusterGroup.addLayer(m);

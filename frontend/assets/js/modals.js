@@ -118,25 +118,32 @@ const Modals = (() => {
       ambito: state.ambito || "acr",
       acr: state.acrs.length ? state.acrs : undefined,
     });
-    const data = (causas.data || []).filter((c) => c.Area_Ha > 0);
+    const data = (causas.data || [])
+      .filter((c) => c.Area_Ha > 0)
+      .sort((a, b) => Number(b.Area_Ha) - Number(a.Area_Ha));
     if (!data.length) {
       show("<h3><i class=\"fas fa-tractor\"></i> Causas Antrópicas</h3><p>Sin datos para los filtros.</p>");
       return;
     }
+    const labels = data.map((d) => d.Causa).reverse();
+    const values = data.map((d) => d.Area_Ha).reverse();
     show(`<h3><i class="fas fa-tractor"></i> Causas Antrópicas de Deforestación</h3>
-      <div id="modal-chart-causas" style="height:450px"></div>`);
+      <div id="modal-chart-causas" style="height:${Math.max(420, 34 * data.length + 100)}px"></div>`);
     Plotly.newPlot(
       "modal-chart-causas",
       [
         {
-          y: data.map((d) => d.Causa),
-          x: data.map((d) => d.Area_Ha),
+          y: labels,
+          x: values,
           type: "bar",
           orientation: "h",
-          marker: { color: "#66c2a5" },
+          marker: { color: "#1a7a5c" },
+          text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
+          textposition: "outside",
+          cliponaxis: false,
         },
       ],
-      { margin: { l: 180 }, xaxis: { title: "Hectáreas" } },
+      { margin: { l: 180, r: 56, t: 24, b: 48 }, xaxis: { title: "Hectáreas" }, yaxis: { automargin: true } },
       { responsive: true }
     );
   }

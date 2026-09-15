@@ -42,6 +42,7 @@ from services.deforestacion_vectors_service import (
     LORETO_CODIGOS,
     VECTOR_DEPTOS,
     _merge_kpis,
+    causas_antropicas_desde_acumulado,
     graficos_desde_acumulado,
     kpis_desde_acumulado,
     load_acumulado_vectors,
@@ -331,10 +332,35 @@ def causas_endpoint(
     departamento: str = Query("todos"),
     ambito: str = Query("acr"),
     acr: list[str] | None = Query(None),
+    anno_desde: int | None = Query(None, ge=2001, le=2030),
+    anno_hasta: int | None = Query(None, ge=2001, le=2030),
 ) -> dict:
+    # Preferir causas desde GeoJSON GDB (md_causa) cuando hay vectores
+    if vectors_en_alcance(departamento, acr):
+        depto_vec = departamento if departamento in VECTOR_DEPTOS else "todos"
+        sel = _vector_acrs_seleccionados(acr, depto_vec) if acr else None
+        rows = causas_antropicas_desde_acumulado(
+            depto_vec, ambito, sel, anno_desde=anno_desde, anno_hasta=anno_hasta
+        )
+        if rows is not None:
+            return {
+                "departamento": departamento,
+                "ambito": ambito,
+                "filtros": acr or [],
+                "source": "MonitoreoDeforestacionAcumulado",
+                "data": rows,
+            }
     est = _APP_STATE["estadisticas"]
     df = obtener_causas_filtradas(est, filtros=acr, departamento=departamento, ambito=ambito)  # type: ignore
-    return {"departamento": departamento, "ambito": ambito, "filtros": acr or [], "data": dataframe_to_records(df)}
+    records = dataframe_to_records(df)
+    records = sorted(records, key=lambda r: float(r.get("Area_Ha") or 0), reverse=True)
+    return {
+        "departamento": departamento,
+        "ambito": ambito,
+        "filtros": acr or [],
+        "source": "estadisticas",
+        "data": records,
+    }
 
 
 @app.get("/api/kpis")

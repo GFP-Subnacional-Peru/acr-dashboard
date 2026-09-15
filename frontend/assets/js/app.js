@@ -377,10 +377,28 @@ function renderCharts(g) {
       { responsive: true, displayModeBar: false }
     );
     if (g.causas_top5) {
+      const causas = g.causas_top5.slice(0, 12);
+      // Plotly pone el primer ítem abajo: invertimos para que el mayor quede arriba
+      const labels = causas.map((d) => d.Causa).reverse();
+      const values = causas.map((d) => d.Area_Ha).reverse();
       Plotly.newPlot(
         "chart-causas",
-        [{ y: g.causas_top5.map((d) => d.Causa), x: g.causas_top5.map((d) => d.Area_Ha), type: "bar", orientation: "h", marker: { color: "#66c2a5" } }],
-        { margin: { l: 120, t: 20, b: 40 }, xaxis: { title: "Hectáreas" }, height: 260 },
+        [{
+          y: labels,
+          x: values,
+          type: "bar",
+          orientation: "h",
+          marker: { color: "#1a7a5c" },
+          text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
+          textposition: "outside",
+          cliponaxis: false,
+        }],
+        {
+          margin: { l: 130, r: 48, t: 20, b: 40 },
+          xaxis: { title: "Hectáreas" },
+          yaxis: { automargin: true },
+          height: Math.max(280, 36 * labels.length + 80),
+        },
         { responsive: true, displayModeBar: false }
       );
     }
