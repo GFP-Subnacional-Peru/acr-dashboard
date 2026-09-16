@@ -75,15 +75,12 @@ def _pct_change(values: np.ndarray) -> list:
 def _serie_from_df(df: pd.DataFrame, name: str, color: str, trend: bool) -> dict:
     points = []
     for _, row in df.iterrows():
-        pct = row.get("Cambio_Pct")
         points.append({
             "Anio": int(row["Anio"]),
             "Deforestacion_ha": float(row["Deforestacion_ha"]),
-            "Cambio_Pct": pct,
             "hover": (
                 f"<b>Año:</b> {int(row['Anio'])}<br>"
-                f"<b>Deforestación:</b> {row['Deforestacion_ha']:,.2f} ha<br>"
-            f"<b>% Cambio:</b> {'N/A' if pct is None or (isinstance(pct, float) and np.isnan(pct)) else str(pct) + '%'}"
+                f"<b>Deforestación:</b> {row['Deforestacion_ha']:,.2f} ha"
             ),
         })
     serie = {"name": name, "color": color, "points": points}

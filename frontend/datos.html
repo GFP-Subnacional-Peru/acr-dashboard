@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Datos — Portal ACR | GFP Subnacional</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="/assets/css/portal.css?v=20260915g" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20260915h" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260915h" />
 </head>
 <body class="portal-body">
   <header class="site-header">
@@ -33,32 +34,68 @@
   <main class="portal-main">
     <section class="portal-section">
       <div class="portal-section-head">
-        <h2>Catálogo de datos — 9 ACR</h2>
-        <p>Listado de Áreas de Conservación Regional incluidas en el dashboard y puntos de acceso a la API.</p>
+        <h2>Catálogo de datos por departamento</h2>
+        <p>Loreto, San Martín y Cusco — mapas de línea base y descargas. Sin códigos técnicos.</p>
       </div>
 
-      <ul class="datos-list">
-        <li><a href="/acr/ampiyacu-apayacu"><span class="name">Ampiyacu Apayacu</span><span class="code">ACR_AA · Loreto</span></a></li>
-        <li><a href="/acr/alto-nanay"><span class="name">Alto Nanay Pintuyacu Chambira</span><span class="code">ACR_ANPCH · Loreto</span></a></li>
-        <li><a href="/acr/maijuna-kichwa"><span class="name">Maijuna Kichwa</span><span class="code">ACR_MK · Loreto</span></a></li>
-        <li><a href="/acr/tahuayo"><span class="name">Comunal Tamshiyacu Tahuayo</span><span class="code">ACR_CTT · Loreto</span></a></li>
-        <li><a href="/acr/bosques-shunte"><span class="name">Bosques de Shunté y Mishollo</span><span class="code">ACR_BSM · San Martín</span></a></li>
-        <li><a href="/acr/cordillera-escalera"><span class="name">Cordillera Escalera</span><span class="code">ACR_CE · San Martín</span></a></li>
-        <li><a href="/acr/choquequirao"><span class="name">Choquequirao</span><span class="code">ACR_CHQ · Cusco</span></a></li>
-        <li><a href="/acr/chuyapi-urusayhua"><span class="name">Chuyapi Urusayhua</span><span class="code">ACR_CHU · Cusco</span></a></li>
-        <li><a href="/acr/qeros-kosnipata"><span class="name">Q'eros Kosñipata</span><span class="code">ACR_QK · Cusco</span></a></li>
-      </ul>
-
-      <div class="datos-note">
-        <strong>Fuentes GeoJSON / vectores.</strong>
-        Los polígonos de deforestación acumulada se sirven vía API a partir de capas GeoJSON/GDB procesadas por departamento (Loreto, San Martín, Cusco). Las geometrías de ACR y zonas de influencia se exponen en endpoints de capas de mapa. Consulte la documentación interactiva para esquemas y parámetros.
+      <div class="datos-deptos">
+        <details class="datos-depto" open>
+          <summary>Loreto</summary>
+          <ul>
+            <li><a href="/mapa?acr=ACR_AA">Ampiyacu Apayacu</a></li>
+            <li><a href="/mapa?acr=ACR_ANPCH">Alto Nanay – Pintuyacu Chambira</a></li>
+            <li><a href="/mapa?acr=ACR_MK">Maijuna Kichwa</a></li>
+            <li><a href="/mapa?acr=ACR_CTT">Comunal Tamshiyacu Tahuayo</a></li>
+          </ul>
+        </details>
+        <details class="datos-depto">
+          <summary>San Martín</summary>
+          <ul>
+            <li><a href="/mapa?acr=ACR_BSM">Bosques de Shunté y Mishollo</a></li>
+            <li><a href="/mapa?acr=ACR_CE">Cordillera Escalera</a></li>
+          </ul>
+        </details>
+        <details class="datos-depto">
+          <summary>Cusco</summary>
+          <ul>
+            <li><a href="/mapa?acr=ACR_CHQ">Choquequirao</a></li>
+            <li><a href="/mapa?acr=ACR_CHU">Chuyapi Urusayhua</a></li>
+            <li><a href="/mapa?acr=ACR_QK">Q'eros Kosñipata</a></li>
+          </ul>
+        </details>
       </div>
 
-      <div class="datos-links">
-        <a href="/docs" target="_blank" rel="noopener"><i class="fas fa-book"></i> API docs (/docs)</a>
-        <a class="alt" href="/api/descargas/datos"><i class="fas fa-file-archive"></i> Descargar paquete de datos</a>
-        <a class="alt" href="/api/decretos"><i class="fas fa-scroll"></i> Decretos (JSON)</a>
-        <a href="/mapa"><i class="fas fa-map"></i> Ir al mapa</a>
+      <div class="datos-split">
+        <div class="datos-split-col">
+          <div class="datos-split-head">
+            <h3><i class="fas fa-map"></i> Mapas de línea base</h3>
+            <label class="datos-depto-select">
+              Departamento
+              <select id="datos-filtro-depto">
+                <option value="loreto">Loreto</option>
+                <option value="sanmartin">San Martín</option>
+                <option value="cusco">Cusco</option>
+              </select>
+            </label>
+          </div>
+          <div id="datos-mapas-gallery" class="map-gallery datos-map-gallery"></div>
+        </div>
+        <div class="datos-split-col datos-split-downloads">
+          <div class="datos-split-head">
+            <h3><i class="fas fa-download"></i> Datos para descargar</h3>
+          </div>
+          <p class="datos-download-lead">Centroides, GeoJSON y productos cartográficos históricos del monitoreo ACR.</p>
+          <div class="datos-links datos-links-stack">
+            <a class="alt" href="/api/descargas/datos"><i class="fas fa-file-archive"></i> Descargar paquete de datos</a>
+            <a href="/api/decretos"><i class="fas fa-scroll"></i> Decretos (JSON)</a>
+            <a href="/docs" target="_blank" rel="noopener"><i class="fas fa-book"></i> API docs (/docs)</a>
+            <a href="/mapa"><i class="fas fa-map-marked-alt"></i> Ir al mapa interactivo</a>
+          </div>
+          <div class="datos-note">
+            <strong>Fuentes.</strong>
+            Polígonos de deforestación acumulada por departamento (Loreto, San Martín, Cusco) vía API a partir de capas GeoJSON/GDB.
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -72,5 +109,7 @@
       <a href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer">gfpsubnacional.pe</a>
     </div>
   </footer>
+
+  <script src="/assets/js/datos-page.js?v=20260915h"></script>
 </body>
 </html>

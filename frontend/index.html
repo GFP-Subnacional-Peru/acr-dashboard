@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260915g" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260915h" />
 </head>
 <body>
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
@@ -71,7 +71,7 @@
         </div>
         <div class="dash-filter-field dash-filter-acr">
           <label for="nombre_acr"><i class="fas fa-tree"></i> Nombre ACR</label>
-          <select id="nombre_acr" multiple></select>
+          <select id="nombre_acr"></select>
         </div>
         <div class="dash-filter-field dash-filter-periodo">
           <label for="anno_desde"><i class="fas fa-calendar-alt"></i> Período</label>
@@ -81,10 +81,6 @@
             <select id="anno_hasta" aria-label="Año hasta"></select>
           </div>
           <p id="anno-range-label" class="year-range-hint">Periodo: 2001 – 2025</p>
-        </div>
-        <div class="dash-filter-actions">
-          <button type="button" id="btn-aplicar" class="btn btn-aplicar"><i class="fas fa-search"></i> Aplicar</button>
-          <button type="button" id="btn-limpiar" class="btn btn-restablecer"><i class="fas fa-undo"></i> Restablecer</button>
         </div>
       </div>
       <div id="filter-info" class="filter-info"></div>
@@ -276,9 +272,9 @@
     <div class="dash-hero section-hero">
       <div class="dash-hero-inner">
         <div class="dash-hero-copy">
-          <p class="dash-hero-eyebrow">Productos Cartográficos y Alertas Tempranas</p>
-          <h1>Reportes, mapas y validación ATD GeoBosques</h1>
-          <p class="dash-hero-sub">Mapas de línea base por ACR y reportes ATD con el toolbox GFP Subnacional: descarga MINAM, fotointerpretación satelital e informe PDF validado.</p>
+          <p class="dash-hero-eyebrow">Alertas Tempranas GeoBosques</p>
+          <h1>Alertas tempranas ATD</h1>
+          <p class="dash-hero-sub">Validación ATD con el toolbox GFP Subnacional: descarga MINAM, fotointerpretación satelital e informe PDF validado.</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -287,47 +283,7 @@
       </div>
     </div>
 
-    <div class="reportes-subtabs" role="tablist">
-      <button type="button" class="reportes-subtab active" data-reportes-panel="mapas" role="tab">
-        <i class="fas fa-map"></i> Mapas de línea base
-      </button>
-      <button type="button" class="reportes-subtab" data-reportes-panel="atd" role="tab" id="reportes-subtab-atd">
-        <i class="fas fa-bell"></i> Alertas tempranas (ATD) <span id="atd-badge" class="atd-badge hidden">0</span>
-      </button>
-    </div>
-
-    <div id="reportes-panel-mapas" class="reportes-panel active">
-    <div class="reportes-filter-bar well-panel">
-      <div class="reportes-filter-select">
-        <label for="filtro_depto_mapas"><i class="fas fa-filter"></i> Filtrar por Departamento:</label>
-        <select id="filtro_depto_mapas">
-          <option value="loreto">Loreto</option>
-          <option value="sanmartin">San Martín</option>
-          <option value="cusco">Cusco</option>
-        </select>
-      </div>
-      <p class="reportes-filter-hint"><i class="fas fa-info-circle"></i> Selecciona un departamento para visualizar los mapas disponibles. Click en <strong>Ver</strong> para ampliar o <strong>PDF</strong> para guardar en tu dispositivo.</p>
-    </div>
-    <div id="mapas-galleries">
-      <div id="mapas-loreto" class="map-gallery-section map-gallery"></div>
-      <div id="mapas-sanmartin" class="map-gallery-section map-gallery hidden"></div>
-      <div id="mapas-cusco" class="map-gallery-section map-gallery hidden"></div>
-    </div>
-    <div class="reportes-download-bar">
-      <div>
-        <h4><i class="fas fa-download"></i> Datos de línea base</h4>
-        <p>Centroides CSV, GeoJSON y productos cartográficos históricos.</p>
-      </div>
-      <div class="reportes-download-actions">
-        <button type="button" id="btn-descargar-datos" class="btn btn-success"><i class="fas fa-file-archive"></i> Descargar datos</button>
-      </div>
-    </div>
-    </div>
-
-    <section class="atd-section-divider hidden" aria-hidden="true">
-      <span>Alertas tempranas GeoBosques</span>
-    </section>
-    <div id="atd-root" class="atd-root hidden" aria-live="polite">
+    <div id="atd-root" class="atd-root" aria-live="polite">
       <div class="atd-loading atd-loading-panel"><i class="fas fa-spinner fa-spin"></i> Cargando demo ATD GeoBosques…</div>
     </div>
 
@@ -359,8 +315,8 @@
           <option value="comparativa">Comparativa entre ACRs</option>
         </select>
         <div id="tend-acr-panel">
-          <label for="tend-acr">Seleccionar ACR(s):</label>
-          <select id="tend-acr" multiple></select>
+          <label for="tend-acr">Seleccionar ACR:</label>
+          <select id="tend-acr"></select>
         </div>
         <label>Rango de Años: <span id="tend-rango-label">2001 – 2025</span></label>
         <input type="range" id="tend-anio-min" min="2001" max="2026" value="2001" />
@@ -386,12 +342,12 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260915d"></script>
-  <script src="/assets/js/modals.js?v=20260915d"></script>
+  <script src="/assets/js/map.js?v=20260915h"></script>
+  <script src="/assets/js/modals.js?v=20260915h"></script>
   <script src="/assets/js/atd-demo.js?v=20260709d"></script>
-  <script src="/assets/js/region-insights.js"></script>
-  <script src="/assets/js/reportes.js?v=20260709b"></script>
-  <script src="/assets/js/tendencias.js?v=20260910a"></script>
-  <script src="/assets/js/app.js?v=20260915d"></script>
+  <script src="/assets/js/region-insights.js?v=20260915h"></script>
+  <script src="/assets/js/reportes.js?v=20260915h"></script>
+  <script src="/assets/js/tendencias.js?v=20260915h"></script>
+  <script src="/assets/js/app.js?v=20260915h"></script>
 </body>
 </html>

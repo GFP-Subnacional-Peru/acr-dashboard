@@ -96,9 +96,7 @@ async function bootstrapDashboard() {
     delete state._pendingAcr;
     const sel = qs("#nombre_acr");
     if (sel) {
-      Array.from(sel.options).forEach((opt) => {
-        opt.selected = opt.value === code;
-      });
+      sel.value = code;
     }
     state.acrs = [code];
     updateFilterInfo();
@@ -191,9 +189,7 @@ async function applyUrlQueryParams(opts = {}) {
   if (!skipRefresh) {
     const sel = qs("#nombre_acr");
     if (sel) {
-      Array.from(sel.options).forEach((opt) => {
-        opt.selected = opt.value === acrParam;
-      });
+      sel.value = acrParam;
     }
     state.acrs = [acrParam];
     updateFilterInfo();
@@ -250,22 +246,33 @@ function isYearFilterActive() {
 async function loadAcrOptions() {
   const data = await apiGet("/api/filtros/opciones-acr", { departamento: state.departamento });
   const sel = qs("#nombre_acr");
+  const prev = sel.value;
   sel.innerHTML = "";
-  Object.entries(data.grupos).forEach(([grupo, items]) => {
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "Todas las ACR";
+  sel.appendChild(all);
+  Object.entries(data.grupos || {}).forEach(([grupo, items]) => {
     const og = document.createElement("optgroup");
     og.label = grupo;
     Object.entries(items).forEach(([label, code]) => {
       const opt = document.createElement("option");
       opt.value = code;
-      opt.textContent = label;
+      opt.textContent = String(label).replace(/^ACR\s+/i, "");
       og.appendChild(opt);
     });
     sel.appendChild(og);
   });
+  if (prev && Array.from(sel.options).some((o) => o.value === prev)) {
+    sel.value = prev;
+  } else {
+    sel.value = "";
+  }
 }
 
 function getSelectedAcrs() {
-  return Array.from(qs("#nombre_acr").selectedOptions).map((o) => o.value);
+  const v = qs("#nombre_acr")?.value;
+  return v ? [v] : [];
 }
 
 function updateFilterInfo() {
@@ -465,25 +472,6 @@ function onYearFilterChange() {
 
 qs("#anno_desde")?.addEventListener("change", onYearFilterChange);
 qs("#anno_hasta")?.addEventListener("change", onYearFilterChange);
-
-qs("#btn-aplicar")?.addEventListener("click", () => applyFiltersFromDom());
-
-qs("#btn-limpiar").addEventListener("click", async () => {
-  qs("#departamento").value = "todos";
-  qs("#ambito").value = "acr";
-  qs("#nombre_acr").selectedIndex = -1;
-  qs("#anno_desde").value = String(ANNO_MIN);
-  qs("#anno_hasta").value = String(ANNO_MAX);
-  state.departamento = "todos";
-  state.ambito = "acr";
-  state.acrs = [];
-  state.annoDesde = ANNO_MIN;
-  state.annoHasta = ANNO_MAX;
-  syncYearFilterLabel();
-  await loadAcrOptions();
-  updateFilterInfo();
-  await refreshDashboard();
-});
 
 (async function init() {
   try {

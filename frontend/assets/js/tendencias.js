@@ -25,11 +25,12 @@ const Tendencias = (() => {
       Object.entries(items).forEach(([label, code]) => {
         const o = document.createElement("option");
         o.value = code;
-        o.textContent = label;
+        o.textContent = String(label).replace(/^ACR\s+/i, "");
         og.appendChild(o);
       });
       sel.appendChild(og);
     });
+    if (!sel.value && sel.options.length) sel.selectedIndex = 0;
 
     document.getElementById("tend-tipo")?.addEventListener("change", toggleAcrPanel);
     document.getElementById("btn-analizar-tend")?.addEventListener("click", generarAnalisis);
@@ -41,7 +42,8 @@ const Tendencias = (() => {
   function toggleAcrPanel() {
     const tipo = document.getElementById("tend-tipo").value;
     const panel = document.getElementById("tend-acr-panel");
-    panel.classList.toggle("hidden", tipo === "general");
+    // Solo se elige ACR en modo individual; comparativa usa las 9 ACR
+    panel.classList.toggle("hidden", tipo !== "individual");
   }
 
   function syncRange() {
@@ -51,7 +53,8 @@ const Tendencias = (() => {
   }
 
   function getSelectedAcrs() {
-    return Array.from(document.getElementById("tend-acr").selectedOptions).map((o) => o.value);
+    const v = document.getElementById("tend-acr")?.value;
+    return v ? [v] : [];
   }
 
   async function generarAnalisis() {
@@ -62,12 +65,16 @@ const Tendencias = (() => {
     if (anioMin > anioMax) [anioMin, anioMax] = [anioMax, anioMin];
     const tend = document.getElementById("tend-mostrar-linea").checked;
 
-    if ((tipo === "individual" || tipo === "comparativa") && !acrs.length) {
-      alert("Seleccione al menos una ACR para este tipo de análisis.");
+    if (tipo === "individual" && !acrs.length) {
+      alert("Seleccione una ACR para este tipo de análisis.");
       return;
     }
-    if (tipo === "individual" && acrs.length > 1) {
-      acrs.splice(1);
+    if (tipo === "comparativa") {
+      // Compara todas las ACR del programa (Loreto, San Martín, Cusco)
+      acrs.length = 0;
+      Object.values(ACR_OPTS).forEach((items) => {
+        Object.values(items).forEach((code) => acrs.push(code));
+      });
     }
 
     const btn = document.getElementById("btn-analizar-tend");

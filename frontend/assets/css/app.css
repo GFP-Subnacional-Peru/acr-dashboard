@@ -283,7 +283,7 @@ body {
 .well-panel h5 { margin-top: 0; color: var(--primary); }
 .well-panel label { font-weight: 600; font-size: 0.9rem; display: block; margin: 0.75rem 0 0.25rem; }
 .well-panel select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-.well-panel select[multiple] { min-height: 140px; }
+.well-panel select { min-height: 0; }
 
 .year-range-row {
   display: flex;
@@ -2329,43 +2329,11 @@ body {
   font-size: 0.88rem;
   background: #fff;
 }
-.dash-filter-field select[multiple] {
-  min-height: 64px;
-  max-height: 88px;
-}
 .dash-filter-periodo .year-range-hint {
   margin-top: 0.25rem;
   margin-bottom: 0;
   font-size: 0.72rem;
 }
-.dash-filter-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  min-width: 138px;
-  align-self: center;
-}
-.btn-aplicar {
-  background: #E85D04;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(232, 93, 4, 0.28);
-}
-.btn-aplicar:hover { filter: brightness(1.06); background: #E30613; }
-.btn-restablecer {
-  background: #fff;
-  color: var(--gfp-navy);
-  border: 1.5px solid var(--gfp-navy);
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 0.84rem;
-  font-weight: 600;
-}
-.btn-restablecer:hover { background: rgba(0, 61, 165, 0.06); }
 
 .dash-main-grid {
   display: grid;
