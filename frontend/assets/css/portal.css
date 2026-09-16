@@ -692,7 +692,9 @@ body.portal-body {
   gap: 0.35rem;
 }
 .datos-depto a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   text-decoration: none;
   color: var(--portal-ink);
   font-weight: 600;
@@ -700,7 +702,14 @@ body.portal-body {
   border-radius: 8px;
   background: #f5f8fc;
 }
+.datos-depto a i {
+  color: var(--portal-teal);
+  font-size: 0.85rem;
+  width: 1rem;
+  text-align: center;
+}
 .datos-depto a:hover { background: #e8f0fa; color: var(--portal-navy); }
+.datos-depto a:hover i { color: var(--portal-navy); }
 
 .datos-split {
   display: grid;

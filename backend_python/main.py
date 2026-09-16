@@ -39,6 +39,8 @@ from core.rds_bridge import load_centroides_deforestacion
 from services.deforestacion_service import filtrar_centroides, resumen_centroides_por_region
 from services.deforestacion_vectors_service import (
     ALL_VECTOR_CODIGOS,
+    ATD_ROOT,
+    CODIGO_SLUGS,
     LORETO_CODIGOS,
     VECTOR_DEPTOS,
     _merge_kpis,
@@ -581,6 +583,39 @@ def descargar_mapa_pdf(map_id: str) -> FileResponse:
         raise HTTPException(404, "Mapa no disponible en este momento")
     out_name = f"{entry[1]}_{date.today().isoformat()}.pdf"
     return FileResponse(path, media_type="application/pdf", filename=out_name)
+
+
+_ACR_DOWNLOAD_NAMES = {
+    "ACR_AA": "Ampiyacu_Apayacu",
+    "ACR_ANPCH": "Alto_Nanay_Pintuyacu_Chambira",
+    "ACR_MK": "Maijuna_Kichwa",
+    "ACR_CTT": "Tamshiyacu_Tahuayo",
+    "ACR_BSM": "Bosques_Shunte_Mishollo",
+    "ACR_CE": "Cordillera_Escalera",
+    "ACR_CHQ": "Choquequirao",
+    "ACR_CHU": "Chuyapi_Urusayhua",
+    "ACR_QK": "Qeros_Kosnipata",
+}
+
+
+@app.get("/api/descargas/acr/{code}")
+def descargar_datos_acr(code: str) -> FileResponse:
+    """Descarga GeoJSON de deforestación acumulada de una ACR."""
+    key = code.strip().upper()
+    entry = CODIGO_SLUGS.get(key)
+    if not entry or not key.startswith("ACR_"):
+        raise HTTPException(404, "ACR no encontrada")
+    folder, slug = entry
+    path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
+    if not path.exists():
+        raise HTTPException(404, "Datos de la ACR no disponibles")
+    nice = _ACR_DOWNLOAD_NAMES.get(key, key)
+    out_name = f"deforestacion_{nice}_{date.today().isoformat()}.geojson"
+    return FileResponse(
+        path,
+        media_type="application/geo+json",
+        filename=out_name,
+    )
 
 
 @app.get("/api/descargas/datos")

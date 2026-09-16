@@ -102,9 +102,8 @@ async function bootstrapDashboard() {
     updateFilterInfo();
   }
 
-  // Mapa + KPIs al toque; insights en segundo plano
+  // Mapa + KPIs al toque
   const dashP = refreshDashboard();
-  RegionInsights.load().catch((e) => console.warn("insights", e));
 
   const health = await healthP;
   if (!health) {
