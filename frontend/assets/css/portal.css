@@ -661,6 +661,10 @@ body.portal-body {
   gap: 0.85rem;
   margin-bottom: 1.5rem;
 }
+.datos-deptos--stack {
+  grid-template-columns: 1fr;
+  margin-bottom: 1rem;
+}
 @media (max-width: 800px) {
   .datos-deptos { grid-template-columns: 1fr; }
 }
