@@ -50,30 +50,30 @@ def datos_para_graficos(
             row = datos.iloc[0]
             total = float(row["Total"])
             out["composicion"] = [
-                {"Categoria": "Antrópico", "Hectareas": float(row["Antropico"]), "Color": "#d9534f"},
-                {"Categoria": "Natural", "Hectareas": float(row["Perdida_natural"]), "Color": "#5cb85c"},
-                {"Categoria": "Falsa Alerta", "Hectareas": float(row["Falsa_alerta"]), "Color": "#f0ad4e"},
+                {"Categoria": "Origen antrópico", "Hectareas": float(row["Antropico"]), "Color": "#9a3412"},
+                {"Categoria": "Natural", "Hectareas": float(row["Perdida_natural"]), "Color": "#0f766e"},
+                {"Categoria": "Falsa alerta", "Hectareas": float(row["Falsa_alerta"]), "Color": "#64748b"},
             ]
             out["distribucion"] = {
                 "total": total,
                 "items": [
                     {
-                        "Categoria": "Antrópico",
+                        "Categoria": "Origen antrópico",
                         "Hectareas": float(row["Antropico"]),
                         "Porcentaje": round((row["Antropico"] / total) * 100, 1) if total else 0,
-                        "Color": "#d9534f",
+                        "Color": "#9a3412",
                     },
                     {
                         "Categoria": "Natural",
                         "Hectareas": float(row["Perdida_natural"]),
                         "Porcentaje": round((row["Perdida_natural"] / total) * 100, 1) if total else 0,
-                        "Color": "#5cb85c",
+                        "Color": "#0f766e",
                     },
                     {
-                        "Categoria": "Falsa Alerta",
+                        "Categoria": "Falsa alerta",
                         "Hectareas": float(row["Falsa_alerta"]),
                         "Porcentaje": round((row["Falsa_alerta"] / total) * 100, 1) if total else 0,
-                        "Color": "#f0ad4e",
+                        "Color": "#64748b",
                     },
                 ],
             }

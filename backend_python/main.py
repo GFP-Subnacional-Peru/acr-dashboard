@@ -392,9 +392,9 @@ def kpis_endpoint(
     ambito_eff = ambito if ambito else "acr"
     kpis["porcentaje_antropico_kpi"] = kpis.get("pct_antropico", 0)
     kpis["texto_ambito_kpi"] = (
-        "DE ORIGEN ANTRÓPICO" if ambito_eff == "acr"
-        else "EN ZONA DE INFLUENCIA" if ambito_eff == "zi"
-        else "TOTAL (ACR + ZI)"
+        "Origen antrópico" if ambito_eff == "acr"
+        else "Zona de influencia" if ambito_eff == "zi"
+        else "Total (ACR + ZI)"
     )
     return kpis
 

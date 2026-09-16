@@ -374,17 +374,41 @@ function renderCharts(g) {
   comp?.classList.add("hidden");
   nac?.classList.add("hidden");
 
+  const sciLayout = {
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "#f8fafc",
+    font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 12, color: "#334155" },
+    title: { font: { size: 13, color: "#0f172a" } },
+  };
+
   if (g.modo === "individual" && g.composicion) {
     ind?.classList.remove("hidden");
     Plotly.newPlot(
       "chart-composicion",
-      [{ x: g.composicion.map((d) => d.Categoria), y: g.composicion.map((d) => d.Hectareas), type: "bar", marker: { color: g.composicion.map((d) => d.Color) }, textposition: "outside" }],
-      { yaxis: { title: "Hectáreas" }, showlegend: false, margin: { t: 20, b: 40 }, height: 260 },
+      [{
+        x: g.composicion.map((d) => d.Categoria),
+        y: g.composicion.map((d) => d.Hectareas),
+        type: "bar",
+        marker: {
+          color: g.composicion.map((d) => d.Color),
+          line: { color: "#0f172a", width: 0.4 },
+        },
+        text: g.composicion.map((d) => Number(d.Hectareas).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
+        textposition: "outside",
+        cliponaxis: false,
+      }],
+      {
+        ...sciLayout,
+        yaxis: { title: "Hectáreas", gridcolor: "#e2e8f0", zerolinecolor: "#cbd5e1" },
+        xaxis: { tickangle: -15 },
+        showlegend: false,
+        margin: { t: 28, b: 56, l: 52, r: 16 },
+        height: 280,
+      },
       { responsive: true, displayModeBar: false }
     );
     if (g.causas_top5) {
       const causas = g.causas_top5.slice(0, 12);
-      // Plotly pone el primer ítem abajo: invertimos para que el mayor quede arriba
       const labels = causas.map((d) => d.Causa).reverse();
       const values = causas.map((d) => d.Area_Ha).reverse();
       Plotly.newPlot(
@@ -394,16 +418,23 @@ function renderCharts(g) {
           x: values,
           type: "bar",
           orientation: "h",
-          marker: { color: "#1a7a5c" },
+          marker: {
+            color: values.map((_, i) => {
+              const t = labels.length <= 1 ? 1 : i / (labels.length - 1);
+              return `rgba(30, 64, 109, ${0.45 + t * 0.5})`;
+            }),
+            line: { color: "#1e293b", width: 0.35 },
+          },
           text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
           textposition: "outside",
           cliponaxis: false,
         }],
         {
-          margin: { l: 130, r: 48, t: 20, b: 40 },
-          xaxis: { title: "Hectáreas" },
+          ...sciLayout,
+          margin: { l: 140, r: 52, t: 28, b: 44 },
+          xaxis: { title: "Hectáreas", gridcolor: "#e2e8f0", zerolinecolor: "#cbd5e1" },
           yaxis: { automargin: true },
-          height: Math.max(280, 36 * labels.length + 80),
+          height: Math.max(280, 36 * labels.length + 90),
         },
         { responsive: true, displayModeBar: false }
       );
@@ -411,24 +442,57 @@ function renderCharts(g) {
     if (g.distribucion) {
       Plotly.newPlot(
         "chart-distribucion",
-        [{ labels: g.distribucion.items.map((d) => d.Categoria), values: g.distribucion.items.map((d) => d.Hectareas), type: "pie", hole: 0.4, marker: { colors: g.distribucion.items.map((d) => d.Color) }, textinfo: "label+percent" }],
-        { annotations: [{ text: `<b>${fmt(g.distribucion.total)} ha</b>`, showarrow: false, font: { size: 14 } }], margin: { t: 20, b: 20 }, height: 280 },
+        [{
+          labels: g.distribucion.items.map((d) => d.Categoria),
+          values: g.distribucion.items.map((d) => d.Hectareas),
+          type: "pie",
+          hole: 0.48,
+          marker: {
+            colors: g.distribucion.items.map((d) => d.Color),
+            line: { color: "#fff", width: 1.5 },
+          },
+          textinfo: "label+percent",
+          textfont: { size: 12, color: "#0f172a" },
+          sort: false,
+        }],
+        {
+          ...sciLayout,
+          annotations: [{
+            text: `<b>${fmt(g.distribucion.total)} ha</b><br><span style="font-size:11px;color:#64748b">total</span>`,
+            showarrow: false,
+            font: { size: 14, color: "#0f172a" },
+          }],
+          margin: { t: 24, b: 24, l: 24, r: 24 },
+          height: 300,
+          showlegend: true,
+          legend: { orientation: "h", y: -0.08, font: { size: 11 } },
+        },
         { responsive: true, displayModeBar: false }
       );
     }
+    setTimeout(() => AcrMap.init()?.invalidateSize(), 200);
   } else if (g.modo === "comparativa" && g.comparativa) {
     comp?.classList.remove("hidden");
     const names = g.comparativa.map((d) => d.Nombre_corto);
     Plotly.newPlot(
       "chart-comparativa",
       [
-        { x: names, y: g.comparativa.map((d) => d.Antropico), name: "Antrópico", type: "bar", marker: { color: "#d9534f" } },
-        { x: names, y: g.comparativa.map((d) => d.Perdida_natural), name: "Natural", type: "bar", marker: { color: "#5cb85c" } },
-        { x: names, y: g.comparativa.map((d) => d.Falsa_alerta), name: "Falsa Alerta", type: "bar", marker: { color: "#f0ad4e" } },
+        { x: names, y: g.comparativa.map((d) => d.Antropico), name: "Origen antrópico", type: "bar", marker: { color: "#9a3412" } },
+        { x: names, y: g.comparativa.map((d) => d.Perdida_natural), name: "Natural", type: "bar", marker: { color: "#0f766e" } },
+        { x: names, y: g.comparativa.map((d) => d.Falsa_alerta), name: "Falsa alerta", type: "bar", marker: { color: "#64748b" } },
       ],
-      { barmode: "group", margin: { b: 100, t: 20 }, xaxis: { tickangle: -35 }, yaxis: { title: "Área (ha)" }, legend: { orientation: "h", y: -0.25 }, height: 360 },
+      {
+        ...sciLayout,
+        barmode: "group",
+        margin: { b: 100, t: 28, l: 56, r: 20 },
+        xaxis: { tickangle: -35 },
+        yaxis: { title: "Área (ha)", gridcolor: "#e2e8f0" },
+        legend: { orientation: "h", y: -0.28 },
+        height: 380,
+      },
       { responsive: true, displayModeBar: false }
     );
+    setTimeout(() => AcrMap.init()?.invalidateSize(), 200);
   } else {
     nac?.classList.remove("hidden");
   }

@@ -469,16 +469,16 @@ def graficos_desde_acumulado(
         out["modo"] = "individual"
         total, ant, nat, fal, causas_ant = _sumar_props(props)
         out["composicion"] = [
-            {"Categoria": "Antrópico", "Hectareas": ant, "Color": "#d9534f"},
-            {"Categoria": "Natural", "Hectareas": nat, "Color": "#5cb85c"},
-            {"Categoria": "Falsa Alerta", "Hectareas": fal, "Color": "#f0ad4e"},
+            {"Categoria": "Origen antrópico", "Hectareas": ant, "Color": "#9a3412"},
+            {"Categoria": "Natural", "Hectareas": nat, "Color": "#0f766e"},
+            {"Categoria": "Falsa alerta", "Hectareas": fal, "Color": "#64748b"},
         ]
         out["distribucion"] = {
             "total": total,
             "items": [
-                {"Categoria": "Antrópico", "Hectareas": ant, "Porcentaje": round((ant / total) * 100, 1) if total else 0, "Color": "#d9534f"},
-                {"Categoria": "Natural", "Hectareas": nat, "Porcentaje": round((nat / total) * 100, 1) if total else 0, "Color": "#5cb85c"},
-                {"Categoria": "Falsa Alerta", "Hectareas": fal, "Porcentaje": round((fal / total) * 100, 1) if total else 0, "Color": "#f0ad4e"},
+                {"Categoria": "Origen antrópico", "Hectareas": ant, "Porcentaje": round((ant / total) * 100, 1) if total else 0, "Color": "#9a3412"},
+                {"Categoria": "Natural", "Hectareas": nat, "Porcentaje": round((nat / total) * 100, 1) if total else 0, "Color": "#0f766e"},
+                {"Categoria": "Falsa alerta", "Hectareas": fal, "Porcentaje": round((fal / total) * 100, 1) if total else 0, "Color": "#64748b"},
             ],
         }
         if causas_ant:

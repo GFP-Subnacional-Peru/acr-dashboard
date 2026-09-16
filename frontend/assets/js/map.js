@@ -6,9 +6,9 @@ const AcrMap = (() => {
   const layerRefs = { acr: null, zi: null, limites: null };
 
   const TIPO_COLORS = {
-    Antropogenico: "#c0392b",
-    Natural: "#1e8449",
-    "Falsa alerta": "#d68910",
+    Antropogenico: "#9a3412",
+    Natural: "#0f766e",
+    "Falsa alerta": "#64748b",
   };
 
   function fmtHa(v, digits = 1) {
@@ -131,7 +131,7 @@ const AcrMap = (() => {
         <li class="map-legend-item map-legend-item--causes">
           <span class="map-legend-cause">
             <span class="map-legend-swatch map-legend-swatch--fill map-legend-swatch--antropico"></span>
-            <span>Antrópico</span>
+            <span>Origen antrópico</span>
           </span>
           <span class="map-legend-sep" aria-hidden="true">·</span>
           <span class="map-legend-cause">
@@ -239,11 +239,11 @@ const AcrMap = (() => {
     const causa = (p.causa_nombre || "").trim();
     const fuente = (p.fuente_nombre || "").trim();
     const color = TIPO_COLORS[tipo] || "#c0392b";
-    const tipoLabel = tipo === "Antropogenico" ? "Antrópico" : tipo;
+    const tipoLabel = tipo === "Antropogenico" ? "Origen antrópico" : tipo;
     const showCausa =
       causa &&
       !["Natural", "Falsa alerta", "Sin especificar", "Sin datos"].includes(causa) &&
-      tipoLabel === "Antrópico";
+      tipoLabel === "Origen antrópico";
     return `<div class="defo-popup" style="font-family:'Segoe UI',Arial,sans-serif;min-width:220px;line-height:1.5">
       <div style="display:flex;align-items:center;gap:8px;margin:0 0 10px">
         <span style="width:10px;height:10px;border-radius:2px;background:${color};box-shadow:0 0 0 1px rgba(255,255,255,.85)"></span>
