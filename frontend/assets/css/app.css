@@ -2437,19 +2437,51 @@ body.kpi-modal-open { overflow: hidden; }
   margin-right: 6px;
   color: #0a1f4d;
 }
-.dash-filters-bar .filter-info {
+.dash-filters-bar .filter-info-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.65rem;
   margin: 0.55rem 0 0;
+}
+.dash-filters-bar .filter-info {
+  margin: 0;
   padding: 6px 12px;
   font-size: 0.78rem;
   background: rgba(0, 61, 165, 0.08);
   color: var(--gfp-navy);
   border-radius: 999px;
+  display: none;
+}
+.dash-filters-bar .filter-info.visible {
   display: inline-block;
 }
 .dash-filters-bar .filter-info:empty {
   display: none;
   margin: 0;
   padding: 0;
+}
+.btn-restablecer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1e3a5f;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+.btn-restablecer:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+.btn-restablecer.hidden {
+  display: none !important;
 }
 .dash-filter-field {
   background: #fff;

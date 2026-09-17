@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260917m" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260917n" />
 </head>
 <body>
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
@@ -85,7 +85,12 @@
           <p id="anno-range-label" class="year-range-hint">Periodo: 2001 – 2025</p>
         </div>
       </div>
-      <div id="filter-info" class="filter-info"></div>
+      <div class="filter-info-row">
+        <div id="filter-info" class="filter-info"></div>
+        <button type="button" id="btn-restablecer" class="btn-restablecer hidden" title="Restablecer filtros">
+          <i class="fas fa-undo"></i> Restablecer
+        </button>
+      </div>
     </div>
 
     <div class="dash-main-grid">
@@ -337,11 +342,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260917m"></script>
-  <script src="/assets/js/modals.js?v=20260917m"></script>
+  <script src="/assets/js/map.js?v=20260917n"></script>
+  <script src="/assets/js/modals.js?v=20260917n"></script>
   <script src="/assets/js/atd-demo.js?v=20260709d"></script>
-  <script src="/assets/js/reportes.js?v=20260917m"></script>
-  <script src="/assets/js/tendencias.js?v=20260917m"></script>
-  <script src="/assets/js/app.js?v=20260917m"></script>
+  <script src="/assets/js/reportes.js?v=20260917n"></script>
+  <script src="/assets/js/tendencias.js?v=20260917n"></script>
+  <script src="/assets/js/app.js?v=20260917n"></script>
 </body>
 </html>
