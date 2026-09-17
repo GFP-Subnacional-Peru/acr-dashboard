@@ -814,21 +814,65 @@ body.gfp-map-fs-open { overflow: hidden; }
 .leaflet-popup-content { margin: 10px 14px; }
 
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
   z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;
+  backdrop-filter: blur(2px);
+  animation: kpiModalFade 0.2s ease;
+}
+@keyframes kpiModalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .modal-dialog {
-  background: #fff; border-radius: 10px; padding: 24px; max-width: 900px;
-  width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  background: #fff; border-radius: 14px; padding: 22px 24px 20px; max-width: 900px;
+  width: 100%; max-height: 90vh; overflow: auto; box-shadow: 0 20px 50px rgba(0,0,0,.28);
+  animation: kpiModalPop 0.22s ease;
+  scrollbar-width: none;
 }
+.modal-dialog::-webkit-scrollbar { width: 0; height: 0; display: none; }
+.modal-dialog--kpi { max-width: 980px; }
+@keyframes kpiModalPop {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.kpi-modal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.kpi-modal-title {
+  margin: 0;
+  color: #1e3a5f;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.kpi-modal-title i { margin-right: 0.4rem; color: #006D5B; }
+.kpi-modal-body { margin-top: 0.35rem; }
+.kpi-modal-charts { margin-top: 1rem; }
+.kpi-modal-charts .charts-stack {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+.kpi-modal-charts .chart-block--wide { grid-column: 1 / -1; }
+.kpi-modal-cerrar {
+  margin-top: 1rem;
+  background: #1e3a5f;
+  color: #fff;
+}
+.kpi-modal-cerrar:hover { background: #163049; }
+body.kpi-modal-open { overflow: hidden; }
 .kpi-modal-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0;
 }
 .kpi-mini {
-  text-align: center; padding: 16px; border-radius: 8px; border-left: 4px solid #ccc;
-  background: #f8f9fa;
+  text-align: center; padding: 16px; border-radius: 10px; border-left: 4px solid #ccc;
+  background: #f8fafc;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
 }
-.kpi-mini h2 { margin: 0; font-size: 1.8rem; }
+.kpi-mini h2 { margin: 0; font-size: 1.8rem; color: #1e3a5f; }
 .kpi-mini span { font-size: 0.85rem; color: #666; font-weight: 600; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .data-table th, .data-table td { border: 1px solid #eee; padding: 8px; text-align: left; }

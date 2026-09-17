@@ -1,7 +1,7 @@
-/* Detalle KPI inline — reemplaza modal para indicadores del mapa */
+/* Modales KPI — ventana flotante moderna */
 const Modals = (() => {
-  let activeKpi = null;
   let bound = false;
+  let chartHost = null;
 
   function ensureModalRoot() {
     let el = document.getElementById("modal-root");
@@ -11,6 +11,101 @@ const Modals = (() => {
       document.body.appendChild(el);
     }
     return el;
+  }
+
+  function ensureChartHost() {
+    if (chartHost && document.body.contains(chartHost)) return chartHost;
+    chartHost = document.getElementById("kpi-chart-host");
+    if (!chartHost) {
+      chartHost = document.createElement("div");
+      chartHost.id = "kpi-chart-host";
+      chartHost.className = "hidden";
+      chartHost.setAttribute("aria-hidden", "true");
+      document.body.appendChild(chartHost);
+    }
+    ["charts-nacional", "charts-individual", "charts-comparativa"].forEach((id) => {
+      const node = document.getElementById(id);
+      if (node && node.parentElement !== chartHost) chartHost.appendChild(node);
+    });
+    return chartHost;
+  }
+
+  function parkCharts() {
+    const host = ensureChartHost();
+    ["charts-nacional", "charts-individual", "charts-comparativa"].forEach((id) => {
+      const node = document.getElementById(id);
+      if (node && node.parentElement !== host) host.appendChild(node);
+    });
+  }
+
+  function close() {
+    parkCharts();
+    const root = document.getElementById("modal-root");
+    if (root) root.innerHTML = "";
+    document.body.classList.remove("kpi-modal-open");
+    document.querySelectorAll(".kpi-trigger").forEach((btn) => {
+      btn.classList.remove("is-open");
+      btn.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function showFloating(titleHtml, bodyHtml, opts = {}) {
+    parkCharts();
+    const root = ensureModalRoot();
+    const wide = opts.wide ? " modal-dialog--kpi" : "";
+    root.innerHTML = `<div class="modal-overlay kpi-modal-overlay" id="modal-overlay" role="dialog" aria-modal="true">
+      <div class="modal-dialog${wide}">
+        <div class="kpi-modal-top">
+          <h3 class="kpi-modal-title">${titleHtml}</h3>
+          <button type="button" class="kpi-detail-close" id="modal-x" title="Cerrar" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="kpi-modal-body" id="kpi-modal-body">${bodyHtml}</div>
+        <div id="kpi-modal-charts" class="kpi-modal-charts"></div>
+        <button type="button" class="btn btn-block kpi-modal-cerrar" id="modal-close">Cerrar</button>
+      </div>
+    </div>`;
+    document.body.classList.add("kpi-modal-open");
+    document.getElementById("modal-close").onclick = close;
+    document.getElementById("modal-x").onclick = close;
+    document.getElementById("modal-overlay").onclick = (e) => {
+      if (e.target.id === "modal-overlay") close();
+    };
+    return root;
+  }
+
+  function attachChartsToModal() {
+    const slot = document.getElementById("kpi-modal-charts");
+    if (!slot) return;
+    const ind = document.getElementById("charts-individual");
+    const comp = document.getElementById("charts-comparativa");
+    const nac = document.getElementById("charts-nacional");
+    const hasInd = ind && !ind.classList.contains("hidden");
+    const hasComp = comp && !comp.classList.contains("hidden");
+    if (hasInd) {
+      nac?.classList.add("hidden");
+      slot.appendChild(ind);
+      ind.classList.remove("hidden");
+    } else if (hasComp) {
+      nac?.classList.add("hidden");
+      slot.appendChild(comp);
+      comp.classList.remove("hidden");
+    } else if (nac) {
+      slot.appendChild(nac);
+      nac.classList.remove("hidden");
+    }
+    setTimeout(() => {
+      try {
+        window.dispatchEvent(new Event("resize"));
+        if (typeof Plotly !== "undefined") {
+          ["chart-composicion", "chart-causas", "chart-distribucion", "chart-comparativa"].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) Plotly.Plots.resize(el);
+          });
+        }
+      } catch (_) {}
+    }, 180);
   }
 
   function show(html) {
@@ -23,39 +118,6 @@ const Modals = (() => {
     document.getElementById("modal-overlay").onclick = (e) => {
       if (e.target.id === "modal-overlay") close();
     };
-  }
-
-  function close() {
-    const root = document.getElementById("modal-root");
-    if (root) root.innerHTML = "";
-  }
-
-  function dock() {
-    return document.getElementById("kpi-detail-dock");
-  }
-
-  function setTriggers(openKey) {
-    document.querySelectorAll(".kpi-trigger").forEach((btn) => {
-      const on = btn.dataset.kpi === openKey;
-      btn.classList.toggle("is-open", on);
-      btn.setAttribute("aria-expanded", on ? "true" : "false");
-    });
-  }
-
-  function closeDock() {
-    activeKpi = null;
-    const el = dock();
-    if (el) el.classList.add("hidden");
-    setTriggers(null);
-  }
-
-  function openDock(titleHtml) {
-    const el = dock();
-    if (!el) return;
-    const title = document.getElementById("kpi-detail-title");
-    if (title) title.innerHTML = titleHtml;
-    el.classList.remove("hidden");
-    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function showMap(titulo, src) {
@@ -92,54 +154,29 @@ const Modals = (() => {
     const items = [
       { t: "ACR Ampiyacu Apayacu", u: "/api/descargas/mapa/aa" },
       { t: "ACR Alto Nanay", u: "/api/descargas/mapa/anpch" },
-      { t: "Informe cartográfico — seleccione un mapa PDF de la galería superior" },
     ];
     const links = items
-      .filter((i) => i.u)
       .map((i) => `<li><a href="${i.u}" target="_blank" style="color:#006D5B;font-weight:600">${i.t}</a></li>`)
       .join("");
     show(`<h3><i class="fas fa-file-pdf"></i> Informes y mapas PDF</h3>
-      <p style="color:#666;line-height:1.7">Los informes cartográficos por ACR están disponibles en formato PDF. Use los botones <strong>PDF</strong> en cada tarjeta o los enlaces siguientes:</p>
-      <ul style="line-height:2">${links}</ul>
-      <p style="font-size:13px;color:#999"><i class="fas fa-info-circle"></i> Para el paquete completo de datos (CSV, GeoJSON), use <strong>Descargar datos</strong> al final de la página.</p>`);
-  }
-
-  function showChartsInDock(showCharts) {
-    const nac = document.getElementById("charts-nacional");
-    const ind = document.getElementById("charts-individual");
-    const comp = document.getElementById("charts-comparativa");
-    if (!showCharts) {
-      nac?.classList.add("hidden");
-      ind?.classList.add("hidden");
-      comp?.classList.add("hidden");
-      return;
-    }
-    // Deja visible lo que renderCharts ya marcó; si no hay ACR, muestra hint
-    const hasInd = ind && !ind.classList.contains("hidden");
-    const hasComp = comp && !comp.classList.contains("hidden");
-    if (!hasInd && !hasComp) {
-      nac?.classList.remove("hidden");
-    } else {
-      nac?.classList.add("hidden");
-    }
+      <p style="color:#666;line-height:1.7">Use los botones <strong>PDF</strong> en cada tarjeta o los enlaces siguientes:</p>
+      <ul style="line-height:2">${links}</ul>`);
   }
 
   async function openHectareas(state) {
-    if (activeKpi === "hectareas") {
-      closeDock();
-      return;
-    }
-    activeKpi = "hectareas";
-    setTriggers("hectareas");
-    openDock('<i class="fas fa-tree"></i> Detalles de deforestación');
+    document.querySelectorAll(".kpi-trigger").forEach((b) => {
+      const on = b.dataset.kpi === "hectareas";
+      b.classList.toggle("is-open", on);
+      b.setAttribute("aria-expanded", on ? "true" : "false");
+    });
 
-    const summary = document.getElementById("kpi-detail-summary");
-    const extra = document.getElementById("kpi-detail-extra");
-    if (summary) summary.innerHTML = `<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando detalle…</p>`;
-    if (extra) extra.innerHTML = "";
+    showFloating(
+      '<i class="fas fa-tree"></i> Detalles de deforestación',
+      '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando detalle…</p>',
+      { wide: true }
+    );
 
-    let tipoMeta = "acr";
-    if (state.ambito === "zi") tipoMeta = "zi";
+    let tipoMeta = state.ambito === "zi" ? "zi" : "acr";
     const rows = await apiGet("/api/metadata/acrs", {
       departamento: state.departamento,
       tipo: tipoMeta,
@@ -150,9 +187,9 @@ const Modals = (() => {
     const ant = data.reduce((s, r) => s + (r.Antropico || 0), 0);
     const nat = data.reduce((s, r) => s + (r.Perdida_natural || 0), 0);
 
-    let table = `<p class="kpi-detail-empty">No hay datos para los filtros actuales.</p>`;
+    let table = "<p class='kpi-detail-empty'>No hay datos para los filtros actuales.</p>";
     if (data.length) {
-      table = `<h6 class="kpi-detail-table-title">Distribución por ACR</h6>
+      table = `<h4 class="kpi-detail-table-title">Distribución por ACR</h4>
         <div class="kpi-detail-table-wrap"><table class="data-table"><thead><tr>
         <th>ACR</th><th>Total (ha)</th><th>Antrópico</th><th>Natural</th></tr></thead><tbody>`;
       data
@@ -165,79 +202,53 @@ const Modals = (() => {
       table += "</tbody></table></div>";
     }
 
-    if (summary) {
-      summary.innerHTML = `<div class="kpi-modal-grid">
+    const body = document.getElementById("kpi-modal-body");
+    if (body) {
+      body.innerHTML = `<div class="kpi-modal-grid">
         <div class="kpi-mini" style="border-color:#d9534f"><h2>${fmt(total)}</h2><span>TOTAL HA</span></div>
         <div class="kpi-mini" style="border-color:#f39c12"><h2>${fmt(ant)}</h2><span>ANTRÓPICO</span></div>
         <div class="kpi-mini" style="border-color:#5cb85c"><h2>${fmt(nat)}</h2><span>NATURAL</span></div>
-      </div>`;
+      </div>${table}`;
     }
-    if (extra) extra.innerHTML = table;
-    showChartsInDock(true);
-    setTimeout(() => {
-      try {
-        window.dispatchEvent(new Event("resize"));
-      } catch (_) {}
-    }, 120);
-  }
-
-  async function openAntropico(state) {
-    if (activeKpi === "antropico") {
-      closeDock();
-      return;
-    }
-    activeKpi = "antropico";
-    setTriggers("antropico");
-    openDock('<i class="fas fa-chart-pie"></i> Origen antrópico');
-    const summary = document.getElementById("kpi-detail-summary");
-    const extra = document.getElementById("kpi-detail-extra");
-    if (extra) extra.innerHTML = "";
-    if (summary) {
-      summary.innerHTML = `<p class="kpi-detail-lead">Composición antrópica vs natural según los filtros activos. Seleccione una ACR para ver los gráficos detallados.</p>`;
-    }
-    showChartsInDock(true);
-    setTimeout(() => window.dispatchEvent(new Event("resize")), 120);
+    attachChartsToModal();
   }
 
   async function openVariacion(state) {
-    if (activeKpi === "variacion") {
-      closeDock();
-      return;
-    }
-    activeKpi = "variacion";
-    setTriggers("variacion");
-    openDock('<i class="fas fa-chart-bar"></i> Variación anual');
-    const summary = document.getElementById("kpi-detail-summary");
-    const extra = document.getElementById("kpi-detail-extra");
     const box = document.getElementById("kpi-variacion");
     const num = box?.querySelector(".number")?.textContent || "—";
     const sub = box?.querySelector(".sub-text")?.textContent || "";
-    if (summary) {
-      summary.innerHTML = `<div class="kpi-modal-grid">
+    showFloating(
+      '<i class="fas fa-chart-bar"></i> Variación anual',
+      `<div class="kpi-modal-grid">
         <div class="kpi-mini" style="border-color:#5cb85c"><h2>${num}</h2><span>VARIACIÓN</span></div>
       </div>
-      <p class="kpi-detail-lead">${sub || "Comparación respecto al año anterior con los filtros activos."}</p>`;
-    }
-    if (extra) extra.innerHTML = "";
-    showChartsInDock(true);
+      <p class="kpi-detail-lead">${sub || "Comparación respecto al año anterior con los filtros activos."}</p>`,
+      { wide: true }
+    );
+    attachChartsToModal();
+  }
+
+  async function openAntropico(state) {
+    const box = document.getElementById("kpi-porcentaje");
+    const num = box?.querySelector(".number")?.textContent || "—";
+    const sub = box?.querySelector(".sub")?.textContent || "";
+    showFloating(
+      '<i class="fas fa-chart-pie"></i> Origen antrópico',
+      `<div class="kpi-modal-grid">
+        <div class="kpi-mini" style="border-color:#f39c12"><h2>${num}</h2><span>ANTRÓPICO</span></div>
+      </div>
+      <p class="kpi-detail-lead">${sub}</p>`,
+      { wide: true }
+    );
+    attachChartsToModal();
   }
 
   async function openCausas(state) {
-    if (activeKpi === "causa") {
-      closeDock();
-      return;
-    }
-    activeKpi = "causa";
-    setTriggers("causa");
-    openDock('<i class="fas fa-cog"></i> Principal causa estimada');
-
-    const summary = document.getElementById("kpi-detail-summary");
-    const extra = document.getElementById("kpi-detail-extra");
-    if (summary) summary.innerHTML = `<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando causas…</p>`;
-    if (extra) extra.innerHTML = "";
-
-    // Oculta charts genéricos; muestra gráfico de causas en extra
-    showChartsInDock(false);
+    showFloating(
+      '<i class="fas fa-cog"></i> Principal causa estimada',
+      '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando causas…</p>',
+      { wide: true }
+    );
 
     const causas = await apiGet("/api/causas", {
       departamento: state.departamento,
@@ -248,59 +259,51 @@ const Modals = (() => {
       .filter((c) => c.Area_Ha > 0)
       .sort((a, b) => Number(b.Area_Ha) - Number(a.Area_Ha));
 
+    const body = document.getElementById("kpi-modal-body");
     if (!data.length) {
-      if (summary) summary.innerHTML = `<p class="kpi-detail-empty">Sin datos de causas para los filtros.</p>`;
+      if (body) body.innerHTML = `<p class="kpi-detail-empty">Sin datos de causas para los filtros.</p>`;
       return;
     }
 
-    if (summary) {
-      summary.innerHTML = `<p class="kpi-detail-lead">Causas antrópicas ordenadas por área (ha) según filtros activos.</p>`;
+    if (body) {
+      body.innerHTML = `<p class="kpi-detail-lead">Causas antrópicas ordenadas por área (ha).</p>
+        <div id="modal-chart-causas" style="height:${Math.max(360, 34 * data.length + 90)}px"></div>`;
     }
-    if (extra) {
-      extra.innerHTML = `<div id="kpi-inline-causas" style="height:${Math.max(320, 34 * data.length + 80)}px"></div>`;
-      const labels = data.map((d) => d.Causa).reverse();
-      const values = data.map((d) => d.Area_Ha).reverse();
-      const colors = ["#006D5B", "#1a4d2e", "#66c2a5", "#2e8b57", "#8fbc8f", "#3d9970"];
-      Plotly.newPlot(
-        "kpi-inline-causas",
-        [
-          {
-            y: labels,
-            x: values,
-            type: "bar",
-            orientation: "h",
-            marker: {
-              color: values.map((_, i) => colors[i % colors.length]),
-              opacity: 0.92,
-            },
-            text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
-            textposition: "outside",
-            cliponaxis: false,
-          },
-        ],
+
+    const labels = data.map((d) => d.Causa).reverse();
+    const values = data.map((d) => d.Area_Ha).reverse();
+    const colors = ["#006D5B", "#1a4d2e", "#66c2a5", "#2e8b57", "#8fbc8f", "#3d9970"];
+    Plotly.newPlot(
+      "modal-chart-causas",
+      [
         {
-          paper_bgcolor: "#fff",
-          plot_bgcolor: "#fbfcfd",
-          margin: { l: 160, r: 56, t: 16, b: 40 },
-          xaxis: { title: "Hectáreas (ha)", gridcolor: "#edf2f7" },
-          yaxis: { automargin: true },
-          font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#2c3e50" },
+          y: labels,
+          x: values,
+          type: "bar",
+          orientation: "h",
+          marker: { color: values.map((_, i) => colors[i % colors.length]), opacity: 0.92 },
+          text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
+          textposition: "outside",
+          cliponaxis: false,
         },
-        { responsive: true, displayModeBar: false }
-      );
-    }
+      ],
+      {
+        paper_bgcolor: "#fff",
+        plot_bgcolor: "#fbfcfd",
+        margin: { l: 160, r: 56, t: 12, b: 40 },
+        xaxis: { title: "Hectáreas (ha)", gridcolor: "#edf2f7" },
+        yaxis: { automargin: true },
+        font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#2c3e50" },
+      },
+      { responsive: true, displayModeBar: false }
+    );
   }
 
   function bind(state) {
     Modals._state = state;
+    ensureChartHost();
     if (bound) return;
     bound = true;
-
-    document.getElementById("kpi-detail-close")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeDock();
-    });
-
     document.querySelectorAll(".kpi-trigger").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -315,49 +318,9 @@ const Modals = (() => {
     });
   }
 
-  const REGION_MODALS = {
-    loreto: {
-      title: "LORETO - Frentes Activos de Deforestación",
-      titleStyle:
-        "background:linear-gradient(135deg,#f1c40f,#f39c12);color:#fff;padding:12px;border-radius:6px;margin:-8px -8px 16px",
-      stats: [
-        ["8,500+", "Hectáreas deforestadas", "#fff3cd", "#f39c12"],
-        ["+18.6%", "Incremento última década", "#ffe8e8", "#e74c3c"],
-        ["4", "ACRs bajo presión", "#e8f5e9", "#27ae60"],
-      ],
-      body: `<h4 style="color:#1a4d2e"><i class="fas fa-chart-bar"></i> Análisis Detallado</h4>
-        <div class="modal-region-block" style="border-color:#f39c12">
-          <h5><i class="fas fa-map-pin" style="color:#e74c3c"></i> Zona Crítica: Corredor Iquitos-Nauta</h5>
-          <p>El corredor Iquitos-Nauta concentra el <strong>mayor número de alertas de deforestación</strong> en la región Loreto.</p>
-        </div>`,
-    },
-    sanmartin: {
-      title: "SAN MARTÍN - Presión en Bordes de ACRs",
-      titleStyle:
-        "background:linear-gradient(135deg,#f8c471,#f39c12);color:#fff;padding:12px;border-radius:6px;margin:-8px -8px 16px",
-      stats: [
-        ["260+", "Ha afectadas por incendios 2023", "#ffe8e8", "#e74c3c"],
-        ["40%", "Expansión urbana (causa principal)", "#f5f5f5", "#7f8c8d"],
-      ],
-      body: `<h4 style="color:#1a4d2e"><i class="fas fa-chart-bar"></i> Análisis Detallado</h4>
-        <p>San Martín experimenta presión sobre sus ACRs desde 2018, particularmente en Cordillera Escalera.</p>`,
-    },
-    cusco: {
-      title: "CUSCO - Reducción de Deforestación",
-      titleStyle:
-        "background:linear-gradient(135deg,#5cb85c,#4cae4c);color:#fff;padding:12px;border-radius:6px;margin:-8px -8px 16px",
-      stats: [
-        ["-15%", "Reducción desde 2020", "#e8f5e9", "#27ae60"],
-        ["3", "ACRs monitoreadas", "#f3e5f5", "#8e44ad"],
-      ],
-      body: `<h4 style="color:#1a4d2e"><i class="fas fa-chart-bar"></i> Análisis Detallado</h4>
-        <p>Cusco muestra una reducción del 15% en deforestación desde 2020.</p>`,
-    },
-  };
-
   function showRegion(region) {
     const dynamic = typeof RegionInsights !== "undefined" ? RegionInsights.getModal(region) : null;
-    const r = dynamic || REGION_MODALS[region];
+    const r = dynamic;
     if (!r) return;
     const statsHtml = `<div class="modal-region-stats">${r.stats
       .map(
@@ -387,11 +350,11 @@ const Modals = (() => {
     bind,
     bindRegionCards,
     close,
-    closeDock,
+    closeDock: close,
     show,
     showMap,
     showInformeCatalogo,
     showRegion,
-    getActiveKpi: () => activeKpi,
+    getActiveKpi: () => null,
   };
 })();
