@@ -656,10 +656,82 @@ body.portal-body {
 }
 
 .datos-hero {
-  margin: 0 0 0 !important;
+  margin: 0 !important;
+  background-image:
+    linear-gradient(105deg, rgba(0, 18, 45, 0.78) 0%, rgba(0, 22, 55, 0.5) 48%, rgba(0, 18, 40, 0.28) 100%),
+    url(/assets/img/hero_amazonia.jpg);
+  background-position: center 40%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #fff;
+  min-height: 240px;
+  padding: 2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
 }
-.portal-body .datos-hero {
-  margin-bottom: 0;
+.datos-hero .dash-hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem 2.5rem;
+  flex-wrap: wrap;
+}
+.datos-hero .dash-hero-copy {
+  flex: 1 1 320px;
+  max-width: 720px;
+  background: rgba(0, 22, 55, 0.55);
+  border-radius: 14px;
+  padding: 1.15rem 1.35rem;
+}
+.datos-hero .dash-hero-eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #E85D04;
+}
+.datos-hero h1 {
+  margin: 0 0 0.55rem;
+  font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+}
+.datos-hero .dash-hero-sub {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+}
+.datos-hero .dash-hero-accent {
+  flex: 0 1 260px;
+  background: rgba(0, 18, 40, 0.62);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.datos-hero .dash-hero-accent-bar {
+  width: 4px;
+  min-height: 2.5rem;
+  border-radius: 4px;
+  background: #e30613;
+  flex-shrink: 0;
+}
+.datos-hero .dash-hero-accent p {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
 }
 .portal-body .portal-section {
   padding-top: 1.5rem;
@@ -676,6 +748,7 @@ body.portal-body {
 }
 @media (max-width: 800px) {
   .datos-deptos { grid-template-columns: 1fr; }
+  .datos-hero { min-height: 200px; padding: 1.35rem 1rem; }
 }
 .datos-depto {
   background: #fff;
