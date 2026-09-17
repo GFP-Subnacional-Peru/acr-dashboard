@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260917j" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260917k" />
 </head>
 <body>
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
@@ -133,6 +133,31 @@
               <i class="kpi-chevron fas fa-chevron-down" aria-hidden="true"></i>
             </button>
           </div>
+
+          <div id="kpi-detail-dock" class="kpi-detail-dock hidden" aria-live="polite">
+            <div class="kpi-detail-head">
+              <h5 class="section-title" id="kpi-detail-title"><i class="fas fa-tree"></i> Detalles de deforestación</h5>
+              <button type="button" class="kpi-detail-close" id="kpi-detail-close" title="Cerrar" aria-label="Cerrar detalle">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div id="kpi-detail-summary" class="kpi-detail-summary"></div>
+            <div id="charts-nacional" class="charts-placeholder kpi-detail-placeholder hidden">
+              <i class="fas fa-info-circle"></i>
+              <p>Seleccione una ACR en los filtros para ver la composición, causas y distribución de la deforestación.</p>
+            </div>
+            <div id="charts-individual" class="hidden">
+              <div class="charts-stack charts-stack--compact">
+                <div class="chart-block"><h6><i class="fas fa-chart-bar"></i> Composición</h6><div id="chart-composicion"></div></div>
+                <div class="chart-block"><h6><i class="fas fa-tractor"></i> Causas antrópicas</h6><div id="chart-causas"></div></div>
+                <div class="chart-block chart-block--wide"><h6><i class="fas fa-chart-pie"></i> Distribución</h6><div id="chart-distribucion"></div></div>
+              </div>
+            </div>
+            <div id="charts-comparativa" class="hidden">
+              <div class="chart-block"><h6><i class="fas fa-balance-scale"></i> Comparativo</h6><div id="chart-comparativa"></div></div>
+            </div>
+            <div id="kpi-detail-extra" class="kpi-detail-extra"></div>
+          </div>
         </section>
       </div>
 
@@ -145,31 +170,6 @@
         </section>
       </div>
     </div>
-
-    <section id="kpi-detail-dock" class="panelbox kpi-detail-dock hidden" aria-live="polite">
-      <div class="kpi-detail-head">
-        <h5 class="section-title" id="kpi-detail-title"><i class="fas fa-tree"></i> Detalles de deforestación</h5>
-        <button type="button" class="kpi-detail-close" id="kpi-detail-close" title="Cerrar" aria-label="Cerrar detalle">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div id="kpi-detail-summary" class="kpi-detail-summary"></div>
-      <div id="charts-nacional" class="charts-placeholder kpi-detail-placeholder hidden">
-        <i class="fas fa-info-circle"></i>
-        <p>Seleccione una ACR en los filtros para ver la composición, causas y distribución de la deforestación.</p>
-      </div>
-      <div id="charts-individual" class="hidden">
-        <div class="charts-stack">
-          <div class="chart-block"><h6><i class="fas fa-chart-bar"></i> Composición de deforestación</h6><div id="chart-composicion"></div></div>
-          <div class="chart-block"><h6><i class="fas fa-tractor"></i> Principales causas antrópicas</h6><div id="chart-causas"></div></div>
-          <div class="chart-block chart-block--wide"><h6><i class="fas fa-chart-pie"></i> Distribución porcentual</h6><div id="chart-distribucion"></div></div>
-        </div>
-      </div>
-      <div id="charts-comparativa" class="hidden">
-        <div class="chart-block"><h6><i class="fas fa-balance-scale"></i> Análisis comparativo detallado</h6><div id="chart-comparativa"></div></div>
-      </div>
-      <div id="kpi-detail-extra" class="kpi-detail-extra"></div>
-    </section>
 
     <footer class="footer-simple">
       <div class="footer-logo"><i class="fas fa-leaf"></i></div>
@@ -349,11 +349,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260917j"></script>
-  <script src="/assets/js/modals.js?v=20260917j"></script>
+  <script src="/assets/js/map.js?v=20260917k"></script>
+  <script src="/assets/js/modals.js?v=20260917k"></script>
   <script src="/assets/js/atd-demo.js?v=20260709d"></script>
-  <script src="/assets/js/reportes.js?v=20260917j"></script>
-  <script src="/assets/js/tendencias.js?v=20260917j"></script>
-  <script src="/assets/js/app.js?v=20260917j"></script>
+  <script src="/assets/js/reportes.js?v=20260917k"></script>
+  <script src="/assets/js/tendencias.js?v=20260917k"></script>
+  <script src="/assets/js/app.js?v=20260917k"></script>
 </body>
 </html>

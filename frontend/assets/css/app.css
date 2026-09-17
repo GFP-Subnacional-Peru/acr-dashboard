@@ -2537,9 +2537,30 @@ body.gfp-map-fs-open { overflow: hidden; }
 }
 
 .kpi-detail-dock {
-  margin: 0 1rem 1.25rem;
-  padding: 1rem 1.15rem 1.25rem;
+  margin: 0.85rem 0 0;
+  padding: 0.85rem 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   animation: kpiDockIn 0.28s ease;
+}
+.dash-kpi-card .kpi-detail-dock:not(.hidden) {
+  max-height: min(70vh, 900px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.dash-kpi-card .kpi-detail-dock:not(.hidden)::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.charts-stack--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.charts-stack--compact .chart-block {
+  margin: 0;
 }
 @keyframes kpiDockIn {
   from { opacity: 0; transform: translateY(8px); }
