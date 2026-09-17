@@ -50,9 +50,9 @@ def datos_para_graficos(
             row = datos.iloc[0]
             total = float(row["Total"])
             out["composicion"] = [
-                {"Categoria": "Origen antrópico", "Hectareas": float(row["Antropico"]), "Color": "#9a3412"},
-                {"Categoria": "Natural", "Hectareas": float(row["Perdida_natural"]), "Color": "#0f766e"},
-                {"Categoria": "Falsa alerta", "Hectareas": float(row["Falsa_alerta"]), "Color": "#64748b"},
+                {"Categoria": "Origen antrópico", "Hectareas": float(row["Antropico"]), "Color": "#d9534f"},
+                {"Categoria": "Natural", "Hectareas": float(row["Perdida_natural"]), "Color": "#5cb85c"},
+                {"Categoria": "Falsa alerta", "Hectareas": float(row["Falsa_alerta"]), "Color": "#f0ad4e"},
             ]
             out["distribucion"] = {
                 "total": total,
@@ -61,19 +61,19 @@ def datos_para_graficos(
                         "Categoria": "Origen antrópico",
                         "Hectareas": float(row["Antropico"]),
                         "Porcentaje": round((row["Antropico"] / total) * 100, 1) if total else 0,
-                        "Color": "#9a3412",
+                        "Color": "#d9534f",
                     },
                     {
                         "Categoria": "Natural",
                         "Hectareas": float(row["Perdida_natural"]),
                         "Porcentaje": round((row["Perdida_natural"] / total) * 100, 1) if total else 0,
-                        "Color": "#0f766e",
+                        "Color": "#5cb85c",
                     },
                     {
                         "Categoria": "Falsa alerta",
                         "Hectareas": float(row["Falsa_alerta"]),
                         "Porcentaje": round((row["Falsa_alerta"] / total) * 100, 1) if total else 0,
-                        "Color": "#64748b",
+                        "Color": "#f0ad4e",
                     },
                 ],
             }

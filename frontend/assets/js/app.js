@@ -386,37 +386,62 @@ function renderCharts(g) {
   comp?.classList.add("hidden");
   nac?.classList.add("hidden");
 
+  // Gama clásica del portal (rojo / verde / naranja / teal GFP)
+  const COL = {
+    antropico: "#d9534f",
+    natural: "#5cb85c",
+    causas: ["#006D5B", "#1a4d2e", "#66c2a5", "#2e8b57", "#8fbc8f", "#3d9970"],
+  };
+
   const sciLayout = {
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: "#f8fafc",
-    font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 12, color: "#334155" },
-    title: { font: { size: 13, color: "#0f172a" } },
+    paper_bgcolor: "#ffffff",
+    plot_bgcolor: "#fbfcfd",
+    font: { family: "Segoe UI, Helvetica Neue, Arial, sans-serif", size: 12, color: "#2c3e50" },
+    title: { font: { size: 13, color: "#1a4d2e" } },
+    hoverlabel: { bgcolor: "#1a4d2e", bordercolor: "#1a4d2e", font: { color: "#fff", size: 12 } },
+  };
+  const axisSci = {
+    gridcolor: "#edf2f7",
+    zerolinecolor: "#cbd5e1",
+    linecolor: "#cbd5e1",
+    tickfont: { size: 11, color: "#5a6a7a" },
+    titlefont: { size: 12, color: "#34495e" },
+    showline: true,
+    mirror: false,
   };
 
   if (g.modo === "individual" && g.composicion) {
     ind?.classList.remove("hidden");
     const composicion = (g.composicion || []).filter((d) => d.Categoria !== "Falsa alerta");
+    const compColors = composicion.map((d) =>
+      String(d.Categoria || "").toLowerCase().includes("antr") ? COL.antropico : COL.natural
+    );
     Plotly.newPlot(
       "chart-composicion",
       [{
         x: composicion.map((d) => d.Categoria),
         y: composicion.map((d) => d.Hectareas),
         type: "bar",
+        width: 0.55,
         marker: {
-          color: composicion.map((d) => d.Color),
-          line: { color: "#0f172a", width: 0.4 },
+          color: compColors,
+          line: { color: "rgba(26,77,46,0.35)", width: 0.8 },
+          opacity: 0.92,
         },
         text: composicion.map((d) => Number(d.Hectareas).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
         textposition: "outside",
+        textfont: { size: 11, color: "#2c3e50", family: "Segoe UI, Arial, sans-serif" },
         cliponaxis: false,
+        hovertemplate: "<b>%{x}</b><br>%{y:,.1f} ha<extra></extra>",
       }],
       {
         ...sciLayout,
-        yaxis: { title: "Hectáreas", gridcolor: "#e2e8f0", zerolinecolor: "#cbd5e1" },
-        xaxis: { tickangle: -15 },
+        yaxis: { title: "Hectáreas (ha)", ...axisSci, ticksuffix: "" },
+        xaxis: { ...axisSci, tickangle: 0, showgrid: false },
         showlegend: false,
-        margin: { t: 28, b: 56, l: 52, r: 16 },
-        height: 280,
+        margin: { t: 36, b: 48, l: 58, r: 18 },
+        height: 300,
+        bargap: 0.35,
       },
       { responsive: true, displayModeBar: false }
     );
@@ -432,22 +457,22 @@ function renderCharts(g) {
           type: "bar",
           orientation: "h",
           marker: {
-            color: values.map((_, i) => {
-              const t = labels.length <= 1 ? 1 : i / (labels.length - 1);
-              return `rgba(30, 64, 109, ${0.45 + t * 0.5})`;
-            }),
-            line: { color: "#1e293b", width: 0.35 },
+            color: values.map((_, i) => COL.causas[i % COL.causas.length]),
+            line: { color: "rgba(0,109,91,0.35)", width: 0.6 },
+            opacity: 0.92,
           },
           text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
           textposition: "outside",
+          textfont: { size: 11, color: "#2c3e50" },
           cliponaxis: false,
+          hovertemplate: "<b>%{y}</b><br>%{x:,.1f} ha<extra></extra>",
         }],
         {
           ...sciLayout,
-          margin: { l: 140, r: 52, t: 28, b: 44 },
-          xaxis: { title: "Hectáreas", gridcolor: "#e2e8f0", zerolinecolor: "#cbd5e1" },
-          yaxis: { automargin: true },
-          height: Math.max(280, 36 * labels.length + 90),
+          margin: { l: 148, r: 56, t: 28, b: 44 },
+          xaxis: { title: "Hectáreas (ha)", ...axisSci },
+          yaxis: { ...axisSci, automargin: true, showgrid: false },
+          height: Math.max(300, 38 * labels.length + 90),
         },
         { responsive: true, displayModeBar: false }
       );
@@ -455,32 +480,44 @@ function renderCharts(g) {
     if (g.distribucion) {
       const distItems = (g.distribucion.items || []).filter((d) => d.Categoria !== "Falsa alerta");
       const distTotal = distItems.reduce((a, d) => a + Number(d.Hectareas || 0), 0);
+      const pieColors = distItems.map((d) =>
+        String(d.Categoria || "").toLowerCase().includes("antr") ? COL.antropico : COL.natural
+      );
       Plotly.newPlot(
         "chart-distribucion",
         [{
           labels: distItems.map((d) => d.Categoria),
           values: distItems.map((d) => d.Hectareas),
           type: "pie",
-          hole: 0.48,
+          hole: 0.52,
           marker: {
-            colors: distItems.map((d) => d.Color),
-            line: { color: "#fff", width: 1.5 },
+            colors: pieColors,
+            line: { color: "#ffffff", width: 2 },
           },
-          textinfo: "label+percent",
-          textfont: { size: 12, color: "#0f172a" },
+          textinfo: "percent",
+          textposition: "inside",
+          textfont: { size: 13, color: "#ffffff", family: "Segoe UI, Arial, sans-serif" },
+          insidetextorientation: "horizontal",
           sort: false,
+          hovertemplate: "<b>%{label}</b><br>%{value:,.1f} ha (%{percent})<extra></extra>",
         }],
         {
           ...sciLayout,
           annotations: [{
-            text: `<b>${fmt(distTotal)} ha</b><br><span style="font-size:11px;color:#64748b">total</span>`,
+            text: `<b style="font-size:16px;color:#1a4d2e">${fmt(distTotal)} ha</b><br><span style="font-size:11px;color:#7f8c8d">total analizado</span>`,
             showarrow: false,
-            font: { size: 14, color: "#0f172a" },
+            font: { size: 13 },
           }],
-          margin: { t: 24, b: 24, l: 24, r: 24 },
-          height: 300,
+          margin: { t: 28, b: 40, l: 28, r: 28 },
+          height: 320,
           showlegend: true,
-          legend: { orientation: "h", y: -0.08, font: { size: 11 } },
+          legend: {
+            orientation: "h",
+            y: -0.06,
+            x: 0.5,
+            xanchor: "center",
+            font: { size: 11, color: "#34495e" },
+          },
         },
         { responsive: true, displayModeBar: false }
       );
@@ -492,17 +529,31 @@ function renderCharts(g) {
     Plotly.newPlot(
       "chart-comparativa",
       [
-        { x: names, y: g.comparativa.map((d) => d.Antropico), name: "Origen antrópico", type: "bar", marker: { color: "#9a3412" } },
-        { x: names, y: g.comparativa.map((d) => d.Perdida_natural), name: "Natural", type: "bar", marker: { color: "#0f766e" } },
+        {
+          x: names,
+          y: g.comparativa.map((d) => d.Antropico),
+          name: "Origen antrópico",
+          type: "bar",
+          marker: { color: COL.antropico, opacity: 0.92, line: { color: "rgba(192,57,43,0.35)", width: 0.6 } },
+        },
+        {
+          x: names,
+          y: g.comparativa.map((d) => d.Perdida_natural),
+          name: "Natural",
+          type: "bar",
+          marker: { color: COL.natural, opacity: 0.92, line: { color: "rgba(39,174,96,0.35)", width: 0.6 } },
+        },
       ],
       {
         ...sciLayout,
         barmode: "group",
+        bargap: 0.28,
+        bargroupgap: 0.12,
         margin: { b: 100, t: 28, l: 56, r: 20 },
-        xaxis: { tickangle: -35 },
-        yaxis: { title: "Área (ha)", gridcolor: "#e2e8f0" },
-        legend: { orientation: "h", y: -0.28 },
-        height: 380,
+        xaxis: { ...axisSci, tickangle: -28, showgrid: false },
+        yaxis: { title: "Área (ha)", ...axisSci },
+        legend: { orientation: "h", y: -0.28, font: { size: 11 } },
+        height: 390,
       },
       { responsive: true, displayModeBar: false }
     );
