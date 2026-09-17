@@ -2,18 +2,33 @@
 const Tendencias = (() => {
   const ACR_OPTS = {
     LORETO: {
-      "ACR Ampiyacu Apayacu": "ACR_AA",
-      "ACR Alto Nanay": "ACR_ANPCH",
-      "ACR Maijuna Kichwa": "ACR_MK",
-      "ACR Tamshiyacu Tahuayo": "ACR_CTT",
+      "Ampiyacu Apayacu": "ACR_AA",
+      "Alto Nanay – Pintuyacu Chambira": "ACR_ANPCH",
+      "Maijuna Kichwa": "ACR_MK",
+      "Comunal Tamshiyacu Tahuayo": "ACR_CTT",
     },
-    "SAN MARTÍN": { "ACR Bosques de Shunté": "ACR_BSM", "ACR Cordillera Escalera": "ACR_CE" },
+    "SAN MARTÍN": {
+      "Bosques de Shunté y Mishollo": "ACR_BSM",
+      "Cordillera Escalera": "ACR_CE",
+    },
     CUSCO: {
-      "ACR Choquequirao": "ACR_CHQ",
-      "ACR Chuyapi Urusayhua": "ACR_CHU",
-      "ACR Q'eros Kosñipata": "ACR_QK",
+      Choquequirao: "ACR_CHQ",
+      "Chuyapi Urusayhua": "ACR_CHU",
+      "Q'eros Kosñipata": "ACR_QK",
     },
   };
+
+  const SCI_PALETTE = [
+    "#0B6E4F",
+    "#1B4F72",
+    "#B9770E",
+    "#6C3483",
+    "#148F77",
+    "#C0392B",
+    "#2471A3",
+    "#1E8449",
+    "#D35400",
+  ];
 
   function init() {
     const sel = document.getElementById("tend-acr");
@@ -25,7 +40,7 @@ const Tendencias = (() => {
       Object.entries(items).forEach(([label, code]) => {
         const o = document.createElement("option");
         o.value = code;
-        o.textContent = String(label).replace(/^ACR\s+/i, "");
+        o.textContent = label;
         og.appendChild(o);
       });
       sel.appendChild(og);
@@ -42,7 +57,6 @@ const Tendencias = (() => {
   function toggleAcrPanel() {
     const tipo = document.getElementById("tend-tipo").value;
     const panel = document.getElementById("tend-acr-panel");
-    // Solo se elige ACR en modo individual; comparativa usa las 9 ACR
     panel.classList.toggle("hidden", tipo !== "individual");
   }
 
@@ -70,7 +84,6 @@ const Tendencias = (() => {
       return;
     }
     if (tipo === "comparativa") {
-      // Compara todas las ACR del programa (Loreto, San Martín, Cusco)
       acrs.length = 0;
       Object.values(ACR_OPTS).forEach((items) => {
         Object.values(items).forEach((code) => acrs.push(code));
@@ -102,17 +115,34 @@ const Tendencias = (() => {
     }
   }
 
+  function seriesColor(s, i) {
+    return s.color || SCI_PALETTE[i % SCI_PALETTE.length];
+  }
+
   function renderChart(data) {
     const traces = [];
-    (data.series || []).forEach((s) => {
+    (data.series || []).forEach((s, i) => {
+      const color = seriesColor(s, i);
+      const isSingle = (data.series || []).length === 1;
       traces.push({
         x: s.points.map((p) => p.Anio),
         y: s.points.map((p) => p.Deforestacion_ha),
         name: s.name,
         type: "scatter",
         mode: "lines+markers",
-        line: { color: s.color, width: tipoLineWidth(data.tipo) },
-        marker: { size: 8, color: s.color },
+        line: {
+          color,
+          width: isSingle ? 3.2 : 2.4,
+          shape: "spline",
+          smoothing: 0.55,
+        },
+        marker: {
+          size: isSingle ? 8 : 6,
+          color,
+          line: { color: "#ffffff", width: 1.2 },
+        },
+        fill: isSingle ? "tozeroy" : "none",
+        fillcolor: isSingle ? "rgba(11, 110, 79, 0.12)" : undefined,
         text: s.points.map((p) => p.hover),
         hovertemplate: "%{text}<extra></extra>",
       });
@@ -120,10 +150,11 @@ const Tendencias = (() => {
         traces.push({
           x: s.tendencia.map((p) => p.Anio),
           y: s.tendencia.map((p) => p.valor),
-          name: "Tendencia",
+          name: "Tendencia lineal",
           type: "scatter",
           mode: "lines",
-          line: { color: "#d9534f", width: 2, dash: "dash" },
+          line: { color: "#C0392B", width: 2.2, dash: "dot" },
+          hovertemplate: "<b>Tendencia</b>: %{y:.1f} ha<extra></extra>",
         });
       }
     });
@@ -132,20 +163,53 @@ const Tendencias = (() => {
       "chart-tendencias-full",
       traces,
       {
-        title: { text: data.titulo || "Tendencias", font: { size: 16 } },
-        xaxis: { title: "Año", dtick: 2 },
-        yaxis: { title: "Deforestación (ha)" },
-        legend: { orientation: "h", y: -0.15 },
+        title: {
+          text: data.titulo || "Tendencias de deforestación",
+          font: { size: 15, color: "#0f172a", family: "Segoe UI, Helvetica, Arial, sans-serif" },
+          x: 0.02,
+          xanchor: "left",
+        },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "#f8fafc",
+        font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 12, color: "#334155" },
+        xaxis: {
+          title: { text: "Año", font: { size: 12, color: "#475569" } },
+          dtick: 2,
+          gridcolor: "#e2e8f0",
+          zeroline: false,
+          showline: true,
+          linecolor: "#cbd5e1",
+          tickfont: { color: "#64748b" },
+        },
+        yaxis: {
+          title: { text: "Deforestación (ha)", font: { size: 12, color: "#475569" } },
+          gridcolor: "#e2e8f0",
+          zerolinecolor: "#cbd5e1",
+          showline: true,
+          linecolor: "#cbd5e1",
+          tickfont: { color: "#64748b" },
+          separatethousands: true,
+        },
+        legend: {
+          orientation: "h",
+          y: -0.18,
+          x: 0,
+          bgcolor: "rgba(255,255,255,0.7)",
+          bordercolor: "#e2e8f0",
+          borderwidth: 1,
+          font: { size: 11 },
+        },
         hovermode: "x unified",
-        margin: { t: 50, b: 90, l: 60, r: 30 },
-        height: 400,
+        hoverlabel: {
+          bgcolor: "#0f172a",
+          bordercolor: "#0f172a",
+          font: { color: "#f8fafc", size: 12 },
+        },
+        margin: { t: 56, b: 96, l: 64, r: 28 },
+        height: 440,
       },
-      { responsive: true }
+      { responsive: true, displayModeBar: false, staticPlot: false }
     );
-  }
-
-  function tipoLineWidth(tipo) {
-    return tipo === "comparativa" ? 2.5 : 3;
   }
 
   return { init, generarAnalisis };

@@ -599,6 +599,9 @@ def load_acumulado_vectors(
                 continue
             props["codigo"] = codigo
             props["tipo"] = _tipo_desde_causa(props.get("causa"), props.get("tipo"))
+            # No mostrar falsas alertas en el mapa interactivo
+            if props["tipo"] == "Falsa alerta":
+                continue
             props["causa_nombre"] = _causa_nombre(props.get("causa"))
             props["fuente_nombre"] = _fuente_nombre(props.get("fuente"))
             features.append({**f, "properties": props})

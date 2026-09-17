@@ -395,17 +395,18 @@ function renderCharts(g) {
 
   if (g.modo === "individual" && g.composicion) {
     ind?.classList.remove("hidden");
+    const composicion = (g.composicion || []).filter((d) => d.Categoria !== "Falsa alerta");
     Plotly.newPlot(
       "chart-composicion",
       [{
-        x: g.composicion.map((d) => d.Categoria),
-        y: g.composicion.map((d) => d.Hectareas),
+        x: composicion.map((d) => d.Categoria),
+        y: composicion.map((d) => d.Hectareas),
         type: "bar",
         marker: {
-          color: g.composicion.map((d) => d.Color),
+          color: composicion.map((d) => d.Color),
           line: { color: "#0f172a", width: 0.4 },
         },
-        text: g.composicion.map((d) => Number(d.Hectareas).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
+        text: composicion.map((d) => Number(d.Hectareas).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
         textposition: "outside",
         cliponaxis: false,
       }],
@@ -452,15 +453,17 @@ function renderCharts(g) {
       );
     }
     if (g.distribucion) {
+      const distItems = (g.distribucion.items || []).filter((d) => d.Categoria !== "Falsa alerta");
+      const distTotal = distItems.reduce((a, d) => a + Number(d.Hectareas || 0), 0);
       Plotly.newPlot(
         "chart-distribucion",
         [{
-          labels: g.distribucion.items.map((d) => d.Categoria),
-          values: g.distribucion.items.map((d) => d.Hectareas),
+          labels: distItems.map((d) => d.Categoria),
+          values: distItems.map((d) => d.Hectareas),
           type: "pie",
           hole: 0.48,
           marker: {
-            colors: g.distribucion.items.map((d) => d.Color),
+            colors: distItems.map((d) => d.Color),
             line: { color: "#fff", width: 1.5 },
           },
           textinfo: "label+percent",
@@ -470,7 +473,7 @@ function renderCharts(g) {
         {
           ...sciLayout,
           annotations: [{
-            text: `<b>${fmt(g.distribucion.total)} ha</b><br><span style="font-size:11px;color:#64748b">total</span>`,
+            text: `<b>${fmt(distTotal)} ha</b><br><span style="font-size:11px;color:#64748b">total</span>`,
             showarrow: false,
             font: { size: 14, color: "#0f172a" },
           }],
@@ -491,7 +494,6 @@ function renderCharts(g) {
       [
         { x: names, y: g.comparativa.map((d) => d.Antropico), name: "Origen antrópico", type: "bar", marker: { color: "#9a3412" } },
         { x: names, y: g.comparativa.map((d) => d.Perdida_natural), name: "Natural", type: "bar", marker: { color: "#0f766e" } },
-        { x: names, y: g.comparativa.map((d) => d.Falsa_alerta), name: "Falsa alerta", type: "bar", marker: { color: "#64748b" } },
       ],
       {
         ...sciLayout,

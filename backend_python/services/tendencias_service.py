@@ -6,10 +6,33 @@ import pandas as pd
 
 from services.temporal_service import _load
 
+ACR_NOMBRES = {
+    "ACR_AA": "Ampiyacu Apayacu",
+    "ACR_ANPCH": "Alto Nanay – Pintuyacu Chambira",
+    "ACR_MK": "Maijuna Kichwa",
+    "ACR_CTT": "Comunal Tamshiyacu Tahuayo",
+    "ACR_BSM": "Bosques de Shunté y Mishollo",
+    "ACR_CE": "Cordillera Escalera",
+    "ACR_CHQ": "Choquequirao",
+    "ACR_CHU": "Chuyapi Urusayhua",
+    "ACR_QK": "Q'eros Kosñipata",
+}
+
 COLORES_COMPARATIVA = [
-    "#1a4d2e", "#006D5B", "#4CAF50", "#66c2a5", "#f0ad4e",
-    "#d9534f", "#5cb85c", "#337ab7", "#8e44ad",
+    "#0B6E4F",
+    "#1B4F72",
+    "#B9770E",
+    "#6C3483",
+    "#1ABC9C",
+    "#C0392B",
+    "#2980B9",
+    "#27AE60",
+    "#D35400",
 ]
+
+
+def _nombre_acr(cod: str) -> str:
+    return ACR_NOMBRES.get(cod, str(cod).replace("ACR_", "").replace("_", " "))
 
 
 def analizar_tendencias(
@@ -35,16 +58,17 @@ def analizar_tendencias(
         agg = datos.groupby("Anio", as_index=False)["Deforestacion_ha"].sum()
         agg["ACR_codigo"] = "TOTAL"
         agg["Cambio_Pct"] = _pct_change(agg["Deforestacion_ha"].values)
-        series = [_serie_from_df(agg, "Deforestación", "#1a4d2e", mostrar_tendencia)]
-        titulo = "Tendencia de Deforestación (2001-2025)"
+        series = [_serie_from_df(agg, "Deforestación acumulada", "#0B6E4F", mostrar_tendencia)]
+        titulo = f"Tendencia de deforestación · {y0}–{y1}"
         return {"tipo": tipo_analisis, "titulo": titulo, "series": series}
 
     if tipo_analisis == "individual" and acr_seleccion:
         cod = acr_seleccion[0]
+        nombre = _nombre_acr(cod)
         sub = datos[datos["ACR_codigo"] == cod].sort_values("Anio")
         sub["Cambio_Pct"] = _pct_change(sub["Deforestacion_ha"].values)
-        series = [_serie_from_df(sub, cod, "#1a4d2e", mostrar_tendencia)]
-        titulo = f"Tendencia de Deforestación - {cod}"
+        series = [_serie_from_df(sub, nombre, "#0B6E4F", mostrar_tendencia)]
+        titulo = f"Tendencia de deforestación · {nombre}"
         return {"tipo": tipo_analisis, "titulo": titulo, "series": series}
 
     # comparativa
@@ -53,10 +77,10 @@ def analizar_tendencias(
         sub = datos[datos["ACR_codigo"] == cod].sort_values("Anio")
         sub["Cambio_Pct"] = _pct_change(sub["Deforestacion_ha"].values)
         color = COLORES_COMPARATIVA[i % len(COLORES_COMPARATIVA)]
-        series.append(_serie_from_df(sub, cod.replace("ACR_", ""), color, False))
+        series.append(_serie_from_df(sub, _nombre_acr(cod), color, False))
     return {
         "tipo": tipo_analisis,
-        "titulo": "Comparativa de Tendencias entre ACRs",
+        "titulo": "Comparativa de tendencias entre ACR",
         "series": series,
     }
 

@@ -8,7 +8,6 @@ const AcrMap = (() => {
   const TIPO_COLORS = {
     Antropogenico: "#9a3412",
     Natural: "#0f766e",
-    "Falsa alerta": "#64748b",
   };
 
   function fmtHa(v, digits = 1) {
@@ -22,7 +21,7 @@ const AcrMap = (() => {
 
   function defoStyle(tipo) {
     const fill = TIPO_COLORS[tipo] || TIPO_COLORS.Antropogenico;
-    const soft = tipo === "Natural" ? 0.55 : tipo === "Falsa alerta" ? 0.4 : 0.58;
+    const soft = tipo === "Natural" ? 0.55 : 0.58;
     return {
       color: fill,
       weight: 1.1,
@@ -209,10 +208,6 @@ const AcrMap = (() => {
         <li class="map-legend-item">
           <span class="map-legend-dot map-legend-dot--natural"></span>
           <span>Natural</span>
-        </li>
-        <li class="map-legend-item">
-          <span class="map-legend-dot map-legend-dot--falsa"></span>
-          <span>Falsa alerta</span>
         </li>`;
         if (mode === "mixed") {
           defoRows += `
@@ -229,7 +224,7 @@ const AcrMap = (() => {
           <ul class="map-legend-list">
             <li class="map-legend-item">
               <span class="map-legend-dot map-legend-dot--acr"></span>
-              <span>ACR</span>
+              <span>Área de Conservación Regional</span>
             </li>
             <li class="map-legend-item">
               <span class="map-legend-dot map-legend-dot--zi"></span>
@@ -410,7 +405,10 @@ const AcrMap = (() => {
       limit,
     };
     const geo = await apiGet("/api/deforestacion/vectors", params);
+    // Seguridad: excluir falsas alertas aunque el backend las envíe
+    geo.features = (geo.features || []).filter((f) => (f.properties?.tipo || "") !== "Falsa alerta");
     const features = geo.features || [];
+    if (geo.meta) geo.meta.count = features.length;
     const meta = geo.meta || {};
     if (!features.length) {
       console.info("Sin polígonos acumulados para los filtros activos.");
