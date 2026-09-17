@@ -15,6 +15,17 @@
 
 * { box-sizing: border-box; }
 
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
 body.portal-body {
   margin: 0;
   font-family: "Segoe UI", Lato, Helvetica, Arial, sans-serif;
