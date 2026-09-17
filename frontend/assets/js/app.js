@@ -31,7 +31,7 @@ function buildQuery(params) {
   return p.toString() ? `?${p}` : "";
 }
 
-async function apiGet(path, params = {}, retries = 3) {
+async function apiGet(path, params = {}, retries = 2) {
   let lastErr;
   for (let i = 0; i < retries; i++) {
     try {
@@ -40,7 +40,7 @@ async function apiGet(path, params = {}, retries = 3) {
       return res.json();
     } catch (err) {
       lastErr = err;
-      if (i < retries - 1) await new Promise((r) => setTimeout(r, 400 + i * 350));
+      if (i < retries - 1) await new Promise((r) => setTimeout(r, 250 + i * 250));
     }
   }
   throw lastErr;
@@ -82,33 +82,31 @@ function showOfflineBanner() {
 async function bootstrapDashboard() {
   hideLoading();
   initYearFilters();
-  Tendencias.init();
+  // Mapa al instante (no espera KPIs ni tendencias)
+  try { AcrMap.init(); } catch (_) {}
 
-  // Health en paralelo (no bloquea la UI); si falla del todo, banner offline
-  const healthP = apiGet("/api/health", {}, 8).catch(() => null);
+  const healthP = apiGet("/api/health", {}, 4).catch(() => null);
 
-  // URL ?acr= / ?tab= antes del primer refresh para no cargar dos veces
   await applyUrlQueryParams({ skipRefresh: true });
 
-  await loadAcrOptions();
+  const optionsP = loadAcrOptions();
+  await optionsP;
   if (state._pendingAcr) {
     const code = state._pendingAcr;
     delete state._pendingAcr;
     const sel = qs("#nombre_acr");
-    if (sel) {
-      sel.value = code;
-    }
+    if (sel) sel.value = code;
     state.acrs = [code];
     updateFilterInfo();
   }
 
-  // Mapa + KPIs al toque
+  // KPIs + mapa en paralelo (más fluido)
   const dashP = refreshDashboard();
 
   const health = await healthP;
   if (!health) {
     try {
-      await apiGet("/api/health", {}, 12);
+      await apiGet("/api/health", {}, 6);
     } catch (err) {
       showOfflineBanner();
       throw err;
@@ -144,6 +142,10 @@ function activateTab(tabName) {
   if (tab === "reportes" && !window._reportesReady) {
     window._reportesReady = true;
     Reportes.init();
+  }
+  if (tab === "tendencias" && typeof Tendencias !== "undefined" && !window._tendenciasReady) {
+    window._tendenciasReady = true;
+    Tendencias.init();
   }
   // Actualiza URL sin recargar para que cada sección sea una "página" clara
   try {
@@ -314,16 +316,18 @@ async function refreshDashboard() {
     anno_desde: state.annoDesde,
     anno_hasta: state.annoHasta,
   };
-  // 1) KPIs first (fast path — sin geometrías / sin CSV si vectores cubren)
-  renderKpis(await apiGet("/api/kpis", params));
-  // 2) Charts only when ACR selected; nacional placeholder needs no fetch
+  // Mapa en paralelo sin bloquear KPIs
+  AcrMap.refresh(state).catch((err) => console.warn("Mapa:", err));
+  const kpiP = apiGet("/api/kpis", params).then(renderKpis);
   if (state.acrs.length) {
-    await apiGet("/api/graficos", { ...params, ambito: state.ambito }).then(renderCharts);
+    await Promise.all([
+      kpiP,
+      apiGet("/api/graficos", { ...params, ambito: state.ambito }).then(renderCharts),
+    ]);
   } else {
     renderCharts({ modo: "nacional" });
+    await kpiP;
   }
-  // 3) Map fire-and-forget so KPIs/charts paint without waiting for polygons
-  AcrMap.refresh(state).catch((err) => console.warn("Mapa:", err));
   Modals.bind(state);
 }
 

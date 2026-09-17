@@ -655,6 +655,15 @@ body.portal-body {
   white-space: nowrap;
 }
 
+.datos-hero {
+  margin: 0 0 0 !important;
+}
+.portal-body .datos-hero {
+  margin-bottom: 0;
+}
+.portal-body .portal-section {
+  padding-top: 1.5rem;
+}
 .datos-deptos {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
