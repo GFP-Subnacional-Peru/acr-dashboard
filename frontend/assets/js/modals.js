@@ -292,30 +292,26 @@ const Modals = (() => {
   }
 
   function bind(state) {
-    if (!bound) {
-      document.getElementById("kpi-detail-close")?.addEventListener("click", closeDock);
-      document.querySelectorAll(".kpi-trigger").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const key = btn.dataset.kpi;
-          if (key === "hectareas") openHectareas(state);
-          else if (key === "causa") openCausas(state);
-          else if (key === "antropico") openAntropico(state);
-          else if (key === "variacion") openVariacion(state);
-        });
-      });
-      bound = true;
-    }
-    // Re-bind state reference by closing over latest via property
     Modals._state = state;
-    // Update click handlers to use latest state — re-query and replace
+    if (bound) return;
+    bound = true;
+
+    document.getElementById("kpi-detail-close")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeDock();
+    });
+
     document.querySelectorAll(".kpi-trigger").forEach((btn) => {
-      btn.onclick = () => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const st = Modals._state || state;
         const key = btn.dataset.kpi;
-        if (key === "hectareas") openHectareas(state);
-        else if (key === "causa") openCausas(state);
-        else if (key === "antropico") openAntropico(state);
-        else if (key === "variacion") openVariacion(state);
-      };
+        if (key === "hectareas") openHectareas(st);
+        else if (key === "causa") openCausas(st);
+        else if (key === "antropico") openAntropico(st);
+        else if (key === "variacion") openVariacion(st);
+      });
     });
   }
 
