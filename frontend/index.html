@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260917g" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260917h" />
 </head>
 <body>
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
@@ -29,7 +29,7 @@
           <li><button type="button" class="active" data-tab="dashboard"><i class="fas fa-map"></i> Mapa</button></li>
           <li><a class="nav-link-ext" href="/datos"><i class="fas fa-database"></i> Datos</a></li>
           <li><button type="button" data-tab="metodologia"><i class="fas fa-book-open"></i> Metodología</button></li>
-          <li><button type="button" data-tab="reportes"><i class="fas fa-download"></i> Reportes y Descargas</button></li>
+          <li><button type="button" data-tab="reportes"><i class="fas fa-download"></i> Reportes</button></li>
           <li><button type="button" data-tab="tendencias"><i class="fas fa-chart-line"></i> Tendencias</button></li>
         </ul>
       </nav>
@@ -93,16 +93,18 @@
         <section class="panelbox dash-kpi-card">
           <h5 class="section-title"><i class="fas fa-tachometer-alt"></i> Indicadores clave</h5>
           <p class="dash-kpi-subtitle">Resumen de la deforestación en las Áreas de Conservación Regional</p>
+          <p class="dash-kpi-hint"><i class="fas fa-hand-pointer"></i> Haga clic en un indicador para ver el detalle y los gráficos</p>
           <div class="kpi-list">
-            <div id="kpi-hectareas" class="value-box kpi-row kpi-row--ha">
+            <button type="button" id="kpi-hectareas" class="value-box kpi-row kpi-row--ha kpi-trigger" data-kpi="hectareas" aria-expanded="false">
               <div class="kpi-icon kpi-icon--tree" aria-hidden="true"><i class="fas fa-tree"></i></div>
               <div class="kpi-body">
                 <p class="label">Pérdida de bosque total</p>
                 <p class="number">—</p>
                 <span class="sub">Datos en tiempo real vía API</span>
               </div>
-            </div>
-            <div id="kpi-variacion" class="value-box kpi-row kpi-row--var kpi-dynamic">
+              <i class="kpi-chevron fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <button type="button" id="kpi-variacion" class="value-box kpi-row kpi-row--var kpi-dynamic kpi-trigger" data-kpi="variacion" aria-expanded="false">
               <i class="kpi-bg-icon fas fa-minus" aria-hidden="true"></i>
               <div class="kpi-icon kpi-icon--chart" aria-hidden="true"><i class="fas fa-chart-bar"></i></div>
               <div class="kpi-body">
@@ -110,23 +112,26 @@
                 <p class="number">—</p>
                 <span class="sub"><i class="sub-icon fas fa-minus"></i> <span class="sub-text">2025 vs 2024</span></span>
               </div>
-            </div>
-            <div id="kpi-porcentaje" class="value-box kpi-row kpi-row--ant">
+              <i class="kpi-chevron fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <button type="button" id="kpi-porcentaje" class="value-box kpi-row kpi-row--ant kpi-trigger" data-kpi="antropico" aria-expanded="false">
               <div class="kpi-icon kpi-icon--pie" aria-hidden="true"><i class="fas fa-chart-pie"></i></div>
               <div class="kpi-body">
                 <p class="label">Origen antrópico</p>
                 <p class="number">—</p>
                 <span class="sub">—</span>
               </div>
-            </div>
-            <div id="kpi-causa" class="value-box kpi-row kpi-row--causa">
+              <i class="kpi-chevron fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <button type="button" id="kpi-causa" class="value-box kpi-row kpi-row--causa kpi-trigger" data-kpi="causa" aria-expanded="false">
               <div class="kpi-icon kpi-icon--gear" aria-hidden="true"><i class="fas fa-cog"></i></div>
               <div class="kpi-body">
                 <p class="label">Principal causa estimada</p>
                 <p class="number">—</p>
                 <span class="sub"><i class="fas fa-search"></i> Según filtros activos</span>
               </div>
-            </div>
+              <i class="kpi-chevron fas fa-chevron-down" aria-hidden="true"></i>
+            </button>
           </div>
         </section>
       </div>
@@ -141,9 +146,15 @@
       </div>
     </div>
 
-    <section class="panelbox dash-analysis-card dash-analysis-below">
-      <h5 class="section-title"><i class="fas fa-chart-pie"></i> Análisis de la deforestación</h5>
-      <div id="charts-nacional" class="charts-placeholder">
+    <section id="kpi-detail-dock" class="panelbox kpi-detail-dock hidden" aria-live="polite">
+      <div class="kpi-detail-head">
+        <h5 class="section-title" id="kpi-detail-title"><i class="fas fa-tree"></i> Detalles de deforestación</h5>
+        <button type="button" class="kpi-detail-close" id="kpi-detail-close" title="Cerrar" aria-label="Cerrar detalle">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div id="kpi-detail-summary" class="kpi-detail-summary"></div>
+      <div id="charts-nacional" class="charts-placeholder kpi-detail-placeholder hidden">
         <i class="fas fa-info-circle"></i>
         <p>Seleccione una ACR en los filtros para ver la composición, causas y distribución de la deforestación.</p>
       </div>
@@ -157,6 +168,7 @@
       <div id="charts-comparativa" class="hidden">
         <div class="chart-block"><h6><i class="fas fa-balance-scale"></i> Análisis comparativo detallado</h6><div id="chart-comparativa"></div></div>
       </div>
+      <div id="kpi-detail-extra" class="kpi-detail-extra"></div>
     </section>
 
     <footer class="footer-simple">
@@ -337,11 +349,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260917g"></script>
-  <script src="/assets/js/modals.js?v=20260917g"></script>
+  <script src="/assets/js/map.js?v=20260917h"></script>
+  <script src="/assets/js/modals.js?v=20260917h"></script>
   <script src="/assets/js/atd-demo.js?v=20260709d"></script>
-  <script src="/assets/js/reportes.js?v=20260917g"></script>
-  <script src="/assets/js/tendencias.js?v=20260917g"></script>
-  <script src="/assets/js/app.js?v=20260917g"></script>
+  <script src="/assets/js/reportes.js?v=20260917h"></script>
+  <script src="/assets/js/tendencias.js?v=20260917h"></script>
+  <script src="/assets/js/app.js?v=20260917h"></script>
 </body>
 </html>
