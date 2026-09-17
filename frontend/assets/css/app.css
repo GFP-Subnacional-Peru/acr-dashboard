@@ -241,8 +241,8 @@ body {
   .nav-tabs a.nav-link-ext { font-size: 0.78rem; padding: 0.4rem 0.65rem; }
 }
 
-.tab-panel { display: none; padding: 0 1rem 2rem; }
-.tab-panel.active { display: block; }
+.tab-panel { display: none !important; padding: 0 0 2rem; }
+.tab-panel.active { display: block !important; }
 
 .hero-red {
   background: var(--red-bar);
@@ -2164,6 +2164,7 @@ body {
 #tab-dashboard > .dash-hero,
 #tab-dashboard > .dash-filters-bar,
 #tab-dashboard > .dash-main-grid,
+#tab-dashboard > .dash-analysis-below,
 #tab-dashboard > .region-insights-section,
 #tab-dashboard > .footer-simple {
   margin-left: auto;
@@ -2337,7 +2338,7 @@ body {
 
 .dash-main-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 32%) minmax(0, 68%);
+  grid-template-columns: minmax(280px, 36%) minmax(0, 64%);
   gap: 1rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -2532,11 +2533,17 @@ body {
 #tab-dashboard #map.dash-map,
 #tab-dashboard .dash-map {
   height: auto;
-  min-height: 420px;
-  height: 48vh;
-  max-height: 620px;
+  min-height: 520px;
+  height: 58vh;
+  max-height: 720px;
   border-radius: 10px;
   border: 1px solid #dce4ec;
+}
+
+.dash-analysis-below {
+  max-width: 1400px;
+  margin: 0 auto 1rem;
+  padding: 1rem 1.1rem 1.15rem;
 }
 
 .region-insights-section {

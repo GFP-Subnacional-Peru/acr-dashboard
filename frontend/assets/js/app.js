@@ -132,7 +132,7 @@ function startServerHeartbeat() {
 function activateTab(tabName) {
   const allowed = new Set(["dashboard", "metodologia", "reportes", "tendencias"]);
   const tab = allowed.has(tabName) ? tabName : "dashboard";
-  document.querySelectorAll(".nav-tabs button").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".nav-tabs button[data-tab]").forEach((b) => b.classList.remove("active"));
   document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
   const btn = document.querySelector(`.nav-tabs button[data-tab="${tab}"]`);
   if (btn) btn.classList.add("active");
@@ -145,10 +145,18 @@ function activateTab(tabName) {
     window._reportesReady = true;
     Reportes.init();
   }
+  // Actualiza URL sin recargar para que cada sección sea una "página" clara
+  try {
+    const url = new URL(window.location.href);
+    if (tab === "dashboard") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", tab);
+    window.history.replaceState({}, "", url);
+  } catch (_) { /* ignore */ }
 }
 
-document.querySelectorAll(".nav-tabs button").forEach((btn) => {
-  btn.addEventListener("click", () => {
+document.querySelectorAll(".nav-tabs button[data-tab]").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
     activateTab(btn.dataset.tab);
   });
 });

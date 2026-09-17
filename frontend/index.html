@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260916c" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260917a" />
 </head>
 <body>
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
@@ -127,8 +127,6 @@
             </div>
           </div>
         </section>
-
-        </section>
       </div>
 
       <div class="dash-col-right">
@@ -138,26 +136,26 @@
           <p id="map-loreto-info" class="map-loreto-info"><i class="fas fa-info-circle"></i> En <strong>Loreto, San Martín y Cusco</strong>, los polígonos de deforestación vienen del GDB <em>MonitoreoDeforestacionAcumulado</em> y respetan los filtros (departamento, ACR/ZI, años).</p>
           <div id="map" class="dash-map"></div>
         </section>
-
-        <section class="panelbox dash-analysis-card">
-          <h5 class="section-title"><i class="fas fa-chart-pie"></i> Análisis de la deforestación</h5>
-          <div id="charts-nacional" class="charts-placeholder">
-            <i class="fas fa-info-circle"></i>
-            <p>Seleccione una ACR en los filtros para ver la composición, causas y distribución de la deforestación.</p>
-          </div>
-          <div id="charts-individual" class="hidden">
-            <div class="charts-stack">
-              <div class="chart-block"><h6><i class="fas fa-chart-bar"></i> Composición de deforestación</h6><div id="chart-composicion"></div></div>
-              <div class="chart-block"><h6><i class="fas fa-tractor"></i> Principales causas antrópicas</h6><div id="chart-causas"></div></div>
-              <div class="chart-block chart-block--wide"><h6><i class="fas fa-chart-pie"></i> Distribución porcentual</h6><div id="chart-distribucion"></div></div>
-            </div>
-          </div>
-          <div id="charts-comparativa" class="hidden">
-            <div class="chart-block"><h6><i class="fas fa-balance-scale"></i> Análisis comparativo detallado</h6><div id="chart-comparativa"></div></div>
-          </div>
-        </section>
       </div>
     </div>
+
+    <section class="panelbox dash-analysis-card dash-analysis-below">
+      <h5 class="section-title"><i class="fas fa-chart-pie"></i> Análisis de la deforestación</h5>
+      <div id="charts-nacional" class="charts-placeholder">
+        <i class="fas fa-info-circle"></i>
+        <p>Seleccione una ACR en los filtros para ver la composición, causas y distribución de la deforestación.</p>
+      </div>
+      <div id="charts-individual" class="hidden">
+        <div class="charts-stack">
+          <div class="chart-block"><h6><i class="fas fa-chart-bar"></i> Composición de deforestación</h6><div id="chart-composicion"></div></div>
+          <div class="chart-block"><h6><i class="fas fa-tractor"></i> Principales causas antrópicas</h6><div id="chart-causas"></div></div>
+          <div class="chart-block chart-block--wide"><h6><i class="fas fa-chart-pie"></i> Distribución porcentual</h6><div id="chart-distribucion"></div></div>
+        </div>
+      </div>
+      <div id="charts-comparativa" class="hidden">
+        <div class="chart-block"><h6><i class="fas fa-balance-scale"></i> Análisis comparativo detallado</h6><div id="chart-comparativa"></div></div>
+      </div>
+    </section>
 
     <footer class="footer-simple">
       <div class="footer-logo"><i class="fas fa-leaf"></i></div>
@@ -337,11 +335,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260916c"></script>
-  <script src="/assets/js/modals.js?v=20260916c"></script>
+  <script src="/assets/js/map.js?v=20260917a"></script>
+  <script src="/assets/js/modals.js?v=20260917a"></script>
   <script src="/assets/js/atd-demo.js?v=20260709d"></script>
-  <script src="/assets/js/reportes.js?v=20260916a"></script>
-  <script src="/assets/js/tendencias.js?v=20260916a"></script>
-  <script src="/assets/js/app.js?v=20260916c"></script>
+  <script src="/assets/js/reportes.js?v=20260917a"></script>
+  <script src="/assets/js/tendencias.js?v=20260917a"></script>
+  <script src="/assets/js/app.js?v=20260917a"></script>
 </body>
 </html>
