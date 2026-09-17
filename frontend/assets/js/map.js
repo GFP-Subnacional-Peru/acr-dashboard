@@ -45,21 +45,28 @@ const AcrMap = (() => {
 
   function init() {
     if (map) return map;
-    map = L.map("map", { scrollWheelZoom: true, preferCanvas: true }).setView([-7.5, -74.5], 6);
+    map = L.map("map", {
+      scrollWheelZoom: true,
+      preferCanvas: true,
+      zoomControl: false,
+    }).setView([-7.5, -74.5], 6);
 
     const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap",
+      attribution: "Leaflet | © OpenStreetMap",
       maxZoom: 18,
     });
     const sat = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      { attribution: "© Esri", maxZoom: 18 }
+      { attribution: "Leaflet | Tiles © Esri, Maxar, Earthstar Geographics", maxZoom: 18 }
     );
     const topo = L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-      { attribution: "© Esri", maxZoom: 18 }
+      { attribution: "Leaflet | Tiles © Esri", maxZoom: 18 }
     );
     sat.addTo(map);
+
+    map._tiles = { sat, topo, osm };
+    map._activeBase = "sat";
 
     defoLayer = L.layerGroup();
     clusterGroup = L.markerClusterGroup({
@@ -68,16 +75,87 @@ const AcrMap = (() => {
       spiderfyOnMaxZoom: true,
     });
 
+    L.control.zoom({ position: "bottomright" }).addTo(map);
     L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
 
-    map._baseLayers = {
-      "🗺️ Calles (OSM)": osm,
-      "🛰️ Satelital (Esri)": sat,
-      "⛰️ Topográfico": topo,
-    };
+    addBasemapControl();
+    addMapTools();
+
     map._overlayReady = false;
     map._defoMode = "vectors";
     return map;
+  }
+
+  function setBaseLayer(key) {
+    if (!map || !map._tiles) return;
+    Object.values(map._tiles).forEach((layer) => {
+      if (map.hasLayer(layer)) map.removeLayer(layer);
+    });
+    const next = map._tiles[key] || map._tiles.sat;
+    next.addTo(map);
+    map._activeBase = key;
+    map.getContainer()
+      .querySelectorAll(".gfp-basemap-btn")
+      .forEach((btn) => btn.classList.toggle("active", btn.dataset.base === key));
+  }
+
+  function addBasemapControl() {
+    if (map._basemapCtrl) map.removeControl(map._basemapCtrl);
+    map._basemapCtrl = L.control({ position: "topleft" });
+    map._basemapCtrl.onAdd = () => {
+      const wrap = L.DomUtil.create("div", "gfp-map-ui gfp-basemap");
+      L.DomEvent.disableClickPropagation(wrap);
+      L.DomEvent.disableScrollPropagation(wrap);
+      wrap.innerHTML = `
+        <button type="button" class="gfp-basemap-btn active" data-base="sat">Satelital</button>
+        <button type="button" class="gfp-basemap-btn" data-base="topo">Topográfico</button>
+        <button type="button" class="gfp-basemap-btn" data-base="osm">Calles</button>
+      `;
+      wrap.querySelectorAll(".gfp-basemap-btn").forEach((btn) => {
+        btn.addEventListener("click", () => setBaseLayer(btn.dataset.base));
+      });
+      return wrap;
+    };
+    map._basemapCtrl.addTo(map);
+  }
+
+  function addMapTools() {
+    if (map._toolsCtrl) map.removeControl(map._toolsCtrl);
+    map._toolsCtrl = L.control({ position: "bottomleft" });
+    map._toolsCtrl.onAdd = () => {
+      const wrap = L.DomUtil.create("div", "gfp-map-ui gfp-map-tools");
+      L.DomEvent.disableClickPropagation(wrap);
+      wrap.innerHTML = `
+        <button type="button" class="gfp-tool-btn" id="gfp-map-fs" title="Pantalla completa" aria-label="Pantalla completa">
+          <i class="fas fa-expand"></i>
+        </button>
+        <button type="button" class="gfp-tool-btn" id="gfp-map-reset" title="Restablecer vista" aria-label="Restablecer vista">
+          <i class="fas fa-undo"></i>
+        </button>
+      `;
+      wrap.querySelector("#gfp-map-fs")?.addEventListener("click", toggleFullscreen);
+      wrap.querySelector("#gfp-map-reset")?.addEventListener("click", () => {
+        try {
+          if (layerRefs.acr) map.fitBounds(layerRefs.acr.getBounds(), { padding: [30, 30], maxZoom: 9 });
+          else map.setView([-7.5, -74.5], 6);
+        } catch (_) {
+          map.setView([-7.5, -74.5], 6);
+        }
+      });
+      return wrap;
+    };
+    map._toolsCtrl.addTo(map);
+  }
+
+  function toggleFullscreen() {
+    const el = document.getElementById("map");
+    const card = el?.closest(".dash-map-card") || el;
+    if (!card) return;
+    const active = card.classList.toggle("gfp-map-fullscreen");
+    document.body.classList.toggle("gfp-map-fs-open", active);
+    const icon = document.querySelector("#gfp-map-fs i");
+    if (icon) icon.className = active ? "fas fa-compress" : "fas fa-expand";
+    setTimeout(() => map?.invalidateSize(), 220);
   }
 
   function geoLayer(geo, style, groupName) {
@@ -111,38 +189,35 @@ const AcrMap = (() => {
 
   function addLegend(mode) {
     if (map._legend) map.removeControl(map._legend);
-    map._legend = L.control({ position: "bottomright" });
+    map._legend = L.control({ position: "topleft" });
     map._legend.onAdd = () => {
-      const div = L.DomUtil.create("div", "map-legend");
+      const div = L.DomUtil.create("div", "map-legend gfp-legend");
       L.DomEvent.disableClickPropagation(div);
       L.DomEvent.disableScrollPropagation(div);
 
       let defoRows = `
         <li class="map-legend-item">
-          <span class="map-legend-swatch map-legend-swatch--dot map-legend-swatch--defo"></span>
+          <span class="map-legend-dot map-legend-dot--defo"></span>
           <span>Deforestación (centroides)</span>
         </li>`;
       if (mode === "vectors" || mode === "mixed") {
         defoRows = `
         <li class="map-legend-item">
-          <span class="map-legend-swatch map-legend-swatch--fill map-legend-swatch--defo"></span>
-          <span>Deforestación acumulada</span>
+          <span class="map-legend-dot map-legend-dot--antropico"></span>
+          <span>Origen antrópico</span>
         </li>
-        <li class="map-legend-item map-legend-item--causes">
-          <span class="map-legend-cause">
-            <span class="map-legend-swatch map-legend-swatch--fill map-legend-swatch--antropico"></span>
-            <span>Origen antrópico</span>
-          </span>
-          <span class="map-legend-sep" aria-hidden="true">·</span>
-          <span class="map-legend-cause">
-            <span class="map-legend-swatch map-legend-swatch--fill map-legend-swatch--natural"></span>
-            <span>Natural</span>
-          </span>
+        <li class="map-legend-item">
+          <span class="map-legend-dot map-legend-dot--natural"></span>
+          <span>Natural</span>
+        </li>
+        <li class="map-legend-item">
+          <span class="map-legend-dot map-legend-dot--falsa"></span>
+          <span>Falsa alerta</span>
         </li>`;
         if (mode === "mixed") {
           defoRows += `
         <li class="map-legend-item">
-          <span class="map-legend-swatch map-legend-swatch--dot map-legend-swatch--defo"></span>
+          <span class="map-legend-dot map-legend-dot--defo"></span>
           <span>Otros deptos. (centroides)</span>
         </li>`;
         }
@@ -150,21 +225,18 @@ const AcrMap = (() => {
 
       div.innerHTML = `
         <div class="map-legend-card">
-          <div class="map-legend-title">
-            <i class="fas fa-layer-group" aria-hidden="true"></i>
-            <span>Leyenda del mapa</span>
-          </div>
+          <div class="map-legend-title">Deforestación acumulada</div>
           <ul class="map-legend-list">
             <li class="map-legend-item">
-              <span class="map-legend-swatch map-legend-swatch--outline map-legend-swatch--acr"></span>
-              <span>ACR (solo borde)</span>
+              <span class="map-legend-dot map-legend-dot--acr"></span>
+              <span>ACR</span>
             </li>
             <li class="map-legend-item">
-              <span class="map-legend-swatch map-legend-swatch--outline map-legend-swatch--zi"></span>
-              <span>Zona de Influencia (solo borde)</span>
+              <span class="map-legend-dot map-legend-dot--zi"></span>
+              <span>Zona de influencia</span>
             </li>
             <li class="map-legend-item">
-              <span class="map-legend-swatch map-legend-swatch--line map-legend-swatch--limites"></span>
+              <span class="map-legend-dot map-legend-dot--limites"></span>
               <span>Límites departamentales</span>
             </li>
             ${defoRows}
@@ -182,13 +254,40 @@ const AcrMap = (() => {
     if (layerRefs.zi) overlays["Zonas de Influencia"] = layerRefs.zi;
     if (layerRefs.limites) overlays["Límites Departamentales"] = layerRefs.limites;
     if (mode === "mixed") {
-      overlays["🔴 Deforestación (polígonos)"] = defoLayer;
-      overlays["🔴 Deforestación (centroides)"] = clusterGroup;
+      overlays["Deforestación (polígonos)"] = defoLayer;
+      overlays["Deforestación (centroides)"] = clusterGroup;
     } else {
-      overlays["🔴 Deforestación"] = mode === "vectors" ? defoLayer : clusterGroup;
+      overlays["Deforestación"] = mode === "vectors" ? defoLayer : clusterGroup;
     }
 
-    map._layerControl = L.control.layers(map._baseLayers, overlays, { collapsed: false }).addTo(map);
+    map._layerControl = L.control({ position: "topright" });
+    map._layerControl.onAdd = () => {
+      const wrap = L.DomUtil.create("div", "gfp-map-ui gfp-overlays");
+      L.DomEvent.disableClickPropagation(wrap);
+      L.DomEvent.disableScrollPropagation(wrap);
+      const rows = Object.entries(overlays)
+        .map(([label, layer], i) => {
+          const id = `gfp-ov-${i}`;
+          const checked = map.hasLayer(layer) ? "checked" : "";
+          return `<label class="gfp-overlay-row" for="${id}">
+            <input type="checkbox" id="${id}" ${checked} data-ov="${i}" />
+            <span>${label}</span>
+          </label>`;
+        })
+        .join("");
+      wrap.innerHTML = `<div class="gfp-overlays-title">Capas</div>${rows}`;
+      const entries = Object.values(overlays);
+      wrap.querySelectorAll("input[type=checkbox]").forEach((input) => {
+        input.addEventListener("change", () => {
+          const layer = entries[+input.dataset.ov];
+          if (!layer) return;
+          if (input.checked) map.addLayer(layer);
+          else map.removeLayer(layer);
+        });
+      });
+      return wrap;
+    };
+    map._layerControl.addTo(map);
   }
 
   const DEPTO_CODES = {

@@ -303,38 +303,139 @@ body {
   color: #5d6d7e;
 }
 
-/* Leyenda del mapa principal Ã¢ÂÂ tipografÃÂ­a alineada al nav (#003DA5) */
-.map-legend {
-  margin: 0 12px 12px 0 !important;
+/* Controles mapa estilo GFP obras paralizadas */
+.gfp-map-ui {
+  font-family: "Segoe UI", Lato, Helvetica, Arial, sans-serif;
   pointer-events: auto;
 }
-.map-legend-card {
+.gfp-basemap {
+  display: inline-flex;
+  align-items: stretch;
   background: #fff;
-  border-radius: 12px;
-  padding: 12px 14px 12px;
-  min-width: 220px;
-  max-width: 280px;
-  box-shadow: 0 6px 20px rgba(0, 61, 165, 0.14), 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 61, 165, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 45, 85, 0.18);
+  border: 1px solid rgba(0, 45, 85, 0.18);
+  margin-bottom: 8px !important;
+}
+.gfp-basemap-btn {
+  border: none;
+  background: #fff;
+  color: #002d55;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.gfp-basemap-btn + .gfp-basemap-btn {
+  border-left: 1px solid rgba(0, 45, 85, 0.12);
+}
+.gfp-basemap-btn:hover { background: #f3f6fb; }
+.gfp-basemap-btn.active {
+  background: #002d55;
+  color: #fff;
+}
+
+.gfp-overlays {
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.65rem 0.8rem;
+  min-width: 180px;
+  box-shadow: 0 4px 16px rgba(0, 45, 85, 0.16);
+  border: 1px solid rgba(0, 45, 85, 0.16);
+}
+.gfp-overlays-title {
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: #002d55;
+  margin-bottom: 0.45rem;
+}
+.gfp-overlay-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0.28rem 0;
+  cursor: pointer;
+}
+.gfp-overlay-row input { accent-color: #002d55; }
+
+.gfp-map-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 28px !important;
+}
+.gfp-tool-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(0, 45, 85, 0.35);
+  background: #fff;
+  color: #002d55;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 45, 85, 0.12);
+}
+.gfp-tool-btn:hover { background: #f3f6fb; }
+
+#map .leaflet-control-zoom {
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 12px 12px 0 !important;
+}
+#map .leaflet-control-zoom a {
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  border: 1.5px solid rgba(0, 45, 85, 0.35) !important;
+  border-radius: 8px !important;
+  color: #002d55 !important;
+  background: #fff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 10px rgba(0, 45, 85, 0.12);
+  margin-bottom: 6px !important;
+}
+#map .leaflet-control-zoom a:hover { background: #f3f6fb !important; }
+#map .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-radius: 8px 0 0 0;
+  color: #475569 !important;
+  font-size: 10px !important;
+}
+
+/* Leyenda estilo GFP */
+.map-legend {
+  margin: 0 !important;
+  clear: both;
+  pointer-events: auto;
+}
+.map-legend.gfp-legend { margin-top: 0 !important; }
+.map-legend-card {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-width: 200px;
+  max-width: 250px;
+  box-shadow: 0 4px 16px rgba(0, 45, 85, 0.16);
+  border: 1px solid rgba(0, 45, 85, 0.16);
   font-family: "Segoe UI", Lato, Helvetica, Arial, sans-serif;
   color: #1f2a37;
 }
 .map-legend-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin: 0 0 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0, 61, 165, 0.12);
-  color: #003DA5;
-  font-weight: 700;
-  font-size: 0.88rem;
+  color: #002d55;
+  font-weight: 800;
+  font-size: 0.84rem;
   letter-spacing: 0.01em;
-  line-height: 1.2;
-}
-.map-legend-title i {
-  font-size: 0.85rem;
-  opacity: 0.9;
+  line-height: 1.25;
 }
 .map-legend-list {
   list-style: none;
@@ -342,80 +443,71 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
 }
 .map-legend-item {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   margin: 0;
   font-size: 0.78rem;
   font-weight: 600;
   color: #334155;
   line-height: 1.25;
 }
-.map-legend-item--causes {
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  padding-left: 1px;
-}
-.map-legend-cause {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-.map-legend-sep {
-  color: #94a3b8;
-  font-weight: 700;
-  margin: 0 2px;
-}
-.map-legend-swatch {
-  flex: 0 0 auto;
-  box-sizing: border-box;
-}
-.map-legend-swatch--outline {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  background: transparent;
-}
-.map-legend-swatch--acr {
-  border: 2.5px solid #2E7D32;
-}
-.map-legend-swatch--zi {
-  border: 2.5px solid #616161;
-}
-.map-legend-swatch--line {
-  width: 16px;
-  height: 0;
-  border-top: 3px solid #E30613;
-  border-radius: 2px;
-}
-.map-legend-swatch--fill {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-}
-.map-legend-swatch--defo {
-  background: rgba(192, 57, 43, 0.45);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
-}
-.map-legend-swatch--antropico {
-  background: rgba(154, 52, 18, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
-}
-.map-legend-swatch--natural {
-  background: rgba(15, 118, 110, 0.48);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
-}
-.map-legend-swatch--dot {
-  width: 10px;
-  height: 10px;
+.map-legend-dot {
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  margin: 0 2px;
-  background: #d32f2f;
-  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.18);
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
 }
+.map-legend-dot--acr { background: #2E7D32; }
+.map-legend-dot--zi { background: #616161; }
+.map-legend-dot--limites { background: #E30613; }
+.map-legend-dot--antropico { background: #9a3412; }
+.map-legend-dot--natural { background: #0f766e; }
+.map-legend-dot--falsa { background: #64748b; }
+.map-legend-dot--defo { background: #c0392b; }
+
+/* Pantalla completa del mapa */
+.dash-map-card.gfp-map-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10050 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  padding: 0.65rem !important;
+  background: #0b1220 !important;
+  max-width: none !important;
+}
+.dash-map-card.gfp-map-fullscreen .section-title,
+.dash-map-card.gfp-map-fullscreen .dash-map-period,
+.dash-map-card.gfp-map-fullscreen .map-loreto-info {
+  color: #e2e8f0;
+}
+.dash-map-card.gfp-map-fullscreen #map.dash-map {
+  height: calc(100vh - 88px) !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  border-radius: 12px;
+}
+body.gfp-map-fs-open { overflow: hidden; }
+
+/* Compat: swatches antiguas por si quedan referencias */
+.map-legend-swatch { flex: 0 0 auto; box-sizing: border-box; }
+.map-legend-swatch--outline { width: 14px; height: 14px; border-radius: 3px; background: transparent; }
+.map-legend-swatch--acr { border: 2.5px solid #2E7D32; }
+.map-legend-swatch--zi { border: 2.5px solid #616161; }
+.map-legend-swatch--line { width: 16px; height: 0; border-top: 3px solid #E30613; border-radius: 2px; }
+.map-legend-swatch--fill { width: 14px; height: 14px; border-radius: 50%; }
+.map-legend-swatch--defo { background: #c0392b; }
+.map-legend-swatch--antropico { background: #9a3412; }
+.map-legend-swatch--natural { background: #0f766e; }
+.map-legend-swatch--dot { width: 11px; height: 11px; border-radius: 50%; background: #c0392b; }
+.map-legend-item--causes,
+.map-legend-cause,
+.map-legend-sep { display: none; }
 
 .map-loreto-info {
   color: #2e7d32;
@@ -2533,11 +2625,13 @@ body {
 #tab-dashboard #map.dash-map,
 #tab-dashboard .dash-map {
   height: auto;
-  min-height: 520px;
-  height: 58vh;
-  max-height: 720px;
-  border-radius: 10px;
-  border: 1px solid #dce4ec;
+  min-height: 560px;
+  height: 64vh;
+  max-height: 820px;
+  border-radius: 12px;
+  border: 1px solid #d5dee8;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 45, 85, 0.04);
 }
 
 .dash-analysis-below {
