@@ -417,7 +417,6 @@ function renderCharts(g) {
   comp?.classList.add("hidden");
   nac?.classList.add("hidden");
 
-  // Gama clásica del portal (rojo / verde / naranja / teal GFP)
   const COL = {
     antropico: "#d9534f",
     natural: "#5cb85c",
@@ -425,18 +424,21 @@ function renderCharts(g) {
   };
 
   const sciLayout = {
-    paper_bgcolor: "#ffffff",
-    plot_bgcolor: "#fbfcfd",
-    font: { family: "Segoe UI, Helvetica Neue, Arial, sans-serif", size: 12, color: "#2c3e50" },
-    title: { font: { size: 13, color: "#1a4d2e" } },
-    hoverlabel: { bgcolor: "#1a4d2e", bordercolor: "#1a4d2e", font: { color: "#fff", size: 12 } },
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(248,250,252,0.55)",
+    font: { family: "Segoe UI, Helvetica Neue, Arial, sans-serif", size: 12, color: "#334155" },
+    hoverlabel: {
+      bgcolor: "rgba(15, 23, 42, 0.92)",
+      bordercolor: "rgba(15, 23, 42, 0.92)",
+      font: { color: "#fff", size: 12 },
+    },
   };
   const axisSci = {
-    gridcolor: "#edf2f7",
-    zerolinecolor: "#cbd5e1",
-    linecolor: "#cbd5e1",
-    tickfont: { size: 11, color: "#5a6a7a" },
-    titlefont: { size: 12, color: "#34495e" },
+    gridcolor: "rgba(226,232,240,0.85)",
+    zeroline: false,
+    linecolor: "rgba(203,213,225,0.9)",
+    tickfont: { size: 11, color: "#64748b" },
+    titlefont: { size: 12, color: "#475569" },
     showline: true,
     mirror: false,
   };
@@ -453,26 +455,22 @@ function renderCharts(g) {
         x: composicion.map((d) => d.Categoria),
         y: composicion.map((d) => d.Hectareas),
         type: "bar",
-        width: 0.55,
-        marker: {
-          color: compColors,
-          line: { color: "rgba(26,77,46,0.35)", width: 0.8 },
-          opacity: 0.92,
-        },
+        width: 0.48,
+        marker: { color: compColors, line: { width: 0 }, opacity: 0.95, cornerradius: 8 },
         text: composicion.map((d) => Number(d.Hectareas).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
         textposition: "outside",
-        textfont: { size: 11, color: "#2c3e50", family: "Segoe UI, Arial, sans-serif" },
+        textfont: { size: 12, color: "#0f172a", family: "Segoe UI, Arial, sans-serif" },
         cliponaxis: false,
         hovertemplate: "<b>%{x}</b><br>%{y:,.1f} ha<extra></extra>",
       }],
       {
         ...sciLayout,
-        yaxis: { title: "Hectáreas (ha)", ...axisSci, ticksuffix: "" },
+        yaxis: { title: "Hectáreas (ha)", ...axisSci },
         xaxis: { ...axisSci, tickangle: 0, showgrid: false },
         showlegend: false,
-        margin: { t: 36, b: 48, l: 58, r: 18 },
-        height: 300,
-        bargap: 0.35,
+        margin: { t: 40, b: 52, l: 58, r: 18 },
+        height: 310,
+        bargap: 0.42,
       },
       { responsive: true, displayModeBar: false }
     );
@@ -489,12 +487,13 @@ function renderCharts(g) {
           orientation: "h",
           marker: {
             color: values.map((_, i) => COL.causas[i % COL.causas.length]),
-            line: { color: "rgba(0,109,91,0.35)", width: 0.6 },
-            opacity: 0.92,
+            line: { width: 0 },
+            opacity: 0.95,
+            cornerradius: 6,
           },
           text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
           textposition: "outside",
-          textfont: { size: 11, color: "#2c3e50" },
+          textfont: { size: 11, color: "#0f172a" },
           cliponaxis: false,
           hovertemplate: "<b>%{y}</b><br>%{x:,.1f} ha<extra></extra>",
         }],
@@ -510,7 +509,9 @@ function renderCharts(g) {
     }
     if (g.distribucion) {
       const distItems = (g.distribucion.items || []).filter((d) => d.Categoria !== "Falsa alerta");
-      const distTotal = distItems.reduce((a, d) => a + Number(d.Hectareas || 0), 0);
+      const distTotal = Number(g.distribucion.total != null
+        ? g.distribucion.total
+        : distItems.reduce((a, d) => a + Number(d.Hectareas || 0), 0));
       const pieColors = distItems.map((d) =>
         String(d.Categoria || "").toLowerCase().includes("antr") ? COL.antropico : COL.natural
       );
@@ -520,34 +521,32 @@ function renderCharts(g) {
           labels: distItems.map((d) => d.Categoria),
           values: distItems.map((d) => d.Hectareas),
           type: "pie",
-          hole: 0.52,
-          marker: {
-            colors: pieColors,
-            line: { color: "#ffffff", width: 2 },
-          },
+          hole: 0.58,
+          marker: { colors: pieColors, line: { color: "#ffffff", width: 3 } },
           textinfo: "percent",
           textposition: "inside",
-          textfont: { size: 13, color: "#ffffff", family: "Segoe UI, Arial, sans-serif" },
+          textfont: { size: 13, color: "#ffffff" },
           insidetextorientation: "horizontal",
           sort: false,
+          pull: 0.015,
           hovertemplate: "<b>%{label}</b><br>%{value:,.1f} ha (%{percent})<extra></extra>",
         }],
         {
           ...sciLayout,
           annotations: [{
-            text: `<b style="font-size:16px;color:#1a4d2e">${fmt(distTotal)} ha</b><br><span style="font-size:11px;color:#7f8c8d">total analizado</span>`,
+            text: `<b style="font-size:17px;color:#1e3a5f">${fmt(distTotal)} ha</b><br><span style="font-size:11px;color:#64748b">total analizado</span>`,
             showarrow: false,
             font: { size: 13 },
           }],
-          margin: { t: 28, b: 40, l: 28, r: 28 },
-          height: 320,
+          margin: { t: 28, b: 44, l: 28, r: 28 },
+          height: 330,
           showlegend: true,
           legend: {
             orientation: "h",
-            y: -0.06,
+            y: -0.08,
             x: 0.5,
             xanchor: "center",
-            font: { size: 11, color: "#34495e" },
+            font: { size: 11, color: "#475569" },
           },
         },
         { responsive: true, displayModeBar: false }
@@ -565,21 +564,21 @@ function renderCharts(g) {
           y: g.comparativa.map((d) => d.Antropico),
           name: "Origen antrópico",
           type: "bar",
-          marker: { color: COL.antropico, opacity: 0.92, line: { color: "rgba(192,57,43,0.35)", width: 0.6 } },
+          marker: { color: COL.antropico, opacity: 0.95, line: { width: 0 }, cornerradius: 5 },
         },
         {
           x: names,
           y: g.comparativa.map((d) => d.Perdida_natural),
           name: "Natural",
           type: "bar",
-          marker: { color: COL.natural, opacity: 0.92, line: { color: "rgba(39,174,96,0.35)", width: 0.6 } },
+          marker: { color: COL.natural, opacity: 0.95, line: { width: 0 }, cornerradius: 5 },
         },
       ],
       {
         ...sciLayout,
         barmode: "group",
-        bargap: 0.28,
-        bargroupgap: 0.12,
+        bargap: 0.3,
+        bargroupgap: 0.14,
         margin: { b: 100, t: 28, l: 56, r: 20 },
         xaxis: { ...axisSci, tickangle: -28, showgrid: false },
         yaxis: { title: "Área (ha)", ...axisSci },

@@ -49,6 +49,7 @@ from services.deforestacion_vectors_service import (
     kpis_desde_acumulado,
     load_acumulado_vectors,
     loreto_en_alcance,
+    tabla_acrs_desde_acumulado,
     vectors_en_alcance,
     warmup_acumulado_cache,
 )
@@ -314,7 +315,31 @@ def listar_acrs(
     departamento: str = Query("todos"),
     tipo: str = Query("acr"),
     acr: list[str] | None = Query(None),
+    anno_desde: int | None = Query(None, ge=2001, le=2030),
+    anno_hasta: int | None = Query(None, ge=2001, le=2030),
 ) -> dict:
+    ambito = "acr" if tipo == "acr" else ("zi" if tipo == "zi" else "ambos")
+    # Preferir GeoJSON acumulado con período (misma fuente que KPIs/gráficos)
+    if vectors_en_alcance(departamento, acr):
+        depto_vec = departamento if departamento in VECTOR_DEPTOS else "todos"
+        sel = _vector_acrs_seleccionados(acr, depto_vec) if acr else None
+        rows = tabla_acrs_desde_acumulado(
+            depto_vec,
+            ambito,
+            sel,
+            anno_desde=anno_desde,
+            anno_hasta=anno_hasta,
+        )
+        if rows is not None:
+            return {
+                "departamento": departamento,
+                "tipo": tipo,
+                "count": len(rows),
+                "source": "MonitoreoDeforestacionAcumulado",
+                "anno_desde": anno_desde,
+                "anno_hasta": anno_hasta,
+                "data": rows,
+            }
     est = _APP_STATE["estadisticas"]
     df = obtener_datos_filtrados(est, filtros=acr, departamento=departamento, tipo=tipo)  # type: ignore
     return {"departamento": departamento, "tipo": tipo, "count": len(df), "data": dataframe_to_records(df)}

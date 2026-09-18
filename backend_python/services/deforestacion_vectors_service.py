@@ -441,6 +441,53 @@ def causas_antropicas_desde_acumulado(
     ]
 
 
+def tabla_acrs_desde_acumulado(
+    departamento: str = "loreto",
+    ambito: str = "acr",
+    acrs: list[str] | None = None,
+    anno_desde: int | None = None,
+    anno_hasta: int | None = None,
+) -> list[dict] | None:
+    """Filas por ACR (Total / Antrópico / Natural) respetando el período."""
+    if not _any_acumulado_available(departamento, ambito, acrs):
+        return None
+    props = list(
+        iter_acumulado_properties(departamento, ambito, acrs, anno_desde, anno_hasta)
+    )
+    from services.decretos_service import ACR_DECRETOS
+
+    nombres = dict(zip(ACR_DECRETOS["codigo"], ACR_DECRETOS["nombre_completo"]))
+    codes = acrs if acrs else sorted({p.get("codigo") for p in props if p.get("codigo")})
+    rows: list[dict] = []
+    for codigo in codes:
+        if not codigo or str(codigo).startswith("ZI_"):
+            if ambito == "acr":
+                continue
+        if ambito == "acr" and str(codigo).startswith("ZI_"):
+            continue
+        if ambito == "zi" and not str(codigo).startswith("ZI_"):
+            continue
+        sub = [p for p in props if p.get("codigo") == codigo]
+        if not sub:
+            continue
+        total, ant, nat, fal, _ = _sumar_props(sub)
+        # Total mostrado = antrópico + natural (sin falsa alerta), alineado a KPIs/gráficos
+        total_vis = round(ant + nat, 2)
+        nombre = nombres.get(codigo, codigo)
+        rows.append(
+            {
+                "Nombre": nombre if str(nombre).startswith("ACR") else f"ACR {nombre}",
+                "Total": total_vis,
+                "Antropico": round(ant, 2),
+                "Perdida_natural": round(nat, 2),
+                "Falsa_alerta": round(fal, 2),
+                "codigo": codigo,
+            }
+        )
+    rows.sort(key=lambda r: float(r.get("Total") or 0), reverse=True)
+    return rows
+
+
 def graficos_desde_acumulado(
     departamento: str = "loreto",
     ambito: str = "acr",
@@ -474,11 +521,10 @@ def graficos_desde_acumulado(
             {"Categoria": "Falsa alerta", "Hectareas": fal, "Color": "#f0ad4e"},
         ]
         out["distribucion"] = {
-            "total": total,
+            "total": round(ant + nat, 2),
             "items": [
-                {"Categoria": "Origen antrópico", "Hectareas": ant, "Porcentaje": round((ant / total) * 100, 1) if total else 0, "Color": "#d9534f"},
-                {"Categoria": "Natural", "Hectareas": nat, "Porcentaje": round((nat / total) * 100, 1) if total else 0, "Color": "#5cb85c"},
-                {"Categoria": "Falsa alerta", "Hectareas": fal, "Porcentaje": round((fal / total) * 100, 1) if total else 0, "Color": "#f0ad4e"},
+                {"Categoria": "Origen antrópico", "Hectareas": ant, "Porcentaje": round((ant / (ant + nat)) * 100, 1) if (ant + nat) else 0, "Color": "#d9534f"},
+                {"Categoria": "Natural", "Hectareas": nat, "Porcentaje": round((nat / (ant + nat)) * 100, 1) if (ant + nat) else 0, "Color": "#5cb85c"},
             ],
         }
         if causas_ant:

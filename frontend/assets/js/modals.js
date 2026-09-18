@@ -170,31 +170,52 @@ const Modals = (() => {
       b.setAttribute("aria-expanded", on ? "true" : "false");
     });
 
+    const periodo = `${state.annoDesde}–${state.annoHasta}`;
     showFloating(
-      '<i class="fas fa-tree"></i> Detalles de deforestación',
-      '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando detalle…</p>',
+      `<i class="fas fa-tree"></i> Detalles de deforestación <span class="kpi-modal-period">· ${periodo}</span>`,
+      '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando detalle del período…</p>',
       { wide: true }
     );
 
-    let tipoMeta = state.ambito === "zi" ? "zi" : "acr";
-    const rows = await apiGet("/api/metadata/acrs", {
+    const baseParams = {
       departamento: state.departamento,
-      tipo: tipoMeta,
+      ambito: state.ambito || "acr",
       acr: state.acrs.length ? state.acrs : undefined,
-    });
-    const data = rows.data || [];
-    const total = data.reduce((s, r) => s + (r.Total || 0), 0);
-    const ant = data.reduce((s, r) => s + (r.Antropico || 0), 0);
-    const nat = data.reduce((s, r) => s + (r.Perdida_natural || 0), 0);
+      anno_desde: state.annoDesde,
+      anno_hasta: state.annoHasta,
+    };
+    let tipoMeta = state.ambito === "zi" ? "zi" : "acr";
 
-    let table = "<p class='kpi-detail-empty'>No hay datos para los filtros actuales.</p>";
+    const [rowsRes, graf] = await Promise.all([
+      apiGet("/api/metadata/acrs", {
+        departamento: state.departamento,
+        tipo: tipoMeta,
+        acr: state.acrs.length ? state.acrs : undefined,
+        anno_desde: state.annoDesde,
+        anno_hasta: state.annoHasta,
+      }),
+      state.acrs.length
+        ? apiGet("/api/graficos", baseParams).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+
+    if (graf && typeof renderCharts === "function") {
+      renderCharts(graf);
+    }
+
+    const data = rowsRes.data || [];
+    const total = data.reduce((s, r) => s + (Number(r.Total) || 0), 0);
+    const ant = data.reduce((s, r) => s + (Number(r.Antropico) || 0), 0);
+    const nat = data.reduce((s, r) => s + (Number(r.Perdida_natural) || 0), 0);
+
+    let table = "<p class='kpi-detail-empty'>No hay datos para el período y filtros actuales.</p>";
     if (data.length) {
-      table = `<h4 class="kpi-detail-table-title">Distribución por ACR</h4>
+      table = `<h4 class="kpi-detail-table-title"><i class="fas fa-table"></i> Distribución por ACR · ${periodo}</h4>
         <div class="kpi-detail-table-wrap"><table class="data-table"><thead><tr>
         <th>ACR</th><th>Total (ha)</th><th>Antrópico</th><th>Natural</th></tr></thead><tbody>`;
       data
         .slice()
-        .sort((a, b) => b.Total - a.Total)
+        .sort((a, b) => (Number(b.Total) || 0) - (Number(a.Total) || 0))
         .forEach((r) => {
           table += `<tr><td>${r.Nombre}</td><td>${fmt(r.Total)}</td>
             <td>${fmt(r.Antropico)}</td><td>${fmt(r.Perdida_natural)}</td></tr>`;
@@ -205,48 +226,71 @@ const Modals = (() => {
     const body = document.getElementById("kpi-modal-body");
     if (body) {
       body.innerHTML = `<div class="kpi-modal-grid">
-        <div class="kpi-mini" style="border-color:#d9534f"><h2>${fmt(total)}</h2><span>TOTAL HA</span></div>
-        <div class="kpi-mini" style="border-color:#f39c12"><h2>${fmt(ant)}</h2><span>ANTRÓPICO</span></div>
-        <div class="kpi-mini" style="border-color:#5cb85c"><h2>${fmt(nat)}</h2><span>NATURAL</span></div>
+        <div class="kpi-mini kpi-mini--total"><h2>${fmt(total)}</h2><span>TOTAL HA</span></div>
+        <div class="kpi-mini kpi-mini--ant"><h2>${fmt(ant)}</h2><span>ANTRÓPICO</span></div>
+        <div class="kpi-mini kpi-mini--nat"><h2>${fmt(nat)}</h2><span>NATURAL</span></div>
       </div>${table}`;
     }
     attachChartsToModal();
   }
 
   async function openVariacion(state) {
+    const periodo = `${state.annoDesde}–${state.annoHasta}`;
     const box = document.getElementById("kpi-variacion");
     const num = box?.querySelector(".number")?.textContent || "—";
     const sub = box?.querySelector(".sub-text")?.textContent || "";
     showFloating(
-      '<i class="fas fa-chart-bar"></i> Variación anual',
+      `<i class="fas fa-chart-bar"></i> Variación anual <span class="kpi-modal-period">· ${periodo}</span>`,
       `<div class="kpi-modal-grid">
-        <div class="kpi-mini" style="border-color:#5cb85c"><h2>${num}</h2><span>VARIACIÓN</span></div>
+        <div class="kpi-mini kpi-mini--ant"><h2>${num}</h2><span>VARIACIÓN</span></div>
       </div>
       <p class="kpi-detail-lead">${sub || "Comparación respecto al año anterior con los filtros activos."}</p>`,
       { wide: true }
     );
+    if (state.acrs.length && typeof renderCharts === "function") {
+      const graf = await apiGet("/api/graficos", {
+        departamento: state.departamento,
+        ambito: state.ambito || "acr",
+        acr: state.acrs,
+        anno_desde: state.annoDesde,
+        anno_hasta: state.annoHasta,
+      }).catch(() => null);
+      if (graf) renderCharts(graf);
+    }
     attachChartsToModal();
   }
 
   async function openAntropico(state) {
+    const periodo = `${state.annoDesde}–${state.annoHasta}`;
     const box = document.getElementById("kpi-porcentaje");
     const num = box?.querySelector(".number")?.textContent || "—";
     const sub = box?.querySelector(".sub")?.textContent || "";
     showFloating(
-      '<i class="fas fa-chart-pie"></i> Origen antrópico',
+      `<i class="fas fa-chart-pie"></i> Origen antrópico <span class="kpi-modal-period">· ${periodo}</span>`,
       `<div class="kpi-modal-grid">
-        <div class="kpi-mini" style="border-color:#f39c12"><h2>${num}</h2><span>ANTRÓPICO</span></div>
+        <div class="kpi-mini kpi-mini--ant"><h2>${num}</h2><span>ANTRÓPICO</span></div>
       </div>
-      <p class="kpi-detail-lead">${sub}</p>`,
+      <p class="kpi-detail-lead">${sub || ""} · período ${periodo}</p>`,
       { wide: true }
     );
+    if (state.acrs.length && typeof renderCharts === "function") {
+      const graf = await apiGet("/api/graficos", {
+        departamento: state.departamento,
+        ambito: state.ambito || "acr",
+        acr: state.acrs,
+        anno_desde: state.annoDesde,
+        anno_hasta: state.annoHasta,
+      }).catch(() => null);
+      if (graf) renderCharts(graf);
+    }
     attachChartsToModal();
   }
 
   async function openCausas(state) {
+    const periodo = `${state.annoDesde}–${state.annoHasta}`;
     showFloating(
-      '<i class="fas fa-cog"></i> Principal causa estimada',
-      '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando causas…</p>',
+      `<i class="fas fa-cog"></i> Principal causa estimada <span class="kpi-modal-period">· ${periodo}</span>`,
+      '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando causas del período…</p>',
       { wide: true }
     );
 
@@ -254,6 +298,8 @@ const Modals = (() => {
       departamento: state.departamento,
       ambito: state.ambito || "acr",
       acr: state.acrs.length ? state.acrs : undefined,
+      anno_desde: state.annoDesde,
+      anno_hasta: state.annoHasta,
     });
     const data = (causas.data || [])
       .filter((c) => c.Area_Ha > 0)
@@ -261,12 +307,12 @@ const Modals = (() => {
 
     const body = document.getElementById("kpi-modal-body");
     if (!data.length) {
-      if (body) body.innerHTML = `<p class="kpi-detail-empty">Sin datos de causas para los filtros.</p>`;
+      if (body) body.innerHTML = `<p class="kpi-detail-empty">Sin datos de causas para el período ${periodo}.</p>`;
       return;
     }
 
     if (body) {
-      body.innerHTML = `<p class="kpi-detail-lead">Causas antrópicas ordenadas por área (ha).</p>
+      body.innerHTML = `<p class="kpi-detail-lead">Causas antrópicas · período ${periodo}.</p>
         <div id="modal-chart-causas" style="height:${Math.max(360, 34 * data.length + 90)}px"></div>`;
     }
 
@@ -281,17 +327,22 @@ const Modals = (() => {
           x: values,
           type: "bar",
           orientation: "h",
-          marker: { color: values.map((_, i) => colors[i % colors.length]), opacity: 0.92 },
+          marker: {
+            color: values.map((_, i) => colors[i % colors.length]),
+            opacity: 0.95,
+            line: { width: 0 },
+            cornerradius: 6,
+          },
           text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
           textposition: "outside",
           cliponaxis: false,
         },
       ],
       {
-        paper_bgcolor: "#fff",
-        plot_bgcolor: "#fbfcfd",
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(248,250,252,0.65)",
         margin: { l: 160, r: 56, t: 12, b: 40 },
-        xaxis: { title: "Hectáreas (ha)", gridcolor: "#edf2f7" },
+        xaxis: { title: "Hectáreas (ha)", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
         yaxis: { automargin: true },
         font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#2c3e50" },
       },
