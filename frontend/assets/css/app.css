@@ -258,6 +258,30 @@ body {
 .tab-panel { display: none !important; padding: 0 0 2rem; }
 .tab-panel.active { display: block !important; }
 
+/* Arranque con ?tab=…: muestra la sección correcta sin flash de Mapa */
+html[data-boot-tab="metodologia"] #tab-dashboard.tab-panel,
+html[data-boot-tab="reportes"] #tab-dashboard.tab-panel,
+html[data-boot-tab="tendencias"] #tab-dashboard.tab-panel {
+  display: none !important;
+}
+html[data-boot-tab="metodologia"] #tab-metodologia.tab-panel,
+html[data-boot-tab="reportes"] #tab-reportes.tab-panel,
+html[data-boot-tab="tendencias"] #tab-tendencias.tab-panel {
+  display: block !important;
+}
+html[data-boot-tab] .nav-tabs button[data-tab].active {
+  background: transparent;
+  color: #003DA5;
+  box-shadow: none;
+}
+html[data-boot-tab="metodologia"] .nav-tabs button[data-tab="metodologia"],
+html[data-boot-tab="reportes"] .nav-tabs button[data-tab="reportes"],
+html[data-boot-tab="tendencias"] .nav-tabs button[data-tab="tendencias"] {
+  background: #003DA5;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 61, 165, 0.25);
+}
+
 .hero-red {
   background: var(--red-bar);
   color: #fff;

@@ -10,7 +10,23 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260917o" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260918a" />
+  <!-- Evita flash Mapa→Metodología: aplica pestaña desde ?tab= antes del primer paint -->
+  <script>
+    (function () {
+      try {
+        var t = (new URLSearchParams(location.search).get("tab") || "").toLowerCase();
+        if (t === "mapa") t = "dashboard";
+        if (t === "metodologia" || t === "reportes" || t === "tendencias") {
+          document.documentElement.setAttribute("data-boot-tab", t);
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="dns-prefetch" href="https://unpkg.com" />
+  <link rel="dns-prefetch" href="https://cdn.plot.ly" />
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+  <link rel="prefetch" href="/datos" />
 </head>
 <body>
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
@@ -18,10 +34,10 @@
     <div class="site-header-inner">
       <div class="site-logos" aria-label="Identidad institucional GFP · SECO · Basel">
         <a class="site-logo site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
-          <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="48" loading="eager"/>
+          <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="48" loading="eager" decoding="async"/>
         </a>
-        <img class="site-logo site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" loading="eager"/>
-        <img class="site-logo site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" loading="eager"/>
+        <img class="site-logo site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" loading="eager" decoding="async"/>
+        <img class="site-logo site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" loading="eager" decoding="async"/>
       </div>
       <nav class="navbar" aria-label="Secciones del dashboard">
         <ul class="nav-tabs">
@@ -339,14 +355,14 @@
     <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
   </section>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-  <script src="/assets/js/map.js?v=20260917o"></script>
-  <script src="/assets/js/modals.js?v=20260917o"></script>
-  <script src="/assets/js/atd-demo.js?v=20260709d"></script>
-  <script src="/assets/js/reportes.js?v=20260917o"></script>
-  <script src="/assets/js/tendencias.js?v=20260917o"></script>
-  <script src="/assets/js/app.js?v=20260917o"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
+  <script src="/assets/js/map.js?v=20260918a" defer></script>
+  <script src="/assets/js/modals.js?v=20260918a" defer></script>
+  <script src="/assets/js/atd-demo.js?v=20260709d" defer></script>
+  <script src="/assets/js/reportes.js?v=20260918a" defer></script>
+  <script src="/assets/js/tendencias.js?v=20260918a" defer></script>
+  <script src="/assets/js/app.js?v=20260918a" defer></script>
 </body>
 </html>

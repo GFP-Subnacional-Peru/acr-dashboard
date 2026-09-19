@@ -84,12 +84,43 @@ function showOfflineBanner() {
 async function bootstrapDashboard() {
   hideLoading();
   initYearFilters();
-  // Mapa al instante (no espera KPIs ni tendencias)
-  try { AcrMap.init(); } catch (_) {}
+
+  const bootTab = initialTabFromUrl();
+  const needsMapNow = bootTab === "dashboard";
+
+  // Solo montar Leaflet si el usuario aterriza en Mapa (evita trabajo pesado en Metodología/etc.)
+  if (needsMapNow) {
+    try { AcrMap.init(); } catch (_) {}
+  }
 
   const healthP = apiGet("/api/health", {}, 4).catch(() => null);
 
   await applyUrlQueryParams({ skipRefresh: true });
+  try {
+    document.documentElement.removeAttribute("data-boot-tab");
+  } catch (_) {}
+
+  if (!needsMapNow) {
+    // Arranque liviano: no espera KPIs/mapa/opciones
+    window._dashDataReady = false;
+    loadAcrOptions().then(() => {
+      if (state._pendingAcr) {
+        const code = state._pendingAcr;
+        delete state._pendingAcr;
+        const sel = qs("#nombre_acr");
+        if (sel) sel.value = code;
+        state.acrs = [code];
+        updateFilterInfo();
+      }
+    }).catch(() => {});
+    healthP.then((health) => {
+      if (!health) {
+        apiGet("/api/health", {}, 6).catch(() => showOfflineBanner());
+      }
+    });
+    startServerHeartbeat();
+    return;
+  }
 
   const optionsP = loadAcrOptions();
   await optionsP;
@@ -103,6 +134,7 @@ async function bootstrapDashboard() {
   }
 
   // KPIs + mapa en paralelo (más fluido)
+  window._dashDataReady = true;
   const dashP = refreshDashboard();
 
   const health = await healthP;
@@ -116,6 +148,26 @@ async function bootstrapDashboard() {
   }
   await dashP;
   startServerHeartbeat();
+}
+
+function initialTabFromUrl() {
+  try {
+    const t = (new URLSearchParams(window.location.search).get("tab") || "").toLowerCase();
+    if (t === "mapa") return "dashboard";
+    if (t === "metodologia" || t === "reportes" || t === "tendencias") return t;
+  } catch (_) {}
+  return "dashboard";
+}
+
+/** Primera visita al mapa tras aterrizar en otra pestaña. */
+async function ensureDashboardData() {
+  if (window._dashDataReady) {
+    try { AcrMap.init()?.invalidateSize(); } catch (_) {}
+    return;
+  }
+  window._dashDataReady = true;
+  try { AcrMap.init(); } catch (_) {}
+  await refreshDashboard();
 }
 
 /** Mientras la pestaña está abierta, evita que Render duerma (complemento al ping externo). */
@@ -132,6 +184,9 @@ function startServerHeartbeat() {
 function activateTab(tabName) {
   const allowed = new Set(["dashboard", "metodologia", "reportes", "tendencias"]);
   const tab = allowed.has(tabName) ? tabName : "dashboard";
+  try {
+    document.documentElement.removeAttribute("data-boot-tab");
+  } catch (_) {}
   document.querySelectorAll(".nav-tabs button[data-tab]").forEach((b) => b.classList.remove("active"));
   document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
   const btn = document.querySelector(`.nav-tabs button[data-tab="${tab}"]`);
@@ -139,7 +194,7 @@ function activateTab(tabName) {
   const panel = qs(`#tab-${tab}`);
   if (panel) panel.classList.add("active");
   if (tab === "dashboard") {
-    setTimeout(() => AcrMap.init()?.invalidateSize(), 250);
+    ensureDashboardData().catch((err) => console.warn("Dashboard:", err));
   }
   if (tab === "reportes" && !window._reportesReady) {
     window._reportesReady = true;
