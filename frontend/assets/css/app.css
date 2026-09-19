@@ -524,8 +524,13 @@ html[data-boot-tab="tendencias"] .nav-tabs button[data-tab="tendencias"] {
 .dash-map-card.gfp-map-fullscreen .map-loreto-info {
   color: #e2e8f0;
 }
-.dash-map-card.gfp-map-fullscreen #map.dash-map {
+.dash-map-card.gfp-map-fullscreen .dash-map-shell {
   height: calc(100vh - 88px) !important;
+  max-height: none !important;
+  min-height: 0 !important;
+}
+.dash-map-card.gfp-map-fullscreen #map.dash-map {
+  height: 100% !important;
   max-height: none !important;
   min-height: 0 !important;
   border-radius: 12px;
@@ -2929,8 +2934,8 @@ body.kpi-modal-open { overflow: hidden; }
   color: #64748b;
   font-weight: 600;
 }
-#tab-dashboard #map.dash-map,
-#tab-dashboard .dash-map {
+#tab-dashboard .dash-map-shell {
+  position: relative;
   height: auto;
   min-height: 560px;
   height: 64vh;
@@ -2939,6 +2944,230 @@ body.kpi-modal-open { overflow: hidden; }
   border: 1px solid #d5dee8;
   overflow: hidden;
   box-shadow: inset 0 0 0 1px rgba(0, 45, 85, 0.04);
+  background: #0b1220;
+}
+#tab-dashboard #map.dash-map,
+#tab-dashboard .dash-map {
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* Panel lateral tipo ficha / tabla de atributos */
+.map-feature-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: min(360px, calc(100% - 24px));
+  z-index: 650;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(18px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.map-feature-panel.is-open {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translateX(0);
+}
+.map-feature-panel[hidden] {
+  display: block !important;
+  visibility: hidden;
+}
+.map-feature-panel.is-open[hidden] {
+  visibility: visible;
+}
+.map-feature-panel-inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.28);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  overflow: hidden;
+}
+.map-feature-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1rem 0.85rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  border-bottom: 1px solid #e2e8f0;
+}
+.map-feature-eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.map-feature-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f274f;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.map-feature-badge-host { margin-top: 0.25rem; }
+.map-feature-close {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+}
+.map-feature-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.map-feature-body {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 0.85rem 1rem 1.1rem;
+  scrollbar-width: thin;
+}
+.map-feature-section {
+  margin-bottom: 0.85rem;
+}
+.map-feature-section-title {
+  margin: 0 0 0.55rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
+  background: #0f274f;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.map-feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+.map-feature-field {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  padding: 0.55rem 0.6rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+}
+.map-feature-field--wide { grid-column: 1 / -1; }
+.map-feature-field i {
+  margin-top: 2px;
+  color: #003DA5;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.map-feature-field .label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 0.12rem;
+}
+.map-feature-field .value {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+  word-break: break-word;
+}
+.map-feature-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+.map-feature-metric {
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 12px;
+  background: linear-gradient(165deg, #fff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #94a3b8;
+}
+.map-feature-metric strong {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f274f;
+  line-height: 1.1;
+}
+.map-feature-metric span {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.map-feature-metric--ant { border-left-color: #9a3412; }
+.map-feature-metric--ant strong { color: #9a3412; }
+.map-feature-metric--nat { border-left-color: #0f766e; }
+.map-feature-metric--nat strong { color: #0f766e; }
+.map-feature-metric--total { border-left-color: #c0392b; }
+.map-feature-metric--total strong { color: #c0392b; }
+.map-feature-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.map-feature-badge--ant { background: #fef2f2; color: #9a3412; }
+.map-feature-badge--nat { background: #ecfdf5; color: #0f766e; }
+.map-feature-badge--acr { background: #ecfdf5; color: #166534; }
+.map-feature-badge--zi { background: #f1f5f9; color: #475569; }
+.map-feature-note {
+  margin: 0.35rem 0 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  background: #fff7ed;
+  border-left: 4px solid #f59e0b;
+  color: #9a3412;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.map-feature-foot {
+  margin-top: 0.5rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #eef2f7;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+@media (max-width: 720px) {
+  .map-feature-panel {
+    top: auto;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+    max-height: 48%;
+    transform: translateY(16px);
+  }
+  .map-feature-panel.is-open { transform: translateY(0); }
 }
 
 .dash-analysis-below {

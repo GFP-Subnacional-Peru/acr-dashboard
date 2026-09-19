@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260918a" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260918b" />
   <!-- Evita flash Mapa→Metodología: aplica pestaña desde ?tab= antes del primer paint -->
   <script>
     (function () {
@@ -158,7 +158,23 @@
           <h5 class="section-title"><i class="fas fa-map-marked-alt"></i> Mapa de deforestación en Áreas de Conservación Regional</h5>
           <p class="dash-map-period" id="dash-map-period">Período: 2001 – 2025</p>
           <p id="map-loreto-info" class="map-loreto-info"><i class="fas fa-info-circle"></i> En <strong>Loreto, San Martín y Cusco</strong>, los polígonos de deforestación vienen del GDB <em>MonitoreoDeforestacionAcumulado</em> y respetan los filtros (departamento, ACR/ZI, años).</p>
-          <div id="map" class="dash-map"></div>
+          <div class="dash-map-shell">
+            <div id="map" class="dash-map"></div>
+            <aside id="map-feature-panel" class="map-feature-panel" hidden aria-hidden="true">
+              <div class="map-feature-panel-inner">
+                <header class="map-feature-head">
+                  <div class="map-feature-head-text">
+                    <p class="map-feature-eyebrow" id="map-feature-eyebrow">Detalle del polígono</p>
+                    <h3 id="map-feature-title">Resumen</h3>
+                  </div>
+                  <button type="button" class="map-feature-close" id="map-feature-close" title="Cerrar" aria-label="Cerrar panel">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </header>
+                <div class="map-feature-body" id="map-feature-body"></div>
+              </div>
+            </aside>
+          </div>
         </section>
       </div>
     </div>
@@ -358,11 +374,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
-  <script src="/assets/js/map.js?v=20260918a" defer></script>
-  <script src="/assets/js/modals.js?v=20260918a" defer></script>
+  <script src="/assets/js/map.js?v=20260918b" defer></script>
+  <script src="/assets/js/modals.js?v=20260918b" defer></script>
   <script src="/assets/js/atd-demo.js?v=20260709d" defer></script>
-  <script src="/assets/js/reportes.js?v=20260918a" defer></script>
-  <script src="/assets/js/tendencias.js?v=20260918a" defer></script>
-  <script src="/assets/js/app.js?v=20260918a" defer></script>
+  <script src="/assets/js/reportes.js?v=20260918b" defer></script>
+  <script src="/assets/js/tendencias.js?v=20260918b" defer></script>
+  <script src="/assets/js/app.js?v=20260918b" defer></script>
 </body>
 </html>

@@ -80,6 +80,8 @@ const AcrMap = (() => {
     addBasemapControl();
     addMapTools();
 
+    map.on("click", () => closeFeaturePanel());
+
     map._overlayReady = false;
     map._defoMode = "vectors";
     return map;
@@ -157,20 +159,244 @@ const AcrMap = (() => {
     setTimeout(() => map?.invalidateSize(), 220);
   }
 
+  let selectedLayer = null;
+  let selectedPrevStyle = null;
+  let escBound = false;
+
+  function escHtml(s) {
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function fieldHtml(icon, label, value, wide = false) {
+    if (value == null || value === "" || value === "—") return "";
+    return `<div class="map-feature-field${wide ? " map-feature-field--wide" : ""}">
+      <i class="fas fa-${icon}" aria-hidden="true"></i>
+      <div><span class="label">${escHtml(label)}</span><span class="value">${value}</span></div>
+    </div>`;
+  }
+
+  function closeFeaturePanel() {
+    const panel = document.getElementById("map-feature-panel");
+    if (panel) {
+      panel.classList.remove("is-open");
+      panel.setAttribute("aria-hidden", "true");
+      window.clearTimeout(window._mapFeatureCloseT);
+      window._mapFeatureCloseT = window.setTimeout(() => {
+        if (!panel.classList.contains("is-open")) panel.hidden = true;
+      }, 220);
+    }
+    if (selectedLayer && selectedPrevStyle) {
+      try {
+        if (typeof selectedLayer.setStyle === "function") {
+          selectedLayer.setStyle(selectedPrevStyle);
+        }
+      } catch (_) {}
+    }
+    selectedLayer = null;
+    selectedPrevStyle = null;
+  }
+
+  function openFeaturePanel({ eyebrow, title, badgeHtml = "", bodyHtml }) {
+    const panel = document.getElementById("map-feature-panel");
+    if (!panel) return;
+    const eye = document.getElementById("map-feature-eyebrow");
+    const ttl = document.getElementById("map-feature-title");
+    const body = document.getElementById("map-feature-body");
+    if (eye) eye.textContent = eyebrow || "Detalle";
+    if (ttl) {
+      ttl.textContent = title || "Resumen";
+      let badgeHost = ttl.nextElementSibling;
+      if (!badgeHost || !badgeHost.classList.contains("map-feature-badge-host")) {
+        badgeHost = document.createElement("div");
+        badgeHost.className = "map-feature-badge-host";
+        ttl.insertAdjacentElement("afterend", badgeHost);
+      }
+      badgeHost.innerHTML = badgeHtml || "";
+    }
+    if (body) body.innerHTML = bodyHtml || "";
+    panel.hidden = false;
+    panel.setAttribute("aria-hidden", "false");
+    requestAnimationFrame(() => panel.classList.add("is-open"));
+    if (!escBound) {
+      escBound = true;
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeFeaturePanel();
+      });
+      document.getElementById("map-feature-close")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeFeaturePanel();
+      });
+    }
+  }
+
+  function selectLayer(layer, styleOverride) {
+    if (selectedLayer && selectedPrevStyle && selectedLayer !== layer) {
+      try {
+        if (typeof selectedLayer.setStyle === "function") selectedLayer.setStyle(selectedPrevStyle);
+      } catch (_) {}
+    }
+    selectedLayer = layer;
+    selectedPrevStyle = null;
+    if (layer && typeof layer.setStyle === "function") {
+      selectedPrevStyle = styleOverride || (layer.options && { ...layer.options }) || null;
+      try {
+        layer.setStyle({
+          color: "#ffffff",
+          weight: 3,
+          opacity: 1,
+          fillOpacity: Math.min(0.85, (layer.options?.fillOpacity || 0.55) + 0.2),
+        });
+        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) layer.bringToFront();
+      } catch (_) {}
+    }
+  }
+
+  function showDefoPanel(p, layer) {
+    const tipo = p.tipo || "—";
+    const causa = (p.causa_nombre || "").trim();
+    const fuente = (p.fuente_nombre || "").trim();
+    const color = TIPO_COLORS[tipo] || "#c0392b";
+    const tipoLabel = tipo === "Antropogenico" ? "Origen antrópico" : tipo;
+    const isAnt = tipoLabel === "Origen antrópico" || tipo === "Antropogenico";
+    const showCausa =
+      causa &&
+      !["Natural", "Falsa alerta", "Sin especificar", "Sin datos"].includes(causa) &&
+      isAnt;
+    const badgeClass = isAnt ? "map-feature-badge--ant" : "map-feature-badge--nat";
+    const metricClass = isAnt ? "map-feature-metric--ant" : "map-feature-metric--nat";
+    selectLayer(layer, defoStyle(tipo));
+    openFeaturePanel({
+      eyebrow: "Polígono de deforestación",
+      title: "Resumen del evento",
+      badgeHtml: `<span class="map-feature-badge ${badgeClass}"><span style="width:8px;height:8px;border-radius:2px;background:${color};display:inline-block"></span>${escHtml(tipoLabel)}</span>`,
+      bodyHtml: `
+        <div class="map-feature-section">
+          <div class="map-feature-section-title">Datos generales</div>
+          <div class="map-feature-grid">
+            ${fieldHtml("map-marker-alt", "Zona", escHtml(p.zona_key || "—"))}
+            ${fieldHtml("calendar-alt", "Año", escHtml(p.anno || "N/A"))}
+            ${p.sector ? fieldHtml("draw-polygon", "Sector", escHtml(p.sector), true) : ""}
+            ${p.codigo ? fieldHtml("fingerprint", "Código", escHtml(p.codigo)) : ""}
+            ${fuente ? fieldHtml("satellite", "Fuente", escHtml(fuente), true) : ""}
+          </div>
+        </div>
+        <div class="map-feature-section">
+          <div class="map-feature-section-title">Caracterización</div>
+          <div class="map-feature-metrics">
+            <div class="map-feature-metric ${metricClass}">
+              <strong>${fmtHa(p.area_ha, 1)} ha</strong>
+              <span>Área</span>
+            </div>
+            <div class="map-feature-metric ${metricClass}">
+              <strong style="font-size:1rem">${escHtml(tipoLabel)}</strong>
+              <span>Tipo</span>
+            </div>
+          </div>
+          ${showCausa ? `<p class="map-feature-note"><strong>Causa estimada:</strong> ${escHtml(causa)}</p>` : ""}
+        </div>
+        <p class="map-feature-foot"><i class="fas fa-hand-pointer"></i> Haga clic en otro polígono para actualizar el resumen.</p>`,
+    });
+  }
+
+  function showAcrPanel(p, kind, layer) {
+    const isZi = kind === "zi";
+    const nombre = p.Nombre || p.codigo || (isZi ? "Zona de influencia" : "ACR");
+    const total = Number(p.Total || 0);
+    const ant = Number(p.Antropico || 0);
+    const nat = Number(p.Perdida_natural || 0);
+    selectLayer(layer, {
+      color: isZi ? "#616161" : "#2E7D32",
+      weight: isZi ? 2 : 2.5,
+      fill: false,
+      fillOpacity: 0,
+    });
+    openFeaturePanel({
+      eyebrow: isZi ? "Zona de influencia" : "Área de Conservación Regional",
+      title: nombre,
+      badgeHtml: `<span class="map-feature-badge ${isZi ? "map-feature-badge--zi" : "map-feature-badge--acr"}">${isZi ? "ZI" : "ACR"}</span>`,
+      bodyHtml: `
+        <div class="map-feature-section">
+          <div class="map-feature-section-title">Resumen de deforestación</div>
+          <div class="map-feature-metrics">
+            <div class="map-feature-metric map-feature-metric--total">
+              <strong>${fmtHa(total, 1)}</strong>
+              <span>Total ha</span>
+            </div>
+            <div class="map-feature-metric map-feature-metric--ant">
+              <strong>${fmtHa(ant, 1)}</strong>
+              <span>Antrópico</span>
+            </div>
+            <div class="map-feature-metric map-feature-metric--nat">
+              <strong>${fmtHa(nat, 1)}</strong>
+              <span>Natural</span>
+            </div>
+            ${p.Falsa_alerta != null ? `<div class="map-feature-metric"><strong>${fmtHa(p.Falsa_alerta, 1)}</strong><span>Falsa alerta</span></div>` : ""}
+          </div>
+        </div>
+        <div class="map-feature-section">
+          <div class="map-feature-section-title">Identificación</div>
+          <div class="map-feature-grid">
+            ${fieldHtml("fingerprint", "Código", escHtml(p.codigo || "—"), true)}
+          </div>
+        </div>
+        <p class="map-feature-foot">Totales según estadísticas de la capa (línea base acumulada).</p>`,
+    });
+  }
+
+  function showCentroidPanel(p, layer) {
+    const zona = String(p.codigo || "").replace(/^(ACR_|ZI_)/, "") || "—";
+    const ambitoLabel = p.tipo === "acr" ? "ACR" : "ZI";
+    selectLayer(null);
+    openFeaturePanel({
+      eyebrow: "Punto de deforestación",
+      title: `Zona ${zona}`,
+      badgeHtml: `<span class="map-feature-badge map-feature-badge--ant">${ambitoLabel}</span>`,
+      bodyHtml: `
+        <div class="map-feature-section">
+          <div class="map-feature-section-title">Datos generales</div>
+          <div class="map-feature-grid">
+            ${fieldHtml("map-marker-alt", "Zona", escHtml(zona))}
+            ${fieldHtml("layer-group", "Ámbito", escHtml(ambitoLabel))}
+            ${fieldHtml("calendar-alt", "Año", escHtml(p.anno || "N/A"))}
+            ${fieldHtml("fingerprint", "Código", escHtml(p.codigo || "—"), true)}
+          </div>
+        </div>
+        <div class="map-feature-section">
+          <div class="map-feature-section-title">Área</div>
+          <div class="map-feature-metrics">
+            <div class="map-feature-metric map-feature-metric--total">
+              <strong>${fmtHa(p.area, 1)} ha</strong>
+              <span>Pérdida</span>
+            </div>
+          </div>
+        </div>
+        <p class="map-feature-foot">Centroide precalculado (departamentos sin polígono GDB o vista mixta).</p>`,
+    });
+  }
+
   function geoLayer(geo, style, groupName) {
     if (!geo || !geo.features || !geo.features.length) return null;
     return L.geoJSON(geo, {
       style: typeof style === "function" ? style : () => style,
       onEachFeature: (feature, layer) => {
         const p = feature.properties || {};
-        if (p.popup_html) layer.bindPopup(p.popup_html, { maxWidth: 320 });
         if (p.Nombre) layer.bindTooltip(p.Nombre, { sticky: true });
         layer.options.groupName = groupName;
+        layer.on("click", (e) => {
+          L.DomEvent.stopPropagation(e);
+          if (groupName === "acr" || groupName === "zi") showAcrPanel(p, groupName, layer);
+        });
       },
     });
   }
 
   function clearLayers() {
+    closeFeaturePanel();
     if (!map) return;
     Object.values(layerRefs).forEach((l) => {
       if (l) map.removeLayer(l);
@@ -328,33 +554,6 @@ const AcrMap = (() => {
     return pts;
   }
 
-  function vectorPopup(p) {
-    const tipo = p.tipo || "—";
-    const causa = (p.causa_nombre || "").trim();
-    const fuente = (p.fuente_nombre || "").trim();
-    const color = TIPO_COLORS[tipo] || "#c0392b";
-    const tipoLabel = tipo === "Antropogenico" ? "Origen antrópico" : tipo;
-    const showCausa =
-      causa &&
-      !["Natural", "Falsa alerta", "Sin especificar", "Sin datos"].includes(causa) &&
-      tipoLabel === "Origen antrópico";
-    return `<div class="defo-popup" style="font-family:'Segoe UI',Arial,sans-serif;min-width:220px;line-height:1.5">
-      <div style="display:flex;align-items:center;gap:8px;margin:0 0 10px">
-        <span style="width:10px;height:10px;border-radius:2px;background:${color};box-shadow:0 0 0 1px rgba(255,255,255,.85)"></span>
-        <strong style="color:${color};font-size:0.95rem">Deforestación acumulada</strong>
-      </div>
-      <div style="font-size:0.86rem;color:#334155">
-        <div><span style="color:#64748b">Zona</span> · <b>${p.zona_key || "—"}</b></div>
-        ${p.sector ? `<div><span style="color:#64748b">Sector</span> · ${p.sector}</div>` : ""}
-        <div><span style="color:#64748b">Tipo</span> · <b style="color:${color}">${tipoLabel}</b></div>
-        ${showCausa ? `<div><span style="color:#64748b">Causa</span> · <b>${causa}</b></div>` : ""}
-        <div><span style="color:#64748b">Año</span> · ${p.anno || "N/A"}</div>
-        <div style="margin-top:6px"><span style="color:#64748b">Área</span> · <b style="color:${color};font-size:1.05rem">${fmtHa(p.area_ha, 1)} ha</b></div>
-        ${fuente ? `<div><span style="color:#64748b">Fuente</span> · ${fuente}</div>` : ""}
-      </div>
-    </div>`;
-  }
-
   function updateMapVectorsNote(state, meta, mode) {
     const el = document.getElementById("map-loreto-info");
     if (!el) return;
@@ -421,7 +620,6 @@ const AcrMap = (() => {
       onEachFeature: (f, layer) => {
         const p = f.properties || {};
         const tipo = p.tipo || "Antropogenico";
-        layer.bindPopup(vectorPopup(p));
         if (p.anno != null) {
           layer.bindTooltip(`${p.anno} · ${fmtHa(p.area_ha, 1)} ha`, {
             sticky: true,
@@ -430,12 +628,18 @@ const AcrMap = (() => {
         }
         layer.on({
           mouseover: (e) => {
+            if (selectedLayer === e.target) return;
             const ly = e.target;
             ly.setStyle(defoStyleHover(tipo));
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) ly.bringToFront();
           },
           mouseout: (e) => {
+            if (selectedLayer === e.target) return;
             e.target.setStyle(defoStyle(tipo));
+          },
+          click: (e) => {
+            L.DomEvent.stopPropagation(e);
+            showDefoPanel(p, e.target);
           },
         });
       },
@@ -470,15 +674,10 @@ const AcrMap = (() => {
         fillOpacity: 0.75,
         weight: 1,
       });
-      m.bindPopup(
-        `<div style="font-family:'Segoe UI',Arial,sans-serif;min-width:200px;line-height:1.45">
-          <h4 style="color:#c0392b;margin:0 0 8px;font-size:0.95rem">Deforestación</h4>
-          <b>Zona:</b> ${String(p.codigo).replace(/^(ACR_|ZI_)/, "")}<br>
-          <b>Tipo:</b> ${p.tipo === "acr" ? "ACR" : "ZI"}<br>
-          <b>Año:</b> ${p.anno || "N/A"}<br>
-          <b>Área:</b> <span style="color:#c0392b;font-weight:700">${fmtHa(p.area, 1)} ha</span>
-        </div>`
-      );
+      m.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        showCentroidPanel(p, m);
+      });
       clusterGroup.addLayer(m);
     });
     map.addLayer(clusterGroup);
