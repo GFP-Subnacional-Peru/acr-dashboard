@@ -50,6 +50,21 @@ const AcrMap = (() => {
       zoomControl: false,
     }).setView([-7.5, -74.5], 6);
 
+    // Panes: límites/ACR abajo · vectores de deforestación arriba (prioridad de click)
+    if (!map.getPane("boundariesPane")) {
+      map.createPane("boundariesPane");
+      map.getPane("boundariesPane").style.zIndex = 350;
+    }
+    if (!map.getPane("defoPane")) {
+      map.createPane("defoPane");
+      map.getPane("defoPane").style.zIndex = 460;
+      map.getPane("defoPane").style.pointerEvents = "auto";
+    }
+    if (!map.getPane("centroidsPane")) {
+      map.createPane("centroidsPane");
+      map.getPane("centroidsPane").style.zIndex = 470;
+    }
+
     const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "Leaflet | © OpenStreetMap",
       maxZoom: 18,
@@ -67,11 +82,12 @@ const AcrMap = (() => {
     map._tiles = { sat, topo, osm };
     map._activeBase = "sat";
 
-    defoLayer = L.layerGroup();
+    defoLayer = L.layerGroup([], { pane: "defoPane" });
     clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 80,
       disableClusteringAtZoom: 15,
       spiderfyOnMaxZoom: true,
+      clusterPane: "centroidsPane",
     });
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -381,16 +397,25 @@ const AcrMap = (() => {
 
   function geoLayer(geo, style, groupName) {
     if (!geo || !geo.features || !geo.features.length) return null;
+    const pane = groupName === "limites" || groupName === "zi" || groupName === "acr"
+      ? "boundariesPane"
+      : "overlayPane";
     return L.geoJSON(geo, {
+      pane,
       style: typeof style === "function" ? style : () => style,
+      // ACR/ZI/límites: el click prioritario es deforestación; solo el borde responde
+      interactive: groupName !== "limites",
+      bubblingMouseEvents: true,
       onEachFeature: (feature, layer) => {
         const p = feature.properties || {};
         if (p.Nombre) layer.bindTooltip(p.Nombre, { sticky: true });
         layer.options.groupName = groupName;
-        layer.on("click", (e) => {
-          L.DomEvent.stopPropagation(e);
-          if (groupName === "acr" || groupName === "zi") showAcrPanel(p, groupName, layer);
-        });
+        if (groupName === "acr" || groupName === "zi") {
+          layer.on("click", (e) => {
+            L.DomEvent.stopPropagation(e);
+            showAcrPanel(p, groupName, layer);
+          });
+        }
       },
     });
   }
@@ -616,6 +641,7 @@ const AcrMap = (() => {
     }
     defoLayer.clearLayers();
     L.geoJSON(geo, {
+      pane: "defoPane",
       style: (f) => defoStyle(f.properties?.tipo || "Antropogenico"),
       onEachFeature: (f, layer) => {
         const p = f.properties || {};
@@ -645,6 +671,14 @@ const AcrMap = (() => {
       },
     }).eachLayer((l) => defoLayer.addLayer(l));
     map.addLayer(defoLayer);
+    // Asegura prioridad visual y de click por encima de ACR/ZI/límites
+    try {
+      const pane = map.getPane("defoPane");
+      if (pane) pane.style.zIndex = 460;
+      defoLayer.eachLayer((l) => {
+        if (typeof l.bringToFront === "function") l.bringToFront();
+      });
+    } catch (_) {}
     console.info(`Mapa: ${features.length} polígonos acumulados (${deptoApi}, ${state.annoDesde}–${state.annoHasta}, limit=${limit}).`);
     updateMapVectorsNote(state, meta, "vectors");
     return { ok: true, meta };
@@ -673,6 +707,7 @@ const AcrMap = (() => {
         fillColor: "#e74c3c",
         fillOpacity: 0.75,
         weight: 1,
+        pane: "centroidsPane",
       });
       m.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
