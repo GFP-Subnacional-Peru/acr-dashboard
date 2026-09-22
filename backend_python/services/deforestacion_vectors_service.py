@@ -94,6 +94,37 @@ MD_FUENTE_NOMBRES: dict[int, str] = {
     10: "CBERS-4",
 }
 
+# Dominio GDB zonificación ACR (md_zonif)
+MD_ZONIF_NOMBRES: dict[str, str] = {
+    "S": "Zona Silvestre",
+    "AD": "Zona de Aprovechamiento Directo",
+    "T": "Zona de Uso Turístico y Recreativo",
+    "PE": "Zona de Protección Especial",
+    "RC": "Zona de Recuperación",
+    "UH": "Zona de Uso Especial",
+}
+
+ACR_NOMBRES_COMPLETOS: dict[str, str] = {
+    "ACR_AA": "ACR Ampiyacu Apayacu",
+    "ACR_ANPCH": "ACR Alto Nanay - Pintuyacu Chambira",
+    "ACR_CTT": "ACR Comunal Tamshiyacu Tahuayo",
+    "ACR_MK": "ACR Maijuna Kichwa",
+    "ACR_BSM": "ACR Bosques de Shunté y Mishollo",
+    "ACR_CE": "ACR Cordillera Escalera",
+    "ACR_CHQ": "ACR Choquequirao",
+    "ACR_CHU": "ACR Chuyapi Urusayhua",
+    "ACR_QK": "ACR Q'eros Kosñipata",
+    "ZI_AA": "ZI Ampiyacu Apayacu",
+    "ZI_ANPCH": "ZI Alto Nanay - Pintuyacu Chambira",
+    "ZI_CTT": "ZI Comunal Tamshiyacu Tahuayo",
+    "ZI_MK": "ZI Maijuna Kichwa",
+    "ZI_BSM": "ZI Bosques de Shunté y Mishollo",
+    "ZI_CE": "ZI Cordillera Escalera",
+    "ZI_CHQ": "ZI Choquequirao",
+    "ZI_CHU": "ZI Chuyapi Urusayhua",
+    "ZI_QK": "ZI Q'eros Kosñipata",
+}
+
 
 def loreto_en_alcance(departamento: str, acrs: list[str] | None) -> bool:
     """Compat: True si Loreto entra en el filtro (también usado en main)."""
@@ -161,6 +192,38 @@ def _fuente_nombre(val) -> str:
         s = str(val or "").strip()
         return s if s and s.lower() not in {"nan", "none", "null"} else ""
     return MD_FUENTE_NOMBRES.get(code, str(code))
+
+
+def _zonif_nombre(val) -> str:
+    if val is None:
+        return ""
+    s = str(val).strip()
+    if not s or s.lower() in {"none", "nan", "n/a", "null"}:
+        return ""
+    if s in MD_ZONIF_NOMBRES:
+        return MD_ZONIF_NOMBRES[s]
+    # Alias comunes del dominio
+    aliases = {
+        "zona de uso directo": "Zona de Aprovechamiento Directo",
+        "no zonificado": "No zonificado",
+        "no zonificada": "No zonificado",
+    }
+    low = s.lower()
+    if low in aliases:
+        return aliases[low]
+    # Valores antiguos erróneos: nombre del ACR en "sector"
+    if low.startswith("acr ") or low.startswith("zi ") or low.startswith("acr_") or low.startswith("zi_"):
+        return ""
+    if "zona" in low or "silvestre" in low or "aprovech" in low or "turist" in low or "zonific" in low:
+        return s
+    return ""
+
+
+def _nombre_acr(codigo: str, fallback: str | None = None) -> str:
+    if codigo and codigo in ACR_NOMBRES_COMPLETOS:
+        return ACR_NOMBRES_COMPLETOS[codigo]
+    fb = (fallback or "").strip()
+    return fb or (codigo or "")
 
 
 def _tipo_desde_causa(val, tipo_fallback: str | None = None) -> str:
@@ -689,12 +752,17 @@ def load_acumulado_vectors(
             except (TypeError, ValueError):
                 continue
             props["codigo"] = codigo
+            props["nombre_acr"] = _nombre_acr(codigo, props.get("nombre_acr"))
             props["tipo"] = _tipo_desde_causa(props.get("causa"), props.get("tipo"))
             # No mostrar falsas alertas en el mapa interactivo
             if props["tipo"] == "Falsa alerta":
                 continue
             props["causa_nombre"] = _causa_nombre(props.get("causa"))
             props["fuente_nombre"] = _fuente_nombre(props.get("fuente"))
+            # Sector = zonificación ACR (no el nombre del ACR)
+            z = _zonif_nombre(props.get("zonificacion") or props.get("md_zonif") or props.get("sector"))
+            props["zonificacion"] = z
+            props["sector"] = z
             features.append({**f, "properties": props})
             n_this += 1
 

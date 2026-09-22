@@ -240,7 +240,16 @@ const AcrMap = (() => {
     if (!escBound) {
       escBound = true;
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeFeaturePanel();
+        if (e.key !== "Escape") return;
+        // Si hay modal KPI abierto, lo maneja Modals
+        const modalRoot = document.getElementById("modal-root");
+        if (modalRoot && modalRoot.innerHTML.trim()) return;
+        const fs = document.querySelector(".gfp-map-fullscreen");
+        if (fs) {
+          toggleFullscreen();
+          return;
+        }
+        closeFeaturePanel();
       });
       document.getElementById("map-feature-close")?.addEventListener("click", (e) => {
         e.preventDefault();
@@ -296,8 +305,8 @@ const AcrMap = (() => {
           <div class="map-feature-grid">
             ${fieldHtml("map-marker-alt", "Zona", escHtml(p.zona_key || "—"))}
             ${fieldHtml("calendar-alt", "Año", escHtml(p.anno || "N/A"))}
-            ${p.sector ? fieldHtml("draw-polygon", "Sector", escHtml(p.sector), true) : ""}
-            ${p.codigo ? fieldHtml("fingerprint", "Código", escHtml(p.codigo)) : ""}
+            ${(p.zonificacion || p.sector) ? fieldHtml("draw-polygon", "Sector", escHtml(p.zonificacion || p.sector), true) : ""}
+            ${fieldHtml("fingerprint", "Código", escHtml(p.nombre_acr || p.codigo || "—"))}
             ${fuente ? fieldHtml("satellite", "Fuente", escHtml(fuente), true) : ""}
           </div>
         </div>

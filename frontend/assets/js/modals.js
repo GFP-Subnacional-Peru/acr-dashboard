@@ -52,6 +52,15 @@ const Modals = (() => {
     });
   }
 
+  if (!bound) {
+    bound = true;
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      const root = document.getElementById("modal-root");
+      if (root && root.innerHTML.trim()) close();
+    });
+  }
+
   function showFloating(titleHtml, bodyHtml, opts = {}) {
     parkCharts();
     const root = ensureModalRoot();
