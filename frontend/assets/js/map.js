@@ -695,33 +695,69 @@ const AcrMap = (() => {
     map.addLayer(clusterGroup);
   }
 
-  async function loadDeforestation(state) {
+  function setMapLoadStatus(msg, kind = "loading") {
+    const el = document.getElementById("map-load-status");
+    if (!el) return;
+    if (!msg) {
+      el.hidden = true;
+      el.textContent = "";
+      el.className = "map-load-status";
+      return;
+    }
+    el.hidden = false;
+    el.className = `map-load-status map-load-status--${kind}`;
+    el.innerHTML =
+      kind === "loading"
+        ? `<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> ${msg}`
+        : kind === "ok"
+          ? `<i class="fas fa-check-circle" aria-hidden="true"></i> ${msg}`
+          : `<i class="fas fa-info-circle" aria-hidden="true"></i> ${msg}`;
+  }
+
+  async function loadDeforestation(state, token) {
     let hasVectors = false;
     let vectorMeta = null;
     if (shouldUseVectors(state)) {
       const vectorAcrs = state.acrs.filter((c) => ALL_VECTOR_CODES.has(c));
       try {
+        setMapLoadStatus("Cargando deforestación…", "loading");
         const res = await loadDeforestationVectors(
           state,
           vectorAcrs.length ? vectorAcrs : undefined
         );
+        if (token != null && token !== map._refreshToken) return { ok: false, stale: true };
         hasVectors = res?.ok;
         vectorMeta = res?.meta;
+        if (hasVectors) {
+          const n = vectorMeta?.count ?? 0;
+          setMapLoadStatus(`${n.toLocaleString("es-PE")} polígonos en el mapa`, "ok");
+          window.setTimeout(() => setMapLoadStatus(""), 2200);
+        } else {
+          setMapLoadStatus("Sin polígonos para estos filtros", "info");
+          window.setTimeout(() => setMapLoadStatus(""), 2800);
+        }
       } catch (err) {
+        if (token != null && token !== map._refreshToken) return { ok: false, stale: true };
         console.warn("Vectores GDB no disponibles (¿reinició el servidor?):", err);
+        setMapLoadStatus("No se pudieron cargar los polígonos. Reintente con un filtro más estrecho.", "info");
         updateMapVectorsNote(state, null, "vectors");
       }
+    } else {
+      setMapLoadStatus("");
     }
 
     // Centroides retirados: prioridad a polígonos acumulados
     map._defoMode = hasVectors ? "vectors" : "vectors";
     if (hasVectors) updateMapVectorsNote(state, vectorMeta, map._defoMode);
     else updateMapVectorsNote(state, null, "vectors");
+    return { ok: hasVectors, meta: vectorMeta };
   }
 
   async function refresh(state) {
     init();
+    const token = (map._refreshToken = (map._refreshToken || 0) + 1);
     clearLayers();
+    setMapLoadStatus("Preparando mapa…", "loading");
 
     const params = {
       departamento: state.departamento,
@@ -729,7 +765,15 @@ const AcrMap = (() => {
       acr: state.acrs.length ? state.acrs : undefined,
     };
 
-    const layers = await apiGet("/api/map/layers", params);
+    let layers;
+    try {
+      layers = await apiGet("/api/map/layers", params);
+    } catch (err) {
+      console.warn("Capas del mapa:", err);
+      setMapLoadStatus("No se pudieron cargar los límites. Reintentando…", "info");
+      throw err;
+    }
+    if (token !== map._refreshToken) return;
 
     if (!layers.geojson_ready) {
       console.warn("Ejecute exportar_datos.bat para polígonos ACR/ZI");
@@ -786,13 +830,26 @@ const AcrMap = (() => {
       }
     }
 
-    await loadDeforestation(state);
+    // Límites visibles de inmediato; leyenda base ya útil
     if (map._legend) {
       try { map.removeControl(map._legend); } catch (_) {}
       map._legend = null;
     }
-    setupLayerControl(map._defoMode);
-    setTimeout(() => map.invalidateSize(), 300);
+    setupLayerControl("vectors");
+    setTimeout(() => map?.invalidateSize(), 120);
+
+    // Deforestación en segundo plano (no bloquea la interacción con el mapa)
+    loadDeforestation(state, token)
+      .then(() => {
+        if (token !== map._refreshToken) return;
+        if (map._legend) {
+          try { map.removeControl(map._legend); } catch (_) {}
+          map._legend = null;
+        }
+        setupLayerControl(map._defoMode);
+        setTimeout(() => map?.invalidateSize(), 200);
+      })
+      .catch((err) => console.warn("Deforestación:", err));
   }
 
   return { init, refresh };

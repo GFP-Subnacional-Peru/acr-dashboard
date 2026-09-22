@@ -141,9 +141,9 @@ async function bootstrapDashboard() {
     updateFilterInfo();
   }
 
-  // KPIs + mapa en paralelo (más fluido)
+  // KPIs + mapa en paralelo (más fluido); no bloquear el arranque
   window._dashDataReady = true;
-  const dashP = refreshDashboard();
+  refreshDashboard().catch((err) => console.warn("Dashboard:", err));
 
   const health = await healthP;
   if (!health) {
@@ -154,7 +154,6 @@ async function bootstrapDashboard() {
       throw err;
     }
   }
-  await dashP;
   startServerHeartbeat();
 }
 
@@ -402,6 +401,8 @@ async function restablecerFiltros() {
 }
 
 async function refreshDashboard() {
+  const seq = (window._dashRefreshSeq = (window._dashRefreshSeq || 0) + 1);
+  document.querySelector(".dash-kpi-card")?.classList.add("is-loading");
   const params = {
     departamento: state.departamento,
     ambito: state.ambito || DEFAULT_AMBITO,
@@ -422,23 +423,42 @@ async function refreshDashboard() {
     texto_ambito_kpi: "Total (ACR + ZI)",
   };
   const kpiP = apiGet("/api/kpis", params)
-    .then(renderKpis)
+    .then((k) => {
+      if (seq !== window._dashRefreshSeq) return;
+      renderKpis(k);
+    })
     .catch((err) => {
+      if (seq !== window._dashRefreshSeq) return;
       console.warn("KPIs:", err);
       renderKpis(emptyKpis);
+    })
+    .finally(() => {
+      if (seq === window._dashRefreshSeq) {
+        document.querySelector(".dash-kpi-card")?.classList.remove("is-loading");
+      }
     });
   if (state.acrs.length) {
     await Promise.all([
       kpiP,
       apiGet("/api/graficos", { ...params, ambito: state.ambito })
-        .then(renderCharts)
+        .then((g) => {
+          if (seq !== window._dashRefreshSeq) return;
+          renderCharts(g);
+        })
         .catch((err) => console.warn("Gráficos:", err)),
     ]);
   } else {
     renderCharts({ modo: "nacional" });
     await kpiP;
   }
-  Modals.bind(state);
+  if (seq === window._dashRefreshSeq) Modals.bind(state);
+}
+
+function scheduleRefresh(delay = 220) {
+  window.clearTimeout(window._dashRefreshT);
+  window._dashRefreshT = window.setTimeout(() => {
+    refreshDashboard().catch((err) => console.warn("Dashboard:", err));
+  }, delay);
 }
 
 function renderKpis(k) {
@@ -678,7 +698,7 @@ async function applyFiltersFromDom() {
   state.acrs = getSelectedAcrs();
   readYearFilters();
   updateFilterInfo();
-  await refreshDashboard();
+  scheduleRefresh(80);
 }
 
 qs("#departamento").addEventListener("change", async (e) => {
@@ -686,25 +706,25 @@ qs("#departamento").addEventListener("change", async (e) => {
   state.acrs = [];
   await loadAcrOptions();
   updateFilterInfo();
-  await refreshDashboard();
+  scheduleRefresh(80);
 });
 
 qs("#ambito").addEventListener("change", (e) => {
   state.ambito = e.target.value || DEFAULT_AMBITO;
   updateFilterInfo();
-  refreshDashboard();
+  scheduleRefresh();
 });
 
 qs("#nombre_acr").addEventListener("change", () => {
   state.acrs = getSelectedAcrs();
   updateFilterInfo();
-  refreshDashboard();
+  scheduleRefresh();
 });
 
 function onYearFilterChange() {
   readYearFilters();
   updateFilterInfo();
-  refreshDashboard();
+  scheduleRefresh(280);
 }
 
 qs("#anno_desde")?.addEventListener("change", onYearFilterChange);
