@@ -191,7 +191,7 @@ const Modals = (() => {
 
     const baseParams = {
       departamento: state.departamento,
-      ambito: state.ambito || "acr",
+      ambito: state.ambito || "ambos",
       acr: state.acrs.length ? state.acrs : undefined,
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,
@@ -305,7 +305,7 @@ const Modals = (() => {
 
     const serieRes = await apiGet("/api/serie-anual", {
       departamento: state.departamento,
-      ambito: state.ambito || "acr",
+      ambito: state.ambito || "ambos",
       acr: state.acrs.length ? state.acrs : undefined,
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,
@@ -353,7 +353,7 @@ const Modals = (() => {
 
     const serieRes = await apiGet("/api/serie-anual", {
       departamento: state.departamento,
-      ambito: state.ambito || "acr",
+      ambito: state.ambito || "ambos",
       acr: state.acrs.length ? state.acrs : undefined,
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,
@@ -439,7 +439,7 @@ const Modals = (() => {
 
     const causas = await apiGet("/api/causas", {
       departamento: state.departamento,
-      ambito: state.ambito || "acr",
+      ambito: state.ambito || "ambos",
       acr: state.acrs.length ? state.acrs : undefined,
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,

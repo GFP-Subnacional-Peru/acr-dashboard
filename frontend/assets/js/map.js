@@ -595,7 +595,7 @@ const AcrMap = (() => {
     const limit = singleAcr || selectedAcrs ? 0 : state.departamento === "todos" || yearSpan > 10 ? 12000 : 0;
     const params = {
       departamento: deptoApi,
-      ambito: state.ambito || "acr",
+      ambito: state.ambito || "ambos",
       acr: acrFilter?.length ? acrFilter : undefined,
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,
@@ -660,7 +660,7 @@ const AcrMap = (() => {
   async function loadDeforestationCentroids(state, opts = {}) {
     const params = {
       departamento: state.departamento,
-      ambito: state.ambito || "acr",
+      ambito: state.ambito || "ambos",
       acr: state.acrs.length ? state.acrs : undefined,
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,
@@ -721,7 +721,7 @@ const AcrMap = (() => {
 
     const params = {
       departamento: state.departamento,
-      ambito: state.ambito || "acr",
+      ambito: state.ambito || "ambos",
       acr: state.acrs.length ? state.acrs : undefined,
     };
 

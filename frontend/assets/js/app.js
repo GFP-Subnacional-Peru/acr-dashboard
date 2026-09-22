@@ -1,9 +1,11 @@
 /* Dashboard ACR — orquestación */
 const API = "";
 
+const DEFAULT_AMBITO = "ambos";
+
 const state = {
   departamento: "todos",
-  ambito: "acr",
+  ambito: DEFAULT_AMBITO,
   acrs: [],
   annoDesde: 2015,
   annoHasta: 2025,
@@ -345,7 +347,7 @@ function updateFilterInfo() {
   const info = qs("#filter-info");
   const btn = qs("#btn-restablecer");
   const hasDepto = state.departamento && state.departamento !== "todos";
-  const hasAmbito = state.ambito && state.ambito !== "acr";
+  const hasAmbito = state.ambito && state.ambito !== DEFAULT_AMBITO;
   const hasYears = isYearFilterActive();
   const has = hasDepto || hasAmbito || state.acrs.length || hasYears;
   if (!has) {
@@ -357,11 +359,10 @@ function updateFilterInfo() {
   let html = "<strong>Filtro activo:</strong> ";
   const parts = [];
   if (hasDepto) parts.push(`Depto: ${state.departamento}`);
-  if (hasAmbito || state.ambito === "acr") {
+  if (hasAmbito) {
     const t =
       state.ambito === "acr" ? "ACR" : state.ambito === "zi" ? "Zona de Influencia" : "ACR + ZI";
-    // Solo mostrar ámbito si no es el default ACR, o si hay otros filtros
-    if (hasAmbito || state.acrs.length || hasDepto || hasYears) parts.push(`Ámbito: ${t}`);
+    parts.push(`Ámbito: ${t}`);
   }
   if (state.acrs.length) parts.push(`ACRs: ${state.acrs.length}`);
   if (hasYears) parts.push(`Periodo: ${state.annoDesde}–${state.annoHasta}`);
@@ -373,12 +374,12 @@ function updateFilterInfo() {
 
 async function restablecerFiltros() {
   state.departamento = "todos";
-  state.ambito = "acr";
+  state.ambito = DEFAULT_AMBITO;
   state.acrs = [];
   state.annoDesde = DEFAULT_ANNO_DESDE;
   state.annoHasta = DEFAULT_ANNO_HASTA;
   if (qs("#departamento")) qs("#departamento").value = "todos";
-  if (qs("#ambito")) qs("#ambito").value = "acr";
+  if (qs("#ambito")) qs("#ambito").value = DEFAULT_AMBITO;
   if (qs("#anno_desde")) qs("#anno_desde").value = String(DEFAULT_ANNO_DESDE);
   if (qs("#anno_hasta")) qs("#anno_hasta").value = String(DEFAULT_ANNO_HASTA);
   const label = qs("#anno-range-label");
@@ -397,7 +398,7 @@ async function restablecerFiltros() {
 async function refreshDashboard() {
   const params = {
     departamento: state.departamento,
-    ambito: state.ambito || "acr",
+    ambito: state.ambito || DEFAULT_AMBITO,
     acr: state.acrs.length ? state.acrs : undefined,
     anno_desde: state.annoDesde,
     anno_hasta: state.annoHasta,
@@ -650,7 +651,7 @@ function renderCharts(g) {
 
 async function applyFiltersFromDom() {
   state.departamento = qs("#departamento")?.value || "todos";
-  state.ambito = qs("#ambito")?.value || "acr";
+  state.ambito = qs("#ambito")?.value || DEFAULT_AMBITO;
   state.acrs = getSelectedAcrs();
   readYearFilters();
   updateFilterInfo();
@@ -666,7 +667,7 @@ qs("#departamento").addEventListener("change", async (e) => {
 });
 
 qs("#ambito").addEventListener("change", (e) => {
-  state.ambito = e.target.value || "acr";
+  state.ambito = e.target.value || DEFAULT_AMBITO;
   updateFilterInfo();
   refreshDashboard();
 });
