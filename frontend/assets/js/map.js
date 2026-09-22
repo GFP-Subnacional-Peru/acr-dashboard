@@ -438,97 +438,78 @@ const AcrMap = (() => {
   }
 
   function addLegend(mode) {
-    if (map._legend) map.removeControl(map._legend);
-    map._legend = L.control({ position: "topleft" });
-    map._legend.onAdd = () => {
-      const div = L.DomUtil.create("div", "map-legend gfp-legend");
-      L.DomEvent.disableClickPropagation(div);
-      L.DomEvent.disableScrollPropagation(div);
-
-      let defoRows = `
-        <li class="map-legend-item">
-          <span class="map-legend-dot map-legend-dot--defo"></span>
-          <span>Deforestación (centroides)</span>
-        </li>`;
-      if (mode === "vectors" || mode === "mixed") {
-        defoRows = `
-        <li class="map-legend-item">
-          <span class="map-legend-dot map-legend-dot--antropico"></span>
-          <span>Origen antrópico</span>
-        </li>
-        <li class="map-legend-item">
-          <span class="map-legend-dot map-legend-dot--natural"></span>
-          <span>Natural</span>
-        </li>`;
-        if (mode === "mixed") {
-          defoRows += `
-        <li class="map-legend-item">
-          <span class="map-legend-dot map-legend-dot--defo"></span>
-          <span>Otros deptos. (centroides)</span>
-        </li>`;
-        }
-      }
-
-      div.innerHTML = `
-        <div class="map-legend-card">
-          <div class="map-legend-title">Deforestación acumulada</div>
-          <ul class="map-legend-list">
-            <li class="map-legend-item">
-              <span class="map-legend-dot map-legend-dot--acr"></span>
-              <span>Área de Conservación Regional</span>
-            </li>
-            <li class="map-legend-item">
-              <span class="map-legend-dot map-legend-dot--zi"></span>
-              <span>Zona de influencia</span>
-            </li>
-            <li class="map-legend-item">
-              <span class="map-legend-dot map-legend-dot--limites"></span>
-              <span>Límites departamentales</span>
-            </li>
-            ${defoRows}
-          </ul>
-        </div>`;
-      return div;
-    };
-    map._legend.addTo(map);
+    /* Leyenda unificada con toggles — ver setupLayerControl */
   }
 
   function setupLayerControl(mode) {
     if (map._layerControl) map.removeControl(map._layerControl);
-    const overlays = {};
-    if (layerRefs.acr) overlays["ACRs"] = layerRefs.acr;
-    if (layerRefs.zi) overlays["Zonas de Influencia"] = layerRefs.zi;
-    if (layerRefs.limites) overlays["Límites Departamentales"] = layerRefs.limites;
-    if (mode === "mixed") {
-      overlays["Deforestación (polígonos)"] = defoLayer;
-      overlays["Deforestación (centroides)"] = clusterGroup;
-    } else {
-      overlays["Deforestación"] = mode === "vectors" ? defoLayer : clusterGroup;
+    // Solo polígonos (sin centroides): prioridad de interacción
+    const items = [];
+    if (layerRefs.acr) {
+      items.push({
+        label: "Área de Conservación Regional",
+        layer: layerRefs.acr,
+        swatch: "map-legend-dot--acr",
+        defaultOn: true,
+      });
+    }
+    if (layerRefs.zi) {
+      items.push({
+        label: "Zona de influencia",
+        layer: layerRefs.zi,
+        swatch: "map-legend-dot--zi",
+        defaultOn: true,
+      });
+    }
+    if (layerRefs.limites) {
+      items.push({
+        label: "Límites departamentales",
+        layer: layerRefs.limites,
+        swatch: "map-legend-dot--limites",
+        defaultOn: true,
+      });
+    }
+    if (mode === "vectors" || mode === "mixed") {
+      items.push({
+        label: "Origen antrópico / Natural",
+        layer: defoLayer,
+        swatch: "map-legend-dot--antropico",
+        swatch2: "map-legend-dot--natural",
+        defaultOn: true,
+        hint: "Deforestación (polígonos)",
+      });
     }
 
-    map._layerControl = L.control({ position: "topright" });
+    map._layerControl = L.control({ position: "topleft" });
     map._layerControl.onAdd = () => {
-      const wrap = L.DomUtil.create("div", "gfp-map-ui gfp-overlays");
+      const wrap = L.DomUtil.create("div", "map-legend gfp-legend gfp-legend--interactive");
       L.DomEvent.disableClickPropagation(wrap);
       L.DomEvent.disableScrollPropagation(wrap);
-      const rows = Object.entries(overlays)
-        .map(([label, layer], i) => {
-          const id = `gfp-ov-${i}`;
-          const checked = map.hasLayer(layer) ? "checked" : "";
-          return `<label class="gfp-overlay-row" for="${id}">
-            <input type="checkbox" id="${id}" ${checked} data-ov="${i}" />
-            <span>${label}</span>
+      const rows = items
+        .map((it, i) => {
+          const id = `gfp-leg-${i}`;
+          const on = map.hasLayer(it.layer) || it.defaultOn;
+          if (on && !map.hasLayer(it.layer)) map.addLayer(it.layer);
+          const dots = it.swatch2
+            ? `<span class="map-legend-dot ${it.swatch}"></span><span class="map-legend-dot ${it.swatch2}"></span>`
+            : `<span class="map-legend-dot ${it.swatch}"></span>`;
+          return `<label class="map-legend-item map-legend-item--toggle" for="${id}">
+            <input type="checkbox" id="${id}" ${on ? "checked" : ""} data-leg="${i}" />
+            <span class="map-legend-dots">${dots}</span>
+            <span class="map-legend-label">${it.label}</span>
           </label>`;
         })
         .join("");
-      wrap.innerHTML = `<div class="gfp-overlays-title">Capas</div>${rows}`;
-      const entries = Object.values(overlays);
+      wrap.innerHTML = `<div class="map-legend-card">
+        <div class="map-legend-title">Leyenda</div>
+        <div class="map-legend-list map-legend-list--toggle">${rows}</div>
+      </div>`;
       wrap.querySelectorAll("input[type=checkbox]").forEach((input) => {
         input.addEventListener("change", () => {
-          const layer = entries[+input.dataset.ov];
-          if (!layer) return;
-          if (input.checked) map.addLayer(layer);
-          else map.removeLayer(layer);
+          const it = items[+input.dataset.leg];
+          if (!it?.layer) return;
+          if (input.checked) map.addLayer(it.layer);
+          else map.removeLayer(it.layer);
         });
       });
       return wrap;
@@ -581,26 +562,9 @@ const AcrMap = (() => {
 
   function updateMapVectorsNote(state, meta, mode) {
     const el = document.getElementById("map-loreto-info");
-    if (!el) return;
-    const lo = Math.min(state.annoDesde, state.annoHasta);
-    const hi = Math.max(state.annoDesde, state.annoHasta);
-    const deptoLabel = {
-      loreto: "Loreto",
-      san_martin: "San Martín",
-      cusco: "Cusco",
-      todos: "Todas las regiones",
-    }[state.departamento] || state.departamento;
-    if (mode === "vectors" || mode === "mixed") {
-      const n = meta?.count ?? 0;
-      const hitLimit = !!(meta?.limited || (meta?.limit > 0 && n >= meta.limit));
-      const limitNote = hitLimit
-        ? ` · <em>mostrando ${n.toLocaleString("es-PE")} de muchos — filtre ACR o años</em>`
-        : "";
-      el.innerHTML = `<i class="fas fa-info-circle"></i> <strong>${deptoLabel}</strong>: <b>${n.toLocaleString("es-PE")}</b> polígonos acumulados (${lo}–${hi}) · GDB <em>MonitoreoDeforestacionAcumulado</em>${
-        mode === "mixed" ? " · resto en centroides" : ""
-      }${limitNote}`;
-    } else {
-      el.innerHTML = `<i class="fas fa-info-circle"></i> Deforestación en centroides precalculados (${lo}–${hi}).`;
+    if (el) {
+      el.classList.add("hidden");
+      el.innerHTML = "";
     }
   }
 
@@ -732,20 +696,14 @@ const AcrMap = (() => {
         vectorMeta = res?.meta;
       } catch (err) {
         console.warn("Vectores GDB no disponibles (¿reinició el servidor?):", err);
-        updateMapVectorsNote(state, null, "centroids");
+        updateMapVectorsNote(state, null, "vectors");
       }
     }
 
-    const needsCentroids = !VECTOR_DEPTOS.includes(state.departamento) || !hasVectors;
-    if (needsCentroids) {
-      await loadDeforestationCentroids(state, { excludeVectorCodes: hasVectors });
-    }
-
-    if (hasVectors && needsCentroids) map._defoMode = "mixed";
-    else if (hasVectors) map._defoMode = "vectors";
-    else map._defoMode = "centroids";
-
+    // Centroides retirados: prioridad a polígonos acumulados
+    map._defoMode = hasVectors ? "vectors" : "vectors";
     if (hasVectors) updateMapVectorsNote(state, vectorMeta, map._defoMode);
+    else updateMapVectorsNote(state, null, "vectors");
   }
 
   async function refresh(state) {
@@ -816,8 +774,11 @@ const AcrMap = (() => {
     }
 
     await loadDeforestation(state);
+    if (map._legend) {
+      try { map.removeControl(map._legend); } catch (_) {}
+      map._legend = null;
+    }
     setupLayerControl(map._defoMode);
-    addLegend(map._defoMode);
     setTimeout(() => map.invalidateSize(), 300);
   }
 

@@ -488,6 +488,51 @@ def tabla_acrs_desde_acumulado(
     return rows
 
 
+def serie_anual_desde_acumulado(
+    departamento: str = "loreto",
+    ambito: str = "acr",
+    acrs: list[str] | None = None,
+    anno_desde: int | None = None,
+    anno_hasta: int | None = None,
+) -> list[dict] | None:
+    """Serie anual total / antrópico / natural desde GeoJSON acumulado."""
+    if not _any_acumulado_available(departamento, ambito, acrs):
+        return None
+    props = list(
+        iter_acumulado_properties(departamento, ambito, acrs, anno_desde, anno_hasta)
+    )
+    if not props:
+        return []
+    by_year: dict[int, dict[str, float]] = {}
+    for p in props:
+        y = p.get("anno")
+        if y is None:
+            continue
+        try:
+            yi = int(y)
+        except (TypeError, ValueError):
+            continue
+        bucket = by_year.setdefault(yi, {"antropico": 0.0, "natural": 0.0, "total": 0.0})
+        area = _safe_float(p.get("area_ha"))
+        cat = _clasificar_tipo(p.get("tipo"), p.get("causa"))
+        if cat == "natural":
+            bucket["natural"] += area
+        elif cat == "falsa":
+            continue
+        else:
+            bucket["antropico"] += area
+        bucket["total"] = bucket["antropico"] + bucket["natural"]
+    return [
+        {
+            "Anio": y,
+            "Deforestacion_ha": round(v["total"], 2),
+            "Antropico_ha": round(v["antropico"], 2),
+            "Natural_ha": round(v["natural"], 2),
+        }
+        for y, v in sorted(by_year.items())
+    ]
+
+
 def graficos_desde_acumulado(
     departamento: str = "loreto",
     ambito: str = "acr",

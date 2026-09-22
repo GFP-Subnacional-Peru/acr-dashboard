@@ -57,7 +57,36 @@ const Tendencias = (() => {
   function toggleAcrPanel() {
     const tipo = document.getElementById("tend-tipo").value;
     const panel = document.getElementById("tend-acr-panel");
-    panel.classList.toggle("hidden", tipo !== "individual");
+    const sel = document.getElementById("tend-acr");
+    const hint = document.getElementById("tend-acr-hint");
+    const label = document.getElementById("tend-acr-label");
+    const show = tipo === "individual" || tipo === "comparativa";
+    panel?.classList.toggle("hidden", !show);
+    if (sel) {
+      sel.multiple = tipo === "comparativa";
+      sel.size = tipo === "comparativa" ? 8 : 1;
+      if (tipo === "individual" && sel.selectedOptions.length > 1) {
+        const first = sel.selectedOptions[0]?.value;
+        Array.from(sel.options).forEach((o) => {
+          o.selected = o.value === first;
+        });
+      }
+      if (tipo === "comparativa" && sel.selectedOptions.length < 2) {
+        Array.from(sel.options).forEach((o, i) => {
+          o.selected = i < 3;
+        });
+      }
+    }
+    if (label) {
+      label.textContent = tipo === "comparativa" ? "Seleccionar ACR(s) a comparar:" : "Seleccionar ACR:";
+    }
+    if (hint) {
+      hint.textContent =
+        tipo === "comparativa"
+          ? "Use Ctrl (Windows) o Cmd (Mac) para marcar varias ACR."
+          : "Elija una ACR para el análisis individual.";
+      hint.classList.toggle("hidden", !show);
+    }
   }
 
   function syncRange() {
@@ -67,8 +96,11 @@ const Tendencias = (() => {
   }
 
   function getSelectedAcrs() {
-    const v = document.getElementById("tend-acr")?.value;
-    return v ? [v] : [];
+    const sel = document.getElementById("tend-acr");
+    if (!sel) return [];
+    return Array.from(sel.selectedOptions)
+      .map((o) => o.value)
+      .filter(Boolean);
   }
 
   async function generarAnalisis() {
@@ -83,11 +115,9 @@ const Tendencias = (() => {
       alert("Seleccione una ACR para este tipo de análisis.");
       return;
     }
-    if (tipo === "comparativa") {
-      acrs.length = 0;
-      Object.values(ACR_OPTS).forEach((items) => {
-        Object.values(items).forEach((code) => acrs.push(code));
-      });
+    if (tipo === "comparativa" && acrs.length < 2) {
+      alert("Seleccione al menos 2 ACR para comparar.");
+      return;
     }
 
     const btn = document.getElementById("btn-analizar-tend");

@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260918d" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260922a" />
   <!-- Evita flash Mapa→Metodología: aplica pestaña desde ?tab= antes del primer paint -->
   <script>
     (function () {
@@ -28,17 +28,10 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
   <link rel="prefetch" href="/datos" />
 </head>
-<body>
+<body class="page-mapa">
   <!-- Loader a pantalla completa eliminado: el portal ya tiene home; el mapa abre al instante -->
-  <header class="site-header">
+  <header class="site-header site-header--compact">
     <div class="site-header-inner">
-      <div class="site-logos" aria-label="Identidad institucional GFP · SECO · Basel">
-        <a class="site-logo site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
-          <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="48" loading="eager" decoding="async"/>
-        </a>
-        <img class="site-logo site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" loading="eager" decoding="async"/>
-        <img class="site-logo site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" loading="eager" decoding="async"/>
-      </div>
       <nav class="navbar" aria-label="Secciones del dashboard">
         <ul class="nav-tabs">
           <li><a class="nav-link-ext" href="/"><i class="fas fa-home"></i> Inicio</a></li>
@@ -157,7 +150,7 @@
         <section class="panelbox dash-map-card">
           <h5 class="section-title"><i class="fas fa-map-marked-alt"></i> Mapa de deforestación en Áreas de Conservación Regional</h5>
           <p class="dash-map-period" id="dash-map-period">Período: 2001 – 2025</p>
-          <p id="map-loreto-info" class="map-loreto-info"><i class="fas fa-info-circle"></i> En <strong>Loreto, San Martín y Cusco</strong>, los polígonos de deforestación vienen del GDB <em>MonitoreoDeforestacionAcumulado</em> y respetan los filtros (departamento, ACR/ZI, años).</p>
+          <p id="map-loreto-info" class="map-loreto-info hidden" hidden aria-hidden="true"></p>
           <div class="dash-map-shell">
             <div id="map" class="dash-map"></div>
             <aside id="map-feature-panel" class="map-feature-panel" hidden aria-hidden="true">
@@ -198,7 +191,7 @@
 
     <footer class="footer-simple">
       <div class="footer-logo"><i class="fas fa-leaf"></i></div>
-      <p style="font-style:italic;color:#1a4d2e;font-weight:500">Conservando nuestros bosques amazónicos</p>
+      <p style="font-style:italic;color:#1a4d2e;font-weight:500">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p>
     </footer>
   </section>
 
@@ -207,9 +200,9 @@
     <div class="dash-hero section-hero">
       <div class="dash-hero-inner">
         <div class="dash-hero-copy">
-          <p class="dash-hero-eyebrow">Metodología Científica</p>
+          <p class="dash-hero-eyebrow">Metodología</p>
           <h1>Sistema de monitoreo y evaluación de deforestación en Áreas de Conservación Regional del Perú</h1>
-          <p class="dash-hero-sub">Análisis con Sentinel-2, Landsat y PlanetScope · estándares Hansen et al. y protocolo MINAM.</p>
+          <p class="dash-hero-sub">Análisis con Sentinel-2, Landsat, PlanetScope y MapBiomas · estándares Hansen et al.</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -225,6 +218,7 @@
       <h3><i class="fas fa-satellite"></i> 2. Fuentes de Información y Datos</h3>
       <ul class="metodologia-list">
         <li><strong>Fuente primaria:</strong> Plataforma <a href="https://geobosques.minam.gob.pe" target="_blank" rel="noopener">GeoBosques</a> del Ministerio del Ambiente (MINAM)</li>
+        <li><strong>Fuente complementaria:</strong> <a href="https://peru.mapbiomas.org/" target="_blank" rel="noopener">MapBiomas Perú</a> — colecciones de cobertura y uso del suelo que refuerzan la lectura multitemporal de pérdida forestal</li>
         <li><strong>Período temporal:</strong> 2001-2025 (25 años de serie histórica)</li>
         <li><strong>Resolución espacial:</strong> 30 metros (imágenes Landsat 7 ETM+, Landsat 8 OLI/TIRS)</li>
         <li><strong>Frecuencia de actualización:</strong> Anual, con alertas trimestrales</li>
@@ -296,7 +290,7 @@
         <li>Global Forest Watch (2024). Plataforma de monitoreo forestal en tiempo real.</li>
       </ol>
     </div>
-    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
+    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p></footer>
   </section>
 
   <!-- REPORTES (ui.R tab 3) -->
@@ -319,7 +313,7 @@
       <div class="atd-loading atd-loading-panel"><i class="fas fa-spinner fa-spin"></i> Cargando demo ATD GeoBosques…</div>
     </div>
 
-    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
+    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p></footer>
   </section>
 
   <!-- TENDENCIAS (mod_prediccion.R) -->
@@ -346,9 +340,10 @@
           <option value="individual">Por ACR Individual</option>
           <option value="comparativa">Comparativa entre ACRs</option>
         </select>
-        <div id="tend-acr-panel">
-          <label for="tend-acr">Seleccionar ACR:</label>
+        <div id="tend-acr-panel" class="hidden">
+          <label id="tend-acr-label" for="tend-acr">Seleccionar ACR:</label>
           <select id="tend-acr"></select>
+          <p id="tend-acr-hint" class="tend-acr-hint hidden"></p>
         </div>
         <label>Rango de Años: <span id="tend-rango-label">2001 – 2025</span></label>
         <input type="range" id="tend-anio-min" min="2001" max="2026" value="2001" />
@@ -368,17 +363,17 @@
         </div>
       </main>
     </div>
-    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Conservando nuestros bosques amazónicos</p></footer>
+    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p></footer>
   </section>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
-  <script src="/assets/js/map.js?v=20260918d" defer></script>
-  <script src="/assets/js/modals.js?v=20260918d" defer></script>
+  <script src="/assets/js/map.js?v=20260922a" defer></script>
+  <script src="/assets/js/modals.js?v=20260922a" defer></script>
   <script src="/assets/js/atd-demo.js?v=20260709d" defer></script>
-  <script src="/assets/js/reportes.js?v=20260918d" defer></script>
-  <script src="/assets/js/tendencias.js?v=20260918d" defer></script>
-  <script src="/assets/js/app.js?v=20260918d" defer></script>
+  <script src="/assets/js/reportes.js?v=20260922a" defer></script>
+  <script src="/assets/js/tendencias.js?v=20260922a" defer></script>
+  <script src="/assets/js/app.js?v=20260922a" defer></script>
 </body>
 </html>

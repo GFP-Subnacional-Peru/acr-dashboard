@@ -121,6 +121,21 @@ body {
   z-index: 1000;
   box-shadow: 0 1px 0 rgba(0, 40, 80, 0.06);
 }
+/* Página mapa: barra no fija y sin logos → más espacio para el mapa */
+body.page-mapa .site-header,
+.site-header--compact {
+  position: relative;
+  top: auto;
+}
+body.page-mapa .site-header-inner,
+.site-header--compact .site-header-inner {
+  justify-content: flex-end;
+  min-height: 52px;
+  padding: 0.4rem 1rem;
+}
+body.page-mapa .site-logos {
+  display: none !important;
+}
 .site-header::after {
   content: "";
   display: block;
@@ -483,6 +498,7 @@ html[data-boot-tab="tendencias"] .nav-tabs button[data-tab="tendencias"] {
   flex-direction: column;
   gap: 8px;
 }
+.map-legend-list--toggle { gap: 4px; }
 .map-legend-item {
   display: flex;
   align-items: center;
@@ -492,6 +508,35 @@ html[data-boot-tab="tendencias"] .nav-tabs button[data-tab="tendencias"] {
   font-weight: 600;
   color: #334155;
   line-height: 1.25;
+}
+.map-legend-item--toggle {
+  cursor: pointer;
+  padding: 0.22rem 0.2rem;
+  border-radius: 6px;
+}
+.map-legend-item--toggle:hover { background: rgba(0, 61, 165, 0.06); }
+.map-legend-item--toggle input {
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: #003DA5;
+}
+.map-legend-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 22px;
+  flex-shrink: 0;
+}
+.map-legend-label { flex: 1; min-width: 0; }
+.tend-acr-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+#tend-acr[multiple] {
+  min-height: 160px;
+  width: 100%;
 }
 .map-legend-dot {
   width: 11px;

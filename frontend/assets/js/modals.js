@@ -36,6 +36,9 @@ const Modals = (() => {
       const node = document.getElementById(id);
       if (node && node.parentElement !== host) host.appendChild(node);
     });
+    // Restaurar bloques ocultos en modal de hectáreas
+    document.querySelectorAll("#charts-individual .chart-block").forEach((el) => el.classList.remove("hidden"));
+    document.getElementById("chart-distribucion")?.closest(".chart-block")?.classList.add("chart-block--wide");
   }
 
   function close() {
@@ -201,6 +204,16 @@ const Modals = (() => {
 
     if (graf && typeof renderCharts === "function") {
       renderCharts(graf);
+      // Pérdida de bosque: quitar barras de composición; pie ocupa ese espacio
+      document.getElementById("chart-composicion")?.closest(".chart-block")?.classList.add("hidden");
+      const pieBlock = document.getElementById("chart-distribucion")?.closest(".chart-block");
+      const causasBlock = document.getElementById("chart-causas")?.closest(".chart-block");
+      const stack = document.querySelector("#charts-individual .charts-stack");
+      if (pieBlock) {
+        pieBlock.classList.remove("chart-block--wide");
+        pieBlock.classList.remove("hidden");
+        if (stack && causasBlock) stack.insertBefore(pieBlock, causasBlock);
+      }
     }
 
     const data = rowsRes.data || [];
@@ -208,8 +221,9 @@ const Modals = (() => {
     const ant = data.reduce((s, r) => s + (Number(r.Antropico) || 0), 0);
     const nat = data.reduce((s, r) => s + (Number(r.Perdida_natural) || 0), 0);
 
-    let table = "<p class='kpi-detail-empty'>No hay datos para el período y filtros actuales.</p>";
-    if (data.length) {
+    // Tabla por ACR solo si hay más de una (evita repetir el resumen)
+    let table = "";
+    if (data.length > 1) {
       table = `<h4 class="kpi-detail-table-title"><i class="fas fa-table"></i> Distribución por ACR · ${periodo}</h4>
         <div class="kpi-detail-table-wrap"><table class="data-table"><thead><tr>
         <th>ACR</th><th>Total (ha)</th><th>Antrópico</th><th>Natural</th></tr></thead><tbody>`;
@@ -221,6 +235,8 @@ const Modals = (() => {
             <td>${fmt(r.Antropico)}</td><td>${fmt(r.Perdida_natural)}</td></tr>`;
         });
       table += "</tbody></table></div>";
+    } else if (!data.length) {
+      table = "<p class='kpi-detail-empty'>No hay datos para el período y filtros actuales.</p>";
     }
 
     const body = document.getElementById("kpi-modal-body");
@@ -234,6 +250,39 @@ const Modals = (() => {
     attachChartsToModal();
   }
 
+  function plotSerieLine(elId, years, values, opts = {}) {
+    const color = opts.color || "#0B6E4F";
+    const name = opts.name || "ha";
+    Plotly.newPlot(
+      elId,
+      [
+        {
+          x: years,
+          y: values,
+          type: "scatter",
+          mode: "lines+markers",
+          name,
+          line: { color, width: 2.5, shape: "spline" },
+          marker: { size: 7, color },
+          fill: opts.fill ? "tozeroy" : undefined,
+          fillcolor: opts.fillColor || "rgba(11,110,79,0.12)",
+          hovertemplate: "<b>%{x}</b><br>%{y:,.1f} ha<extra></extra>",
+        },
+      ],
+      {
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(248,250,252,0.65)",
+        margin: { t: 28, b: 44, l: 56, r: 20 },
+        height: opts.height || 320,
+        xaxis: { title: "Año", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
+        yaxis: { title: "Hectáreas (ha)", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
+        font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#334155" },
+        showlegend: false,
+      },
+      { responsive: true, displayModeBar: false }
+    );
+  }
+
   async function openVariacion(state) {
     const periodo = `${state.annoDesde}–${state.annoHasta}`;
     const box = document.getElementById("kpi-variacion");
@@ -241,23 +290,45 @@ const Modals = (() => {
     const sub = box?.querySelector(".sub-text")?.textContent || "";
     showFloating(
       `<i class="fas fa-chart-bar"></i> Variación anual <span class="kpi-modal-period">· ${periodo}</span>`,
-      `<div class="kpi-modal-grid">
-        <div class="kpi-mini kpi-mini--ant"><h2>${num}</h2><span>VARIACIÓN</span></div>
-      </div>
-      <p class="kpi-detail-lead">${sub || "Comparación respecto al año anterior con los filtros activos."}</p>`,
+      '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando serie del período…</p>',
       { wide: true }
     );
-    if (state.acrs.length && typeof renderCharts === "function") {
-      const graf = await apiGet("/api/graficos", {
-        departamento: state.departamento,
-        ambito: state.ambito || "acr",
-        acr: state.acrs,
-        anno_desde: state.annoDesde,
-        anno_hasta: state.annoHasta,
-      }).catch(() => null);
-      if (graf) renderCharts(graf);
+
+    const serieRes = await apiGet("/api/serie-anual", {
+      departamento: state.departamento,
+      ambito: state.ambito || "acr",
+      acr: state.acrs.length ? state.acrs : undefined,
+      anno_desde: state.annoDesde,
+      anno_hasta: state.annoHasta,
+    }).catch(() => ({ serie: [] }));
+    const rows = (serieRes.serie || []).slice().sort((a, b) => a.Anio - b.Anio);
+    const years = rows.map((r) => r.Anio);
+    const vals = rows.map((r) => Number(r.Deforestacion_ha) || 0);
+
+    const body = document.getElementById("kpi-modal-body");
+    if (body) {
+      body.innerHTML = `<div class="kpi-modal-grid" style="grid-template-columns:1fr">
+        <div class="kpi-mini kpi-mini--ant"><h2>${num}</h2><span>VARIACIÓN</span></div>
+      </div>
+      <p class="kpi-detail-lead">${sub || "Comparación respecto al año anterior."} Serie de pérdida anual en el período filtrado.</p>
+      <div class="chart-block" style="margin-top:0.75rem">
+        <h6><i class="fas fa-chart-line"></i> Pérdida anual (ha)</h6>
+        <div id="modal-chart-variacion" style="height:320px"></div>
+      </div>`;
     }
-    attachChartsToModal();
+    if (years.length && typeof Plotly !== "undefined") {
+      plotSerieLine("modal-chart-variacion", years, vals, {
+        color: "#e67e22",
+        fill: true,
+        fillColor: "rgba(230,126,34,0.12)",
+        name: "Pérdida anual",
+      });
+    } else if (body) {
+      body.insertAdjacentHTML(
+        "beforeend",
+        `<p class="kpi-detail-empty">Sin serie anual para los filtros actuales.</p>`
+      );
+    }
   }
 
   async function openAntropico(state) {
@@ -267,23 +338,86 @@ const Modals = (() => {
     const sub = box?.querySelector(".sub")?.textContent || "";
     showFloating(
       `<i class="fas fa-chart-pie"></i> Origen antrópico <span class="kpi-modal-period">· ${periodo}</span>`,
-      `<div class="kpi-modal-grid">
-        <div class="kpi-mini kpi-mini--ant"><h2>${num}</h2><span>ANTRÓPICO</span></div>
-      </div>
-      <p class="kpi-detail-lead">${sub || ""} · período ${periodo}</p>`,
+      '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Cargando serie antrópica…</p>',
       { wide: true }
     );
-    if (state.acrs.length && typeof renderCharts === "function") {
-      const graf = await apiGet("/api/graficos", {
-        departamento: state.departamento,
-        ambito: state.ambito || "acr",
-        acr: state.acrs,
-        anno_desde: state.annoDesde,
-        anno_hasta: state.annoHasta,
-      }).catch(() => null);
-      if (graf) renderCharts(graf);
+
+    const serieRes = await apiGet("/api/serie-anual", {
+      departamento: state.departamento,
+      ambito: state.ambito || "acr",
+      acr: state.acrs.length ? state.acrs : undefined,
+      anno_desde: state.annoDesde,
+      anno_hasta: state.annoHasta,
+    }).catch(() => ({ serie: [] }));
+    const rows = (serieRes.serie || []).slice().sort((a, b) => a.Anio - b.Anio);
+    const years = rows.map((r) => r.Anio);
+    const antVals = rows.map((r) =>
+      r.Antropico_ha != null ? Number(r.Antropico_ha) : Number(r.Deforestacion_ha) || 0
+    );
+    const natVals = rows.map((r) => (r.Natural_ha != null ? Number(r.Natural_ha) : null));
+    const hasNat = natVals.some((v) => v != null);
+
+    const body = document.getElementById("kpi-modal-body");
+    if (body) {
+      body.innerHTML = `<div class="kpi-modal-grid" style="grid-template-columns:1fr">
+        <div class="kpi-mini kpi-mini--ant"><h2>${num}</h2><span>ANTRÓPICO</span></div>
+      </div>
+      <p class="kpi-detail-lead">${sub || ""} · evolución anual en ${periodo}.</p>
+      <div class="chart-block" style="margin-top:0.75rem">
+        <h6><i class="fas fa-chart-area"></i> Origen antrópico por año</h6>
+        <div id="modal-chart-antropico" style="height:340px"></div>
+      </div>`;
     }
-    attachChartsToModal();
+    if (!years.length || typeof Plotly === "undefined") {
+      if (body) {
+        body.insertAdjacentHTML(
+          "beforeend",
+          `<p class="kpi-detail-empty">Sin serie anual para los filtros actuales.</p>`
+        );
+      }
+      return;
+    }
+    const traces = [
+      {
+        x: years,
+        y: antVals,
+        type: "scatter",
+        mode: "lines+markers",
+        name: "Origen antrópico",
+        line: { color: "#d9534f", width: 2.5 },
+        marker: { size: 7, color: "#d9534f" },
+        fill: "tozeroy",
+        fillcolor: "rgba(217,83,79,0.12)",
+        hovertemplate: "<b>%{x}</b><br>Antrópico: %{y:,.1f} ha<extra></extra>",
+      },
+    ];
+    if (hasNat) {
+      traces.push({
+        x: years,
+        y: natVals,
+        type: "scatter",
+        mode: "lines+markers",
+        name: "Natural",
+        line: { color: "#5cb85c", width: 2 },
+        marker: { size: 6, color: "#5cb85c" },
+        hovertemplate: "<b>%{x}</b><br>Natural: %{y:,.1f} ha<extra></extra>",
+      });
+    }
+    Plotly.newPlot(
+      "modal-chart-antropico",
+      traces,
+      {
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(248,250,252,0.65)",
+        margin: { t: 28, b: 44, l: 56, r: 20 },
+        height: 340,
+        xaxis: { title: "Año", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
+        yaxis: { title: "Hectáreas (ha)", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
+        legend: { orientation: "h", y: -0.18 },
+        font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#334155" },
+      },
+      { responsive: true, displayModeBar: false }
+    );
   }
 
   async function openCausas(state) {

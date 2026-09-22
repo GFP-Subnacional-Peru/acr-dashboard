@@ -49,6 +49,7 @@ from services.deforestacion_vectors_service import (
     kpis_desde_acumulado,
     load_acumulado_vectors,
     loreto_en_alcance,
+    serie_anual_desde_acumulado,
     tabla_acrs_desde_acumulado,
     vectors_en_alcance,
     warmup_acumulado_cache,
@@ -453,6 +454,48 @@ def graficos_endpoint(
 @app.get("/api/tendencias")
 def tendencias_endpoint(acr: list[str] | None = Query(None)) -> dict:
     return {"serie": serie_temporal(acr)}
+
+
+@app.get("/api/serie-anual")
+def serie_anual_endpoint(
+    departamento: str = Query("todos"),
+    ambito: str = Query("acr"),
+    acr: list[str] | None = Query(None),
+    anno_desde: int | None = Query(None, ge=2001, le=2030),
+    anno_hasta: int | None = Query(None, ge=2001, le=2030),
+) -> dict:
+    """Serie anual (total / antrópico / natural) para modales de variación y origen antrópico."""
+    depto_vec = departamento if departamento in VECTOR_DEPTOS else "todos"
+    sel = None
+    if acr:
+        sel = [c for c in acr if c in ALL_VECTOR_CODIGOS] or None
+    serie = serie_anual_desde_acumulado(
+        depto_vec,
+        ambito or "acr",
+        sel,
+        anno_desde=anno_desde,
+        anno_hasta=anno_hasta,
+    )
+    if serie is not None:
+        return {"serie": serie, "source": "acumulado"}
+    # Fallback: serie temporal agregada (solo total)
+    fallback = serie_temporal(acr)
+    if anno_desde is not None or anno_hasta is not None:
+        lo = anno_desde if anno_desde is not None else 2001
+        hi = anno_hasta if anno_hasta is not None else 2025
+        fallback = [r for r in fallback if lo <= int(r.get("Anio", 0)) <= hi]
+    out = []
+    for r in fallback:
+        ha = float(r.get("Deforestacion_ha") or 0)
+        out.append(
+            {
+                "Anio": int(r["Anio"]),
+                "Deforestacion_ha": ha,
+                "Antropico_ha": None,
+                "Natural_ha": None,
+            }
+        )
+    return {"serie": out, "source": "temporal"}
 
 
 @app.get("/api/tendencias/analisis")
