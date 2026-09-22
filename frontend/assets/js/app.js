@@ -161,7 +161,8 @@ function initialTabFromUrl() {
   try {
     const t = (new URLSearchParams(window.location.search).get("tab") || "").toLowerCase();
     if (t === "mapa") return "dashboard";
-    if (t === "metodologia" || t === "reportes" || t === "tendencias") return t;
+    if (t === "metodologia" || t === "tendencias") return t;
+    if (t === "reportes") return "dashboard"; // pestaña retirada por ahora
   } catch (_) {}
   return "dashboard";
 }
@@ -189,7 +190,7 @@ function startServerHeartbeat() {
 }
 
 function activateTab(tabName) {
-  const allowed = new Set(["dashboard", "metodologia", "reportes", "tendencias"]);
+  const allowed = new Set(["dashboard", "metodologia", "tendencias"]);
   const tab = allowed.has(tabName) ? tabName : "dashboard";
   try {
     document.documentElement.removeAttribute("data-boot-tab");
@@ -202,10 +203,6 @@ function activateTab(tabName) {
   if (panel) panel.classList.add("active");
   if (tab === "dashboard") {
     ensureDashboardData().catch((err) => console.warn("Dashboard:", err));
-  }
-  if (tab === "reportes" && !window._reportesReady) {
-    window._reportesReady = true;
-    Reportes.init();
   }
   if (tab === "tendencias" && typeof Tendencias !== "undefined" && !window._tendenciasReady) {
     window._tendenciasReady = true;

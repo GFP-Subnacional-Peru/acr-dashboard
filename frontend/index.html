@@ -10,14 +10,14 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260922g" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260922h" />
   <!-- Evita flash Mapa→Metodología: aplica pestaña desde ?tab= antes del primer paint -->
   <script>
     (function () {
       try {
         var t = (new URLSearchParams(location.search).get("tab") || "").toLowerCase();
-        if (t === "mapa") t = "dashboard";
-        if (t === "metodologia" || t === "reportes" || t === "tendencias") {
+        if (t === "mapa" || t === "reportes") t = "dashboard";
+        if (t === "metodologia" || t === "tendencias") {
           document.documentElement.setAttribute("data-boot-tab", t);
         }
       } catch (e) {}
@@ -38,7 +38,6 @@
           <li><button type="button" class="active" data-tab="dashboard"><i class="fas fa-map"></i> Mapa</button></li>
           <li><a class="nav-link-ext" href="/datos"><i class="fas fa-database"></i> Datos</a></li>
           <li><button type="button" data-tab="metodologia"><i class="fas fa-book-open"></i> Metodología</button></li>
-          <li><button type="button" data-tab="reportes"><i class="fas fa-download"></i> Reportes</button></li>
           <li><button type="button" data-tab="tendencias"><i class="fas fa-chart-line"></i> Tendencias</button></li>
         </ul>
       </nav>
@@ -370,11 +369,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
-  <script src="/assets/js/map.js?v=20260922g" defer></script>
-  <script src="/assets/js/modals.js?v=20260922g" defer></script>
+  <script src="/assets/js/map.js?v=20260922h" defer></script>
+  <script src="/assets/js/modals.js?v=20260922h" defer></script>
   <script src="/assets/js/atd-demo.js?v=20260709d" defer></script>
-  <script src="/assets/js/reportes.js?v=20260922g" defer></script>
-  <script src="/assets/js/tendencias.js?v=20260922g" defer></script>
-  <script src="/assets/js/app.js?v=20260922g" defer></script>
+  <script src="/assets/js/tendencias.js?v=20260922h" defer></script>
+  <script src="/assets/js/app.js?v=20260922h" defer></script>
 </body>
 </html>

@@ -588,7 +588,7 @@ def deforestacion_vectors_endpoint(
     lim = limit
     # Vista nacional Ambos sin tope tumba Render free → cupo seguro
     if lim <= 0 and departamento == "todos" and (ambito or "acr") == "ambos" and not acr:
-        lim = 3500
+        lim = 12000
     try:
         return load_acumulado_vectors(
             departamento=departamento,

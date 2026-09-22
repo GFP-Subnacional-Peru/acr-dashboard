@@ -802,21 +802,28 @@ def load_acumulado_vectors(
         for folder, slug, codigo in targets
         if (ATD_ROOT / folder / "acumulado" / f"{slug}.geojson").exists()
     ]
-    # Vista nacional Ambos: solo polígonos ACR en el mapa (ZI sigue en límites).
-    # Los GeoJSON de ZI (p.ej. zi_ce ~33MB) tumban Render free.
-    if (
-        limit > 0
-        and departamento == "todos"
-        and (ambito or "") == "ambos"
-        and not acrs
-    ):
-        existing = [t for t in existing if t[2].startswith("ACR_")]
-    # ACR primero (archivos más chicos / prioritarios), luego ZI
+    # ACR siempre (incluye Ampiyacu / Nanay / Escalera). ZI gigantes se omiten en vista amplia.
+    if limit > 0 and not acrs:
+        kept = []
+        for t in existing:
+            folder, slug, codigo = t
+            path_fc = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
+            try:
+                fsize = path_fc.stat().st_size
+            except OSError:
+                continue
+            if codigo.startswith("ACR_"):
+                kept.append(t)  # nunca omitir ACR
+            elif fsize <= 8_000_000:
+                kept.append(t)
+            # ZI > 8MB (p.ej. zi_ce ~33MB) → fuera en vista amplia
+        existing = kept
+    # ACR primero para que Ampiyacu / Nanay / etc. entren sí o sí
     existing.sort(key=lambda t: (0 if t[2].startswith("ACR_") else 1, t[2]))
-    # Cupo por ACR/ZI: vistas amplias no cargan todo (evita OOM / 502 en Render)
+    # Cupo justo por archivo: cada ACR recibe su parte (evita que Cusco “coma” el cupo)
     per_file = 0
     if limit > 0 and existing:
-        per_file = max(150, (limit + len(existing) - 1) // len(existing))
+        per_file = max(400, (limit + len(existing) - 1) // len(existing))
 
     features: list[dict] = []
     loaded_slugs: list[str] = []
@@ -827,14 +834,6 @@ def load_acumulado_vectors(
             limited = True
             break
         path_fc = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
-        # Vista amplia: no abrir GeoJSON enormes (tumba Render free)
-        try:
-            fsize = path_fc.stat().st_size
-        except OSError:
-            continue
-        if limit > 0 and fsize > 5_000_000 and not acrs:
-            limited = True
-            continue
         loaded_slugs.append(f"{folder}/{slug}")
         try:
             data = _read_geojson(path_fc)
@@ -842,9 +841,8 @@ def load_acumulado_vectors(
             print(f"Skip geojson {path_fc.name}: {exc}", flush=True)
             continue
         n_this = 0
-        file_cap = per_file
-        if limit > 0:
-            file_cap = min(per_file, max(0, limit - len(features))) or per_file
+        # Cupo por archivo independiente: no reducir si ya hay otros (garantiza Nanay/Ampiyacu)
+        file_cap = per_file if limit > 0 else 0
         for f in data.get("features", []):
             if file_cap > 0 and n_this >= file_cap:
                 limited = True

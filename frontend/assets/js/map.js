@@ -596,7 +596,7 @@ const AcrMap = (() => {
       state.departamento === "todos" ||
       state.ambito === "ambos" ||
       yearSpan > 10;
-    const limit = singleAcr || selectedAcrs ? 0 : wideView ? 3500 : 8000;
+    const limit = singleAcr || selectedAcrs ? 0 : wideView ? 12000 : 15000;
     const params = {
       departamento: deptoApi,
       ambito: state.ambito || "ambos",
