@@ -4,11 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Portal ACR — Monitoreo de Deforestación | GFP Subnacional</title>
-  <!-- GFP WordPress iframe: apuntar a /mapa (o /?embed=1 que redirige a /mapa). La home (/) es el portal. -->
+  <!-- GFP WordPress iframe (/dashboard/): embebe "/" = Inicio. Desde aquí se entra a Mapa. -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="/assets/css/portal.css?v=20260922h" />
-  <link rel="prefetch" href="/mapa?tab=metodologia" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20260922j" />
+  <link rel="prefetch" href="/mapa" />
   <link rel="prefetch" href="/datos" />
+  <script>
+    // Ajuste visual cuando corre dentro del iframe de GFP
+    (function () {
+      try {
+        if (window.self !== window.top) document.documentElement.classList.add("is-embed");
+      } catch (e) {
+        document.documentElement.classList.add("is-embed");
+      }
+    })();
+  </script>
 </head>
 <body class="portal-body">
   <header class="site-header">

@@ -277,13 +277,20 @@ app.add_middleware(
 
 @app.middleware("http")
 async def no_cache_frontend(request, call_next):
-    """Evita que el iframe de WordPress / el navegador sirvan JS/CSS/HTML viejos."""
+    """Evita cache viejo y permite embeber el portal en GFP WordPress."""
     response = await call_next(request)
     path = request.url.path or ""
     if path == "/" or path.endswith((".html", ".js", ".css")):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
+    # GFP embebe el dashboard en iframe en /dashboard/
+    response.headers["Content-Security-Policy"] = (
+        "frame-ancestors 'self' https://www.gfpsubnacional.pe https://gfpsubnacional.pe"
+    )
+    # Compat: no bloquear iframe con X-Frame-Options
+    if "x-frame-options" in response.headers:
+        del response.headers["x-frame-options"]
     return response
 
 
@@ -768,13 +775,8 @@ if _FRONTEND_DIR.exists():
 
     @app.get("/")
     def portal_home(request: Request):
-        # WordPress GFP oficial embebe "/" en iframe → debe abrir el dashboard (mapa)
-        if request.query_params.get("embed") == "1":
-            return RedirectResponse(url="/mapa", status_code=302)
-        dest = (request.headers.get("sec-fetch-dest") or "").lower()
-        referer = (request.headers.get("referer") or "").lower()
-        if dest == "iframe" or "gfpsubnacional.pe" in referer:
-            return RedirectResponse(url="/mapa", status_code=302)
+        # GFP WordPress embebe "/" → siempre Inicio (home). El usuario entra al mapa desde ahí.
+        _ = request  # referer/iframe ya no redirigen a /mapa
         return _html("home.html")
 
     @app.get("/mapa")

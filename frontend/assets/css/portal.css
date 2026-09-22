@@ -961,3 +961,22 @@ body.portal-body {
   .nav-tabs a { font-size: 0.78rem; padding: 0.4rem 0.65rem; }
   .portal-cta-secondary { margin-left: 0; margin-top: 0.65rem; }
 }
+
+/* Embebido en GFP WordPress (/dashboard/) */
+html.is-embed body.portal-body {
+  min-height: 100%;
+}
+html.is-embed .portal-hero {
+  min-height: clamp(220px, 36vh, 360px);
+  padding: 2rem 1.25rem;
+}
+html.is-embed .portal-hero h1 {
+  font-size: clamp(1.45rem, 3.2vw, 2.1rem);
+}
+html.is-embed .acr-tile-media {
+  height: 148px;
+}
+html.is-embed .site-header {
+  position: sticky;
+  top: 0;
+}
