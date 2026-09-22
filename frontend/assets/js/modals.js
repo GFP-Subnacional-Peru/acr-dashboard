@@ -217,7 +217,8 @@ const Modals = (() => {
       anno_desde: state.annoDesde,
       anno_hasta: state.annoHasta,
     };
-    let tipoMeta = state.ambito === "zi" ? "zi" : "acr";
+    let tipoMeta =
+      state.ambito === "zi" ? "zi" : state.ambito === "acr" ? "acr" : "ambos";
 
     let rowsRes;
     let graf;
