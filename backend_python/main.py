@@ -732,8 +732,12 @@ if _FRONTEND_DIR.exists():
 
     @app.get("/")
     def portal_home(request: Request):
-        # WordPress embed legacy: /?embed=1 → dashboard mapa
+        # WordPress GFP oficial embebe "/" en iframe → debe abrir el dashboard (mapa)
         if request.query_params.get("embed") == "1":
+            return RedirectResponse(url="/mapa", status_code=302)
+        dest = (request.headers.get("sec-fetch-dest") or "").lower()
+        referer = (request.headers.get("referer") or "").lower()
+        if dest == "iframe" or "gfpsubnacional.pe" in referer:
             return RedirectResponse(url="/mapa", status_code=302)
         return _html("home.html")
 
