@@ -46,6 +46,9 @@ LORETO_CODIGOS = DEPT_CODES["loreto"]  # compat exports antiguos
 ALL_VECTOR_CODIGOS = set(CODIGO_SLUGS.keys())
 
 _GEOJSON_CACHE: dict[str, dict] = {}
+_PROPS_CACHE: dict[str, list[dict]] = {}
+# En Render free (~512 MB) cachear GeoJSON grandes tumba el proceso (502).
+_MAX_GEOJSON_CACHE_BYTES = 3_500_000
 
 _EMPTY_KPIS = {
     "total_hectareas": 0.0,
@@ -260,28 +263,59 @@ def _clasificar_tipo(tipo: str, causa=None) -> str:
 
 
 def _read_geojson(path: Path) -> dict:
-    """Carga GeoJSON una sola vez; cache por ruta resuelta."""
+    """Carga GeoJSON; solo cachea archivos chicos para no reventar memoria en Render."""
     key = str(path.resolve())
     cached = _GEOJSON_CACHE.get(key)
     if cached is not None:
         return cached
-    data = json.loads(path.read_text(encoding="utf-8"))
-    _GEOJSON_CACHE[key] = data
+    raw = path.read_bytes()
+    data = json.loads(raw.decode("utf-8"))
+    if len(raw) <= _MAX_GEOJSON_CACHE_BYTES:
+        _GEOJSON_CACHE[key] = data
     return data
 
 
-def warmup_acumulado_cache(ambito: str = "acr") -> int:
-    """Precarga GeoJSON ACR (o ZI) en memoria. Devuelve cantidad de archivos cargados."""
+def _props_list_for_file(path: Path, codigo: str) -> list[dict]:
+    """Solo atributos (sin geometrías) — liviano para KPIs/series."""
+    key = f"props::{path.resolve()}"
+    cached = _PROPS_CACHE.get(key)
+    if cached is not None:
+        return cached
+    data = json.loads(path.read_text(encoding="utf-8"))
+    out: list[dict] = []
+    for f in data.get("features") or []:
+        raw = f.get("properties") or {}
+        anno = raw.get("anno")
+        if anno is None:
+            continue
+        try:
+            y = int(anno)
+        except (TypeError, ValueError):
+            continue
+        causa = raw.get("causa")
+        out.append(
+            {
+                "codigo": codigo,
+                "area_ha": raw.get("area_ha"),
+                "tipo": _tipo_desde_causa(causa, raw.get("tipo")),
+                "causa": causa,
+                "causa_nombre": _causa_nombre(causa),
+                "anno": y,
+                "sector": raw.get("sector"),
+            }
+        )
+    _PROPS_CACHE[key] = out
+    return out
+
+
+def warmup_acumulado_cache(ambito: str = "ambos") -> int:
+    """Precarga índice de propiedades (no geometrías) para KPIs rápidos."""
     n = 0
-    for codigo, (folder, slug) in CODIGO_SLUGS.items():
-        if ambito == "acr" and not codigo.startswith("ACR_"):
-            continue
-        if ambito == "zi" and not codigo.startswith("ZI_"):
-            continue
+    for folder, slug, codigo in _slugs_for_filters("todos", ambito, None):
         path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
         if not path.exists():
             continue
-        _read_geojson(path)
+        _props_list_for_file(path, codigo)
         n += 1
     return n
 
@@ -442,28 +476,11 @@ def iter_acumulado_properties(
         path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
         if not path.exists():
             continue
-        data = _read_geojson(path)
-        for f in data.get("features", []):
-            raw = f.get("properties") or {}
-            anno = raw.get("anno")
-            if anno is None:
+        for row in _props_list_for_file(path, codigo):
+            y = row.get("anno")
+            if y is None or y < lo or y > hi:
                 continue
-            try:
-                y = int(anno)
-                if y < lo or y > hi:
-                    continue
-            except (TypeError, ValueError):
-                continue
-            causa = raw.get("causa")
-            yield {
-                "codigo": codigo,
-                "area_ha": raw.get("area_ha"),
-                "tipo": _tipo_desde_causa(causa, raw.get("tipo")),
-                "causa": causa,
-                "causa_nombre": _causa_nombre(causa),
-                "anno": y,
-                "sector": raw.get("sector"),
-            }
+            yield row
 
 
 def kpis_desde_acumulado(
@@ -723,22 +740,33 @@ def load_acumulado_vectors(
         for folder, slug, codigo in targets
         if (ATD_ROOT / folder / "acumulado" / f"{slug}.geojson").exists()
     ]
-    # Cupo por ACR/ZI: Cusco, Maijuna, Tahuayo y Escalera siempre entran
+    # ACR primero (archivos más chicos / prioritarios), luego ZI
+    existing.sort(key=lambda t: (0 if t[2].startswith("ACR_") else 1, t[2]))
+    # Cupo por ACR/ZI: vistas amplias no cargan todo (evita OOM / 502 en Render)
     per_file = 0
     if limit > 0 and existing:
-        per_file = max(200, (limit + len(existing) - 1) // len(existing))
+        per_file = max(150, (limit + len(existing) - 1) // len(existing))
 
     features: list[dict] = []
     loaded_slugs: list[str] = []
     limited = False
 
     for folder, slug, codigo in existing:
+        if limit > 0 and len(features) >= limit:
+            limited = True
+            break
         path_fc = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
         loaded_slugs.append(f"{folder}/{slug}")
         data = _read_geojson(path_fc)
         n_this = 0
+        file_cap = per_file
+        if limit > 0:
+            file_cap = min(per_file, max(0, limit - len(features))) or per_file
         for f in data.get("features", []):
-            if per_file > 0 and n_this >= per_file:
+            if file_cap > 0 and n_this >= file_cap:
+                limited = True
+                break
+            if limit > 0 and len(features) >= limit:
                 limited = True
                 break
             props = dict(f.get("properties") or {})
@@ -765,6 +793,9 @@ def load_acumulado_vectors(
             props["sector"] = z
             features.append({**f, "properties": props})
             n_this += 1
+        # Liberar referencia a GeoJSON enorme no cacheado
+        if str(path_fc.resolve()) not in _GEOJSON_CACHE:
+            data = None
 
     if limit > 0 and len(features) > limit:
         features = features[:limit]

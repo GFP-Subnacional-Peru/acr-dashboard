@@ -39,12 +39,18 @@ async function apiGet(path, params = {}, retries = 2) {
   let lastErr;
   for (let i = 0; i < retries; i++) {
     try {
-      const res = await fetch(`${API}${path}${buildQuery(params)}`, { cache: "no-store" });
+      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const t = ctrl ? setTimeout(() => ctrl.abort(), 90000) : null;
+      const res = await fetch(`${API}${path}${buildQuery(params)}`, {
+        cache: "no-store",
+        signal: ctrl?.signal,
+      });
+      if (t) clearTimeout(t);
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     } catch (err) {
       lastErr = err;
-      if (i < retries - 1) await new Promise((r) => setTimeout(r, 250 + i * 250));
+      if (i < retries - 1) await new Promise((r) => setTimeout(r, 400 + i * 400));
     }
   }
   throw lastErr;
@@ -405,11 +411,28 @@ async function refreshDashboard() {
   };
   // Mapa en paralelo sin bloquear KPIs
   AcrMap.refresh(state).catch((err) => console.warn("Mapa:", err));
-  const kpiP = apiGet("/api/kpis", params).then(renderKpis);
+  const emptyKpis = {
+    total_hectareas: 0,
+    total_antropico: 0,
+    pct_antropico: 0,
+    causa_principal: "Cargando…",
+    causa_principal_ha: 0,
+    causa_principal_pct: 0,
+    variacion_anual: { variacion: 0, texto: "Espere un momento", color: "#f39c12", icono: "spinner" },
+    texto_ambito_kpi: "Total (ACR + ZI)",
+  };
+  const kpiP = apiGet("/api/kpis", params)
+    .then(renderKpis)
+    .catch((err) => {
+      console.warn("KPIs:", err);
+      renderKpis(emptyKpis);
+    });
   if (state.acrs.length) {
     await Promise.all([
       kpiP,
-      apiGet("/api/graficos", { ...params, ambito: state.ambito }).then(renderCharts),
+      apiGet("/api/graficos", { ...params, ambito: state.ambito })
+        .then(renderCharts)
+        .catch((err) => console.warn("Gráficos:", err)),
     ]);
   } else {
     renderCharts({ modo: "nacional" });

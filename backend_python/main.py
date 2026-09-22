@@ -250,8 +250,8 @@ async def lifespan(app: FastAPI):
 
     def _warmup_vectors() -> None:
         try:
-            warmup_acumulado_cache(ambito="acr")
-            print("Cache vectores ACR listo", flush=True)
+            warmup_acumulado_cache(ambito="ambos")
+            print("Cache props ACR+ZI listo", flush=True)
         except Exception as exc:  # noqa: BLE001 — no tumbar el arranque
             print(f"Warmup vectores ACR falló: {exc}", flush=True)
 
@@ -399,30 +399,49 @@ def kpis_endpoint(
     anno_desde: int | None = Query(None, ge=2001, le=2030),
     anno_hasta: int | None = Query(None, ge=2001, le=2030),
 ) -> dict:
-    est = _APP_STATE["estadisticas"]
-    # Fast path: no cargar CSV de centroides si el filtro está cubierto por GeoJSON
-    if _request_fully_covered_by_vectors(departamento, acr):
-        cent = pd.DataFrame()
-    else:
-        cent = _get_centroides_cached()
-    kpis = _kpis_combinados(
-        cent, departamento, ambito, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
-    )
-    if kpis is None and not cent.empty:
-        kpis = kpis_desde_centroides(
+    try:
+        est = _APP_STATE["estadisticas"]
+        # Fast path: no cargar CSV de centroides si el filtro está cubierto por GeoJSON
+        if _request_fully_covered_by_vectors(departamento, acr):
+            cent = pd.DataFrame()
+        else:
+            cent = _get_centroides_cached()
+        kpis = _kpis_combinados(
             cent, departamento, ambito, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
         )
-    if kpis is None:
-        kpis = generar_resumen_kpis(est, filtros=acr, depto=departamento, ambito=ambito)
-    kpis["variacion_anual"] = calcular_variacion_anual(acr, departamento)
-    ambito_eff = ambito if ambito else "acr"
-    kpis["porcentaje_antropico_kpi"] = kpis.get("pct_antropico", 0)
-    kpis["texto_ambito_kpi"] = (
-        "Origen antrópico" if ambito_eff == "acr"
-        else "Zona de influencia" if ambito_eff == "zi"
-        else "Total (ACR + ZI)"
-    )
-    return kpis
+        if kpis is None and not cent.empty:
+            kpis = kpis_desde_centroides(
+                cent, departamento, ambito, acr, anno_desde=anno_desde, anno_hasta=anno_hasta
+            )
+        if kpis is None:
+            kpis = generar_resumen_kpis(est, filtros=acr, depto=departamento, ambito=ambito)
+        kpis["variacion_anual"] = calcular_variacion_anual(acr, departamento)
+        ambito_eff = ambito if ambito else "acr"
+        kpis["porcentaje_antropico_kpi"] = kpis.get("pct_antropico", 0)
+        kpis["texto_ambito_kpi"] = (
+            "Origen antrópico" if ambito_eff == "acr"
+            else "Zona de influencia" if ambito_eff == "zi"
+            else "Total (ACR + ZI)"
+        )
+        return kpis
+    except Exception as exc:  # noqa: BLE001 — no tumbar Render free por OOM parcial
+        print(f"KPIs error: {exc}", flush=True)
+        return {
+            "total_hectareas": 0,
+            "total_antropico": 0,
+            "total_natural": 0,
+            "total_falsa": 0,
+            "pct_antropico": 0,
+            "pct_natural": 0,
+            "pct_falsa": 0,
+            "causa_principal": "Datos no disponibles",
+            "causa_principal_ha": 0,
+            "causa_principal_pct": 0,
+            "variacion_anual": {"variacion": 0, "texto": "Reintente en unos segundos", "color": "#f39c12", "icono": "minus"},
+            "porcentaje_antropico_kpi": 0,
+            "texto_ambito_kpi": "Cargando…",
+            "error": str(exc),
+        }
 
 
 @app.get("/api/graficos")
@@ -566,14 +585,31 @@ def deforestacion_vectors_endpoint(
     limit: int = Query(0, ge=0, le=100000),
 ) -> dict:
     """Polígonos MonitoreoDeforestacionAcumulado (Loreto, San Martín, Cusco)."""
-    return load_acumulado_vectors(
-        departamento=departamento,
-        ambito=ambito or "acr",
-        acrs=acr,
-        anno_desde=anno_desde,
-        anno_hasta=anno_hasta,
-        limit=limit,
-    )
+    lim = limit
+    # Vista nacional Ambos sin tope tumba Render free → cupo seguro
+    if lim <= 0 and departamento == "todos" and (ambito or "acr") == "ambos" and not acr:
+        lim = 8000
+    try:
+        return load_acumulado_vectors(
+            departamento=departamento,
+            ambito=ambito or "acr",
+            acrs=acr,
+            anno_desde=anno_desde,
+            anno_hasta=anno_hasta,
+            limit=lim,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"Vectores error: {exc}", flush=True)
+        return {
+            "type": "FeatureCollection",
+            "features": [],
+            "meta": {
+                "source": "MonitoreoDeforestacionAcumulado",
+                "available": False,
+                "error": str(exc),
+                "count": 0,
+            },
+        }
 
 
 @app.get("/api/deforestacion/centroides")

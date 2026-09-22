@@ -591,8 +591,12 @@ const AcrMap = (() => {
     const selectedAcrs =
       (Array.isArray(acrFilter) && acrFilter.length > 0) ||
       (Array.isArray(state.acrs) && state.acrs.length > 0);
-    // Con ACR elegidos: sin tope. Vista “todos”: tope alto; backend reparte por ACR
-    const limit = singleAcr || selectedAcrs ? 0 : state.departamento === "todos" || yearSpan > 10 ? 12000 : 0;
+    // Vista amplia Ambos/todos: tope bajo para no tumbar Render free
+    const wideView =
+      state.departamento === "todos" ||
+      state.ambito === "ambos" ||
+      yearSpan > 10;
+    const limit = singleAcr || selectedAcrs ? 0 : wideView ? 8000 : 12000;
     const params = {
       departamento: deptoApi,
       ambito: state.ambito || "ambos",
