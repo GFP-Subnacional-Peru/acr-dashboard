@@ -802,6 +802,15 @@ def load_acumulado_vectors(
         for folder, slug, codigo in targets
         if (ATD_ROOT / folder / "acumulado" / f"{slug}.geojson").exists()
     ]
+    # Vista nacional Ambos: solo polígonos ACR en el mapa (ZI sigue en límites).
+    # Los GeoJSON de ZI (p.ej. zi_ce ~33MB) tumban Render free.
+    if (
+        limit > 0
+        and departamento == "todos"
+        and (ambito or "") == "ambos"
+        and not acrs
+    ):
+        existing = [t for t in existing if t[2].startswith("ACR_")]
     # ACR primero (archivos más chicos / prioritarios), luego ZI
     existing.sort(key=lambda t: (0 if t[2].startswith("ACR_") else 1, t[2]))
     # Cupo por ACR/ZI: vistas amplias no cargan todo (evita OOM / 502 en Render)
@@ -823,11 +832,15 @@ def load_acumulado_vectors(
             fsize = path_fc.stat().st_size
         except OSError:
             continue
-        if limit > 0 and fsize > 8_000_000 and not acrs:
+        if limit > 0 and fsize > 5_000_000 and not acrs:
             limited = True
             continue
         loaded_slugs.append(f"{folder}/{slug}")
-        data = _read_geojson(path_fc)
+        try:
+            data = _read_geojson(path_fc)
+        except Exception as exc:  # noqa: BLE001
+            print(f"Skip geojson {path_fc.name}: {exc}", flush=True)
+            continue
         n_this = 0
         file_cap = per_file
         if limit > 0:
