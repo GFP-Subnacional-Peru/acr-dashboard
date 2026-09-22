@@ -1,6 +1,6 @@
 /* Modales KPI — ventana flotante moderna */
 const Modals = (() => {
-  let bound = false;
+  let listenersReady = false;
   let chartHost = null;
 
   function ensureModalRoot() {
@@ -52,14 +52,35 @@ const Modals = (() => {
     });
   }
 
-  if (!bound) {
-    bound = true;
+  function openKpiFromButton(btn) {
+    const st = Modals._state || window.state || null;
+    if (!st || !btn) return;
+    const key = btn.dataset.kpi;
+    if (key === "hectareas") openHectareas(st);
+    else if (key === "causa") openCausas(st);
+    else if (key === "antropico") openAntropico(st);
+    else if (key === "variacion") openVariacion(st);
+  }
+
+  function ensureListeners() {
+    if (listenersReady) return;
+    listenersReady = true;
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
       const root = document.getElementById("modal-root");
       if (root && root.innerHTML.trim()) close();
     });
+    // Delegación: sobrevive refrescos y evita el bug de "bound" prematuro
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest?.(".kpi-trigger");
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openKpiFromButton(btn);
+    });
   }
+
+  ensureListeners();
 
   function showFloating(titleHtml, bodyHtml, opts = {}) {
     parkCharts();
@@ -198,18 +219,30 @@ const Modals = (() => {
     };
     let tipoMeta = state.ambito === "zi" ? "zi" : "acr";
 
-    const [rowsRes, graf] = await Promise.all([
-      apiGet("/api/metadata/acrs", {
-        departamento: state.departamento,
-        tipo: tipoMeta,
-        acr: state.acrs.length ? state.acrs : undefined,
-        anno_desde: state.annoDesde,
-        anno_hasta: state.annoHasta,
-      }),
-      state.acrs.length
-        ? apiGet("/api/graficos", baseParams).catch(() => null)
-        : Promise.resolve(null),
-    ]);
+    let rowsRes;
+    let graf;
+    try {
+      [rowsRes, graf] = await Promise.all([
+        apiGet("/api/metadata/acrs", {
+          departamento: state.departamento,
+          tipo: tipoMeta,
+          acr: state.acrs.length ? state.acrs : undefined,
+          anno_desde: state.annoDesde,
+          anno_hasta: state.annoHasta,
+        }),
+        state.acrs.length
+          ? apiGet("/api/graficos", baseParams).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+    } catch (err) {
+      console.warn("Modal hectáreas:", err);
+      const bodyErr = document.getElementById("kpi-modal-body");
+      if (bodyErr) {
+        bodyErr.innerHTML =
+          "<p class='kpi-detail-empty'>No se pudo cargar el detalle. Revise la conexión e intente de nuevo.</p>";
+      }
+      return;
+    }
 
     if (graf && typeof renderCharts === "function") {
       renderCharts(graf);
@@ -496,20 +529,7 @@ const Modals = (() => {
   function bind(state) {
     Modals._state = state;
     ensureChartHost();
-    if (bound) return;
-    bound = true;
-    document.querySelectorAll(".kpi-trigger").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const st = Modals._state || state;
-        const key = btn.dataset.kpi;
-        if (key === "hectareas") openHectareas(st);
-        else if (key === "causa") openCausas(st);
-        else if (key === "antropico") openAntropico(st);
-        else if (key === "variacion") openVariacion(st);
-      });
-    });
+    ensureListeners();
   }
 
   function showRegion(region) {

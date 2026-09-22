@@ -889,9 +889,14 @@ body.gfp-map-fs-open { overflow: hidden; }
 
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
-  z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;
+  /* Por encima del mapa a pantalla completa (z-index 10050) y del header */
+  z-index: 200000; display: flex; align-items: center; justify-content: center; padding: 20px;
   backdrop-filter: blur(2px);
   animation: kpiModalFade 0.2s ease;
+}
+#modal-root {
+  position: relative;
+  z-index: 200000;
 }
 @keyframes kpiModalFade {
   from { opacity: 0; }

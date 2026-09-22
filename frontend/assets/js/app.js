@@ -10,6 +10,7 @@ const state = {
   annoDesde: 2015,
   annoHasta: 2025,
 };
+window.state = state;
 
 const ANNO_MIN = 2001;
 const ANNO_MAX = 2025;
@@ -92,6 +93,9 @@ function showOfflineBanner() {
 async function bootstrapDashboard() {
   hideLoading();
   initYearFilters();
+  try {
+    Modals.bind(state);
+  } catch (_) {}
 
   const bootTab = initialTabFromUrl();
   const needsMapNow = bootTab === "dashboard";
