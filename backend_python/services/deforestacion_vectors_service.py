@@ -490,11 +490,73 @@ def kpis_desde_acumulado(
     anno_desde: int | None = None,
     anno_hasta: int | None = None,
 ) -> dict | None:
+    roll = _kpis_from_rollup(departamento, ambito, acrs, anno_desde, anno_hasta)
+    if roll is not None:
+        return roll
     if not _any_acumulado_available(departamento, ambito, acrs):
         return None
     props = list(
         iter_acumulado_properties(departamento, ambito, acrs, anno_desde, anno_hasta)
     )
+    return _kpis_from_props(props)
+
+
+_ROLLUP_CACHE: dict | None = None
+
+
+def _load_kpi_rollup() -> dict | None:
+    global _ROLLUP_CACHE
+    if _ROLLUP_CACHE is not None:
+        return _ROLLUP_CACHE or None
+    path = ATD_ROOT / "kpi_rollup.json"
+    if not path.exists():
+        _ROLLUP_CACHE = {}
+        return None
+    try:
+        _ROLLUP_CACHE = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        _ROLLUP_CACHE = {}
+        return None
+    return _ROLLUP_CACHE
+
+
+def _kpis_from_rollup(
+    departamento: str,
+    ambito: str,
+    acrs: list[str] | None,
+    anno_desde: int | None,
+    anno_hasta: int | None,
+) -> dict | None:
+    data = _load_kpi_rollup()
+    if not data or not data.get("rows"):
+        return None
+    targets = {c for _, _, c in _slugs_for_filters(departamento, ambito, acrs)}
+    if not targets:
+        return None
+    lo, hi = _anno_range(anno_desde, anno_hasta)
+    props: list[dict] = []
+    for r in data["rows"]:
+        codigo = r.get("codigo")
+        if codigo not in targets:
+            continue
+        try:
+            y = int(r.get("anno"))
+        except (TypeError, ValueError):
+            continue
+        if y < lo or y > hi:
+            continue
+        props.append(
+            {
+                "codigo": codigo,
+                "area_ha": r.get("ha"),
+                "tipo": r.get("tipo"),
+                "causa": r.get("causa"),
+                "causa_nombre": _causa_nombre(r.get("causa")),
+                "anno": y,
+            }
+        )
+    if not props:
+        return _EMPTY_KPIS.copy()
     return _kpis_from_props(props)
 
 
@@ -756,6 +818,14 @@ def load_acumulado_vectors(
             limited = True
             break
         path_fc = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
+        # Vista amplia: no abrir GeoJSON enormes (tumba Render free)
+        try:
+            fsize = path_fc.stat().st_size
+        except OSError:
+            continue
+        if limit > 0 and fsize > 8_000_000 and not acrs:
+            limited = True
+            continue
         loaded_slugs.append(f"{folder}/{slug}")
         data = _read_geojson(path_fc)
         n_this = 0
