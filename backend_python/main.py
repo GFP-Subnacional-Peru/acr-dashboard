@@ -26,7 +26,7 @@ if str(_BACKEND_ROOT) not in sys.path:
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from core.serializers import dataframe_to_records
@@ -47,7 +47,7 @@ from services.deforestacion_vectors_service import (
     causas_antropicas_desde_acumulado,
     graficos_desde_acumulado,
     kpis_desde_acumulado,
-    load_acumulado_vectors,
+    load_acumulado_vectors_json,
     loreto_en_alcance,
     serie_anual_desde_acumulado,
     tabla_acrs_desde_acumulado,
@@ -253,6 +253,9 @@ async def lifespan(app: FastAPI):
         try:
             warmup_acumulado_cache(ambito="ambos")
             print("Cache props ACR+ZI listo", flush=True)
+            # Vista inicial del mapa (mismos parámetros que envía map.js)
+            load_acumulado_vectors_json("todos", "ambos", None, 2015, 2025, 12000)
+            print("Cache vectores vista inicial listo", flush=True)
         except Exception as exc:  # noqa: BLE001 — no tumbar el arranque
             print(f"Warmup vectores ACR falló: {exc}", flush=True)
 
@@ -281,7 +284,10 @@ async def no_cache_frontend(request, call_next):
     """Evita cache viejo y permite embeber el portal en GFP WordPress."""
     response = await call_next(request)
     path = request.url.path or ""
-    if path == "/" or path.endswith((".html", ".js", ".css")):
+    if path.endswith((".js", ".css")) and request.query_params.get("v"):
+        # El HTML cambia ?v= en cada versión → el navegador puede guardarlo sin riesgo
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif path == "/" or path.endswith((".html", ".js", ".css")):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
@@ -607,7 +613,7 @@ def deforestacion_vectors_endpoint(
     if lim <= 0 and departamento == "todos" and (ambito or "acr") == "ambos" and not acr:
         lim = 12000
     try:
-        return load_acumulado_vectors(
+        body = load_acumulado_vectors_json(
             departamento=departamento,
             ambito=ambito or "acr",
             acrs=acr,
@@ -615,6 +621,7 @@ def deforestacion_vectors_endpoint(
             anno_hasta=anno_hasta,
             limit=lim,
         )
+        return Response(content=body, media_type="application/json")
     except Exception as exc:  # noqa: BLE001
         print(f"Vectores error: {exc}", flush=True)
         return {

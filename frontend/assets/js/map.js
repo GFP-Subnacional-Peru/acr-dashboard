@@ -577,7 +577,36 @@ const AcrMap = (() => {
     }
   }
 
-  async function loadDeforestationVectors(state, acrFilter) {
+  const vectorCache = new Map();
+  const VECTOR_CACHE_MAX = 8;
+  const DRAW_CHUNK = 1500;
+
+  async function fetchVectors(params) {
+    const key = JSON.stringify(params);
+    const hit = vectorCache.get(key);
+    if (hit) {
+      vectorCache.delete(key);
+      vectorCache.set(key, hit);
+      return hit;
+    }
+    const geo = await apiGet("/api/deforestacion/vectors", params);
+    const nombres = geo.meta?.nombres || {};
+    geo.features = (geo.features || []).filter((f) => {
+      const p = f.properties || {};
+      if ((p.tipo || "") === "Falsa alerta") return false;
+      const n = nombres[p.codigo];
+      if (n) {
+        if (!p.nombre_acr) p.nombre_acr = n.nombre_acr;
+        if (!p.zona_key) p.zona_key = n.zona_key;
+      }
+      return true;
+    });
+    vectorCache.set(key, geo);
+    if (vectorCache.size > VECTOR_CACHE_MAX) vectorCache.delete(vectorCache.keys().next().value);
+    return geo;
+  }
+
+  async function loadDeforestationVectors(state, acrFilter, token) {
     const note = document.getElementById("map-loreto-info");
     const deptoApi = VECTOR_DEPTOS.includes(state.departamento) ? state.departamento : "todos";
     if (note) {
@@ -605,9 +634,9 @@ const AcrMap = (() => {
       anno_hasta: state.annoHasta,
       limit,
     };
-    const geo = await apiGet("/api/deforestacion/vectors", params);
-    // Seguridad: excluir falsas alertas aunque el backend las envíe
-    geo.features = (geo.features || []).filter((f) => (f.properties?.tipo || "") !== "Falsa alerta");
+    const geo = await fetchVectors(params);
+    const stale = () => token != null && token !== map._refreshToken;
+    if (stale()) return { ok: false, stale: true };
     const features = geo.features || [];
     if (geo.meta) geo.meta.count = features.length;
     const meta = geo.meta || {};
@@ -617,7 +646,8 @@ const AcrMap = (() => {
       return { ok: false, meta };
     }
     defoLayer.clearLayers();
-    L.geoJSON(geo, {
+    map.addLayer(defoLayer);
+    const geoOpts = {
       pane: "defoPane",
       style: (f) => defoStyle(f.properties?.tipo || "Antropogenico"),
       onEachFeature: (f, layer) => {
@@ -646,8 +676,16 @@ const AcrMap = (() => {
           },
         });
       },
-    }).eachLayer((l) => defoLayer.addLayer(l));
-    map.addLayer(defoLayer);
+    };
+    // Por tandas: el mapa sigue respondiendo mientras se dibujan miles de polígonos
+    for (let i = 0; i < features.length; i += DRAW_CHUNK) {
+      if (stale()) return { ok: false, stale: true };
+      L.geoJSON({ type: "FeatureCollection", features: features.slice(i, i + DRAW_CHUNK) }, geoOpts)
+        .eachLayer((l) => defoLayer.addLayer(l));
+      if (i + DRAW_CHUNK < features.length) {
+        await new Promise((r) => (document.hidden ? setTimeout(r, 0) : requestAnimationFrame(() => r())));
+      }
+    }
     // Asegura prioridad visual y de click por encima de ACR/ZI/límites
     try {
       const pane = map.getPane("defoPane");
@@ -723,7 +761,8 @@ const AcrMap = (() => {
         setMapLoadStatus("Cargando deforestación…", "loading");
         const res = await loadDeforestationVectors(
           state,
-          vectorAcrs.length ? vectorAcrs : undefined
+          vectorAcrs.length ? vectorAcrs : undefined,
+          token
         );
         if (token != null && token !== map._refreshToken) return { ok: false, stale: true };
         hasVectors = res?.ok;

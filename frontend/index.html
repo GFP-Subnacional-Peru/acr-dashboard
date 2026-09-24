@@ -13,6 +13,9 @@
     })();
   </script>
   <title>Dashboard ACRs - Monitoreo de Deforestación</title>
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="preconnect" href="https://cdn.plot.ly" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
@@ -367,10 +370,32 @@
     <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p></footer>
   </section>
 
+  <!-- Plotly (~1 MB) en paralelo: no retrasa el mapa; los gráficos pedidos antes se dibujan al llegar -->
+  <script>
+    (function () {
+      var queue = [];
+      window.Plotly = {
+        newPlot: function () {
+          var args = arguments;
+          return new Promise(function (resolve) {
+            queue.push(function () {
+              try { resolve(window.Plotly.newPlot.apply(window.Plotly, args)); } catch (e) { resolve(null); }
+            });
+          });
+        },
+        Plots: { resize: function () {} },
+      };
+      window.__plotlyFlush = function () {
+        var pending = queue;
+        queue = [];
+        pending.forEach(function (fn) { fn(); });
+      };
+    })();
+  </script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" async onload="window.__plotlyFlush()"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
-  <script src="/assets/js/map.js?v=20260922k" defer></script>
+  <script src="/assets/js/map.js?v=20260924b" defer></script>
   <script src="/assets/js/modals.js?v=20260922m" defer></script>
   <script src="/assets/js/atd-demo.js?v=20260709d" defer></script>
   <script src="/assets/js/tendencias.js?v=20260922k" defer></script>

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import math
+import threading
+from collections import OrderedDict
 from pathlib import Path
 from typing import Iterator
 
@@ -852,24 +854,12 @@ def _ambito_targets(
     return _slugs_for_filters(departamento, ambito, codes)
 
 
-def load_acumulado_vectors(
-    departamento: str = "loreto",
-    ambito: str = "acr",
-    acrs: list[str] | None = None,
-    anno_desde: int | None = None,
-    anno_hasta: int | None = None,
-    limit: int = 0,
-) -> dict:
-    targets = _ambito_targets(departamento, ambito, acrs)
-    if not targets:
-        return {
-            "type": "FeatureCollection",
-            "features": [],
-            "meta": {"source": "MonitoreoDeforestacionAcumulado", "available": False},
-        }
-
-    lo, hi = _anno_range(anno_desde, anno_hasta)
-
+def _vector_file_plan(
+    targets: list[tuple[str, str, str]],
+    acrs: list[str] | None,
+    limit: int,
+) -> tuple[list[tuple[str, str, str]], int]:
+    """Archivos a recorrer (ACR primero) y cupo por archivo en vistas amplias."""
     existing = [
         (folder, slug, codigo)
         for folder, slug, codigo in targets
@@ -897,6 +887,27 @@ def load_acumulado_vectors(
     per_file = 0
     if limit > 0 and existing:
         per_file = max(400, (limit + len(existing) - 1) // len(existing))
+    return existing, per_file
+
+
+def load_acumulado_vectors(
+    departamento: str = "loreto",
+    ambito: str = "acr",
+    acrs: list[str] | None = None,
+    anno_desde: int | None = None,
+    anno_hasta: int | None = None,
+    limit: int = 0,
+) -> dict:
+    targets = _ambito_targets(departamento, ambito, acrs)
+    if not targets:
+        return {
+            "type": "FeatureCollection",
+            "features": [],
+            "meta": {"source": "MonitoreoDeforestacionAcumulado", "available": False},
+        }
+
+    lo, hi = _anno_range(anno_desde, anno_hasta)
+    existing, per_file = _vector_file_plan(targets, acrs, limit)
 
     features: list[dict] = []
     loaded_slugs: list[str] = []
@@ -974,3 +985,122 @@ def load_acumulado_vectors(
             "per_file": per_file or None,
         },
     }
+
+
+# --- Ruta rápida: acumulado_lite/*.ndjson (scripts/build_vectors_lite.py) ---
+_LITE_CACHE: dict[str, tuple[dict, list[tuple[int, str]]]] = {}
+# ZI enormes (zi_ce ~28 MB, zi_bsm ~8 MB) se leen del disco; el resto queda en memoria.
+_LITE_CACHE_MAX_FILE_BYTES = 6_000_000
+_VECTOR_JSON_CACHE: OrderedDict[tuple, bytes] = OrderedDict()
+_VECTOR_JSON_CACHE_MAX_BYTES = 60_000_000
+_VECTOR_JSON_LOCK = threading.Lock()
+
+
+def _lite_path(folder: str, slug: str) -> Path:
+    return ATD_ROOT / folder / "acumulado_lite" / f"{slug}.ndjson"
+
+
+def _read_lite(path: Path) -> tuple[dict, list[tuple[int, str]]]:
+    key = str(path)
+    hit = _LITE_CACHE.get(key)
+    if hit is not None:
+        return hit
+    header: dict = {}
+    rows: list[tuple[int, str]] = []
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            if line.startswith("#"):
+                header = json.loads(line[1:])
+                continue
+            tab = line.find("\t")
+            if tab <= 0:
+                continue
+            rows.append((int(line[:tab]), line[tab + 1 :].rstrip("\r\n")))
+    out = (header, rows)
+    if path.stat().st_size <= _LITE_CACHE_MAX_FILE_BYTES:
+        _LITE_CACHE[key] = out
+    return out
+
+
+def load_acumulado_vectors_json(
+    departamento: str = "loreto",
+    ambito: str = "acr",
+    acrs: list[str] | None = None,
+    anno_desde: int | None = None,
+    anno_hasta: int | None = None,
+    limit: int = 0,
+) -> bytes:
+    """Mismo resultado que load_acumulado_vectors, ya serializado y cacheado por filtros."""
+    lo, hi = _anno_range(anno_desde, anno_hasta)
+    key = (departamento, ambito, tuple(sorted(acrs or [])), lo, hi, limit)
+    with _VECTOR_JSON_LOCK:
+        hit = _VECTOR_JSON_CACHE.get(key)
+        if hit is not None:
+            _VECTOR_JSON_CACHE.move_to_end(key)
+            return hit
+
+    targets = _ambito_targets(departamento, ambito, acrs)
+    existing, per_file = _vector_file_plan(targets, acrs, limit)
+    if any(not _lite_path(folder, slug).exists() for folder, slug, _ in existing):
+        body = json.dumps(
+            load_acumulado_vectors(departamento, ambito, acrs, anno_desde, anno_hasta, limit),
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    else:
+        parts: list[str] = []
+        loaded_slugs: list[str] = []
+        nombres: dict[str, dict] = {}
+        limited = False
+        for folder, slug, codigo in existing:
+            if limit > 0 and len(parts) >= limit:
+                limited = True
+                break
+            loaded_slugs.append(f"{folder}/{slug}")
+            header, rows = _read_lite(_lite_path(folder, slug))
+            nombres[codigo] = {
+                "nombre_acr": header.get("nombre_acr") or _nombre_acr(codigo),
+                "zona_key": header.get("zona_key") or "",
+            }
+            n_this = 0
+            file_cap = per_file if limit > 0 else 0
+            for y, feat in rows:
+                if file_cap > 0 and n_this >= file_cap:
+                    limited = True
+                    break
+                if limit > 0 and len(parts) >= limit:
+                    limited = True
+                    break
+                if y < lo or y > hi:
+                    continue
+                parts.append(feat)
+                n_this += 1
+        meta = {
+            "source": "MonitoreoDeforestacionAcumulado",
+            "departamento": departamento,
+            "count": len(parts),
+            "slugs": loaded_slugs,
+            "anno_desde": lo,
+            "anno_hasta": hi,
+            "available": bool(loaded_slugs),
+            "limited": limited,
+            "limit": limit if limit > 0 else None,
+            "per_file": per_file or None,
+            "nombres": nombres,
+        }
+        body = (
+            '{"type":"FeatureCollection","features":['
+            + ",".join(parts)
+            + '],"meta":'
+            + json.dumps(meta, ensure_ascii=False, separators=(",", ":"))
+            + "}"
+        ).encode("utf-8")
+
+    if len(body) <= _VECTOR_JSON_CACHE_MAX_BYTES // 3:
+        with _VECTOR_JSON_LOCK:
+            _VECTOR_JSON_CACHE[key] = body
+            total = sum(len(b) for b in _VECTOR_JSON_CACHE.values())
+            while total > _VECTOR_JSON_CACHE_MAX_BYTES and len(_VECTOR_JSON_CACHE) > 1:
+                _, old = _VECTOR_JSON_CACHE.popitem(last=False)
+                total -= len(old)
+    return body
