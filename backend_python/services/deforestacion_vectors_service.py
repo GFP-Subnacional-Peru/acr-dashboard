@@ -779,6 +779,25 @@ def _slugs_for_filters(
     return [(CODIGO_SLUGS[c][0], CODIGO_SLUGS[c][1], c) for c in sorted(codes)]
 
 
+def _vector_targets(
+    departamento: str,
+    ambito: str,
+    acrs: list[str] | None,
+) -> list[tuple[str, str, str]]:
+    """Archivos del mapa: con ACR seleccionada, el ámbito decide ACR, ZI o ambos."""
+    if not acrs:
+        return _slugs_for_filters(departamento, ambito, None)
+    codes: list[str] = []
+    for c in acrs:
+        suffix = c.split("_", 1)[1] if "_" in c else c
+        if ambito in ("acr", "ambos"):
+            codes.append(f"ACR_{suffix}")
+        if ambito in ("zi", "ambos"):
+            codes.append(f"ZI_{suffix}")
+    codes = [c for c in dict.fromkeys(codes) if c in CODIGO_SLUGS]
+    return _slugs_for_filters(departamento, ambito, codes)
+
+
 def load_acumulado_vectors(
     departamento: str = "loreto",
     ambito: str = "acr",
@@ -787,7 +806,7 @@ def load_acumulado_vectors(
     anno_hasta: int | None = None,
     limit: int = 0,
 ) -> dict:
-    targets = _slugs_for_filters(departamento, ambito, acrs)
+    targets = _vector_targets(departamento, ambito, acrs)
     if not targets:
         return {
             "type": "FeatureCollection",
@@ -851,6 +870,9 @@ def load_acumulado_vectors(
                 limited = True
                 break
             props = dict(f.get("properties") or {})
+            # Acumulados ACR de Loreto traen copia de su ZI (en_acr=False); la ZI sale de zi_*.geojson
+            if codigo.startswith("ACR_") and props.get("en_acr") is False:
+                continue
             anno = props.get("anno")
             if anno is None:
                 continue
