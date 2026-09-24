@@ -285,6 +285,8 @@ def _props_list_for_file(path: Path, codigo: str) -> list[dict]:
     out: list[dict] = []
     for f in data.get("features") or []:
         raw = f.get("properties") or {}
+        if codigo.startswith("ACR_") and raw.get("en_acr") is False:
+            continue
         anno = raw.get("anno")
         if anno is None:
             continue
@@ -452,7 +454,7 @@ def _any_acumulado_available(
     ambito: str,
     acrs: list[str] | None,
 ) -> bool:
-    targets = _slugs_for_filters(departamento, ambito, acrs)
+    targets = _ambito_targets(departamento, ambito, acrs)
     if not targets:
         return False
     for folder, slug, _ in targets:
@@ -469,7 +471,7 @@ def iter_acumulado_properties(
     anno_hasta: int | None = None,
 ) -> Iterator[dict]:
     """Yields property dicts (codigo, area_ha, tipo, anno, sector) without geometries."""
-    targets = _slugs_for_filters(departamento, ambito, acrs)
+    targets = _ambito_targets(departamento, ambito, acrs)
     lo, hi = _anno_range(anno_desde, anno_hasta)
 
     for folder, slug, codigo in targets:
@@ -530,7 +532,7 @@ def _kpis_from_rollup(
     data = _load_kpi_rollup()
     if not data or not data.get("rows"):
         return None
-    targets = {c for _, _, c in _slugs_for_filters(departamento, ambito, acrs)}
+    targets = {c for _, _, c in _ambito_targets(departamento, ambito, acrs)}
     if not targets:
         return None
     lo, hi = _anno_range(anno_desde, anno_hasta)
@@ -599,7 +601,10 @@ def tabla_acrs_desde_acumulado(
     from services.decretos_service import ACR_DECRETOS
 
     nombres = dict(zip(ACR_DECRETOS["codigo"], ACR_DECRETOS["nombre_completo"]))
-    codes = acrs if acrs else sorted({p.get("codigo") for p in props if p.get("codigo")})
+    if acrs:
+        codes = [c for _, _, c in _ambito_targets(departamento, ambito, acrs)]
+    else:
+        codes = sorted({p.get("codigo") for p in props if p.get("codigo")})
     rows: list[dict] = []
     for codigo in codes:
         if not codigo or str(codigo).startswith("ZI_"):
@@ -615,10 +620,10 @@ def tabla_acrs_desde_acumulado(
         total, ant, nat, fal, _ = _sumar_props(sub)
         # Total mostrado = antrópico + natural (sin falsa alerta), alineado a KPIs/gráficos
         total_vis = round(ant + nat, 2)
-        nombre = nombres.get(codigo, codigo)
+        nombre = nombres.get(codigo) or _nombre_acr(codigo)
         rows.append(
             {
-                "Nombre": nombre if str(nombre).startswith("ACR") else f"ACR {nombre}",
+                "Nombre": nombre if str(nombre).startswith(("ACR", "ZI")) else f"ACR {nombre}",
                 "Total": total_vis,
                 "Antropico": round(ant, 2),
                 "Perdida_natural": round(nat, 2),
@@ -726,7 +731,8 @@ def graficos_desde_acumulado(
         for codigo in acrs or []:
             if codigo not in ALL_VECTOR_CODIGOS:
                 continue
-            sub = [p for p in props if p.get("codigo") == codigo]
+            suffix = codigo.split("_", 1)[1]
+            sub = [p for p in props if str(p.get("codigo") or "").split("_", 1)[-1] == suffix]
             if not sub:
                 continue
             total, ant, nat, fal, _ = _sumar_props(sub)
@@ -779,12 +785,12 @@ def _slugs_for_filters(
     return [(CODIGO_SLUGS[c][0], CODIGO_SLUGS[c][1], c) for c in sorted(codes)]
 
 
-def _vector_targets(
+def _ambito_targets(
     departamento: str,
     ambito: str,
     acrs: list[str] | None,
 ) -> list[tuple[str, str, str]]:
-    """Archivos del mapa: con ACR seleccionada, el ámbito decide ACR, ZI o ambos."""
+    """Archivos a leer: con ACR seleccionada, el ámbito decide ACR, ZI o ambos."""
     if not acrs:
         return _slugs_for_filters(departamento, ambito, None)
     codes: list[str] = []
@@ -806,7 +812,7 @@ def load_acumulado_vectors(
     anno_hasta: int | None = None,
     limit: int = 0,
 ) -> dict:
-    targets = _vector_targets(departamento, ambito, acrs)
+    targets = _ambito_targets(departamento, ambito, acrs)
     if not targets:
         return {
             "type": "FeatureCollection",
