@@ -94,7 +94,8 @@ def kpis_desde_centroides(
             "causa_principal_pct": 0.0,
         }
 
-    total, ant, nat, fal = _sumar_categorias(df)
+    _, ant, nat, fal = _sumar_categorias(df)
+    total = ant + nat
 
     ant_df = df[df["categoria"] == "antropico"]
     if ant_df.empty:
@@ -122,7 +123,7 @@ def kpis_desde_centroides(
         "total_falsa": round(fal, 2),
         "pct_antropico": _pct(ant),
         "pct_natural": _pct(nat),
-        "pct_falsa": _pct(fal),
+        "pct_falsa": round((fal / (total + fal)) * 100, 1) if (total + fal) > 0 else 0.0,
         "causa_principal": causa_principal,
         "causa_principal_ha": round(causa_ha, 2),
         "causa_principal_pct": _pct(causa_ha),

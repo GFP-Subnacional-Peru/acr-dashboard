@@ -350,7 +350,9 @@ def _sumar_features(features: list[dict]) -> tuple[float, float, float, float, d
 def _kpis_from_props(props_list: list[dict]) -> dict:
     if not props_list:
         return dict(_EMPTY_KPIS)
-    total, ant, nat, fal, causas_ant = _sumar_props(props_list)
+    _, ant, nat, fal, causas_ant = _sumar_props(props_list)
+    # Pérdida de bosque = antrópico + natural (la falsa alerta no es deforestación)
+    total = ant + nat
 
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0
@@ -369,7 +371,7 @@ def _kpis_from_props(props_list: list[dict]) -> dict:
         "total_falsa": round(fal, 2),
         "pct_antropico": _pct(ant),
         "pct_natural": _pct(nat),
-        "pct_falsa": _pct(fal),
+        "pct_falsa": round((fal / (total + fal)) * 100, 1) if (total + fal) > 0 else 0.0,
         "causa_principal": causa,
         "causa_principal_ha": round(causa_ha, 2),
         "causa_principal_pct": _pct(causa_ha),
@@ -381,10 +383,10 @@ def _kpis_from_features(features: list[dict]) -> dict:
 
 
 def _merge_kpis(a: dict, b: dict) -> dict:
-    total = _safe_float(a.get("total_hectareas")) + _safe_float(b.get("total_hectareas"))
     ant = _safe_float(a.get("total_antropico")) + _safe_float(b.get("total_antropico"))
     nat = _safe_float(a.get("total_natural")) + _safe_float(b.get("total_natural"))
     fal = _safe_float(a.get("total_falsa")) + _safe_float(b.get("total_falsa"))
+    total = ant + nat
 
     def _pct(part: float) -> float:
         return round((part / total) * 100, 1) if total > 0 else 0.0
@@ -434,7 +436,7 @@ def _merge_kpis(a: dict, b: dict) -> dict:
         "total_falsa": round(fal, 2),
         "pct_antropico": _pct(ant),
         "pct_natural": _pct(nat),
-        "pct_falsa": _pct(fal),
+        "pct_falsa": round((fal / (total + fal)) * 100, 1) if (total + fal) > 0 else 0.0,
         "causa_principal": causa,
         "causa_principal_ha": round(causa_ha, 2),
         "causa_principal_pct": _pct(causa_ha),
@@ -560,6 +562,52 @@ def _kpis_from_rollup(
     if not props:
         return _EMPTY_KPIS.copy()
     return _kpis_from_props(props)
+
+
+def variacion_desde_acumulado(
+    departamento: str = "loreto",
+    ambito: str = "acr",
+    acrs: list[str] | None = None,
+    anno_hasta: int | None = None,
+) -> dict | None:
+    """Pérdida (antrópico + natural) del último año del período vs el año anterior."""
+    anio = anno_hasta if anno_hasta is not None else 2025
+    prev = anio - 1
+    ha = {anio: 0.0, prev: 0.0}
+    data = _load_kpi_rollup()
+    if data and data.get("rows"):
+        targets = {c for _, _, c in _ambito_targets(departamento, ambito, acrs)}
+        if not targets:
+            return None
+        rows = (
+            (r.get("anno"), r.get("tipo"), r.get("causa"), r.get("ha"))
+            for r in data["rows"]
+            if r.get("codigo") in targets
+        )
+    elif _any_acumulado_available(departamento, ambito, acrs):
+        rows = (
+            (p.get("anno"), p.get("tipo"), p.get("causa"), p.get("area_ha"))
+            for p in iter_acumulado_properties(departamento, ambito, acrs, prev, anio)
+        )
+    else:
+        return None
+    for y, tipo, causa, area in rows:
+        try:
+            yi = int(y)
+        except (TypeError, ValueError):
+            continue
+        if yi in ha and _clasificar_tipo(tipo, causa) != "falsa":
+            ha[yi] += _safe_float(area)
+
+    base = {"anio": anio, "anio_anterior": prev, "ha_anio": round(ha[anio], 2), "ha_anterior": round(ha[prev], 2)}
+    if ha[prev] <= 0:
+        return {**base, "variacion": 0.0, "texto": "Sin datos del año anterior", "icono": "minus", "color": "#f39c12"}
+    variacion = round(((ha[anio] - ha[prev]) / ha[prev]) * 100, 1)
+    if variacion > 0:
+        return {**base, "variacion": variacion, "texto": "Incremento", "icono": "arrow-up", "color": "#d9534f"}
+    if variacion < 0:
+        return {**base, "variacion": variacion, "texto": "Reducción", "icono": "arrow-down", "color": "#5cb85c"}
+    return {**base, "variacion": 0.0, "texto": "Sin cambios", "icono": "minus", "color": "#f39c12"}
 
 
 def causas_antropicas_desde_acumulado(

@@ -483,7 +483,10 @@ function renderKpis(k) {
   const subText = box.querySelector(".sub-text");
   if (subIcon) subIcon.className = `sub-icon fas fa-${icon}`;
   if (subText) {
-    subText.textContent = `${v.texto || "Sin cambios"} respecto al año anterior`;
+    subText.textContent =
+      v.anio && v.anio_anterior
+        ? `${v.texto || "Sin cambios"} · ${v.anio} vs ${v.anio_anterior}`
+        : `${v.texto || "Sin cambios"} respecto al año anterior`;
     subText.style.color = color;
     subText.style.fontWeight = "600";
   }

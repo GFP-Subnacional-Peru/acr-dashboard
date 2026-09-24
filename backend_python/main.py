@@ -51,6 +51,7 @@ from services.deforestacion_vectors_service import (
     loreto_en_alcance,
     serie_anual_desde_acumulado,
     tabla_acrs_desde_acumulado,
+    variacion_desde_acumulado,
     vectors_en_alcance,
     warmup_acumulado_cache,
 )
@@ -422,7 +423,16 @@ def kpis_endpoint(
             )
         if kpis is None:
             kpis = generar_resumen_kpis(est, filtros=acr, depto=departamento, ambito=ambito)
-        kpis["variacion_anual"] = calcular_variacion_anual(acr, departamento)
+        variacion = None
+        if vectors_en_alcance(departamento, acr):
+            depto_vec = departamento if departamento in VECTOR_DEPTOS else "todos"
+            variacion = variacion_desde_acumulado(
+                depto_vec,
+                ambito or "acr",
+                _vector_acrs_seleccionados(acr, depto_vec),
+                anno_hasta=anno_hasta,
+            )
+        kpis["variacion_anual"] = variacion or calcular_variacion_anual(acr, departamento)
         ambito_eff = ambito if ambito else "acr"
         kpis["porcentaje_antropico_kpi"] = kpis.get("pct_antropico", 0)
         kpis["texto_ambito_kpi"] = (

@@ -58,7 +58,6 @@ def generar_resumen_kpis(
                 ignore_index=True,
             )
 
-    total_ha = calcular_total_hectareas(datos)
     causas = obtener_causas_filtradas(est, filtros, depto, ambito)
     causa_principal = identificar_causa_principal(causas)
     if causas is not None and not causas.empty:
@@ -69,10 +68,13 @@ def generar_resumen_kpis(
     total_antropico = float(datos["Antropico"].sum(skipna=True))
     total_natural = float(datos["Perdida_natural"].sum(skipna=True))
     total_falsa = float(datos["Falsa_alerta"].sum(skipna=True))
+    # Pérdida de bosque = antrópico + natural (la falsa alerta no es deforestación)
+    total_ha = round(total_antropico + total_natural, 2)
 
     def _pct(part: float) -> float:
         return round((part / total_ha) * 100, 1) if total_ha > 0 else 0.0
 
+    gross = total_ha + total_falsa
     return {
         "total_hectareas": total_ha,
         "total_antropico": total_antropico,
@@ -80,7 +82,7 @@ def generar_resumen_kpis(
         "total_falsa": total_falsa,
         "pct_antropico": _pct(total_antropico),
         "pct_natural": _pct(total_natural),
-        "pct_falsa": _pct(total_falsa),
+        "pct_falsa": round((total_falsa / gross) * 100, 1) if gross > 0 else 0.0,
         "causa_principal": causa_principal,
         "causa_principal_ha": round(causa_ha, 2),
         "causa_principal_pct": _pct(causa_ha),
