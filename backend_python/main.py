@@ -34,7 +34,7 @@ from services.centroides_stats_service import graficos_desde_centroides, kpis_de
 from services.region_insights_service import region_insights
 from services.atd_reportes_service import cargar_catalogo_atd, resolver_archivo_atd
 from services.dashboard_service import datos_para_graficos
-from services.decretos_service import ACR_DECRETOS, obtener_info_decreto
+from services.decretos_service import obtener_info_decreto
 from core.rds_bridge import load_centroides_deforestacion
 from services.deforestacion_service import filtrar_centroides, resumen_centroides_por_region
 from services.deforestacion_vectors_service import (
@@ -268,6 +268,9 @@ app = FastAPI(
     title="Dashboard ACRs - Monitoreo de Deforestación",
     version="1.0.0",
     lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
 app.add_middleware(
@@ -572,11 +575,6 @@ def decreto_endpoint(codigo: str) -> dict:
     return obtener_info_decreto(codigo)
 
 
-@app.get("/api/decretos")
-def todos_decretos() -> dict:
-    return {"data": dataframe_to_records(ACR_DECRETOS)}
-
-
 @app.get("/api/region-insights")
 def region_insights_endpoint() -> dict:
     cent = _get_centroides_cached()
@@ -819,7 +817,6 @@ else:
     def index_missing():
         return {
             "mensaje": "Frontend no encontrado. Verifique la carpeta /frontend.",
-            "api_docs": "/docs",
         }
 
 # --- Archivos estáticos (mapas Shiny www/mapas) ---
