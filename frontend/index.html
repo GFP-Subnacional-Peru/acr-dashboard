@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260922n" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20261001a" />
   <!-- Evita flash Mapa→Metodología: aplica pestaña desde ?tab= antes del primer paint -->
   <script>
     (function () {
@@ -354,6 +354,7 @@
         <input type="range" id="tend-anio-max" min="2001" max="2026" value="2025" />
         <label><input type="checkbox" id="tend-mostrar-linea" checked /> Mostrar línea de tendencia</label>
         <button type="button" id="btn-analizar-tend" class="btn btn-success btn-block"><i class="fas fa-search"></i> Generar Análisis</button>
+        <button type="button" id="btn-reset-tend" class="btn btn-block btn-reset-tend" title="Volver a la configuración inicial"><i class="fas fa-undo"></i> Restablecer</button>
       </aside>
       <main>
         <div id="tend-welcome" class="panelbox tend-welcome">
@@ -398,7 +399,7 @@
   <script src="/assets/js/map.js?v=20260924b" defer></script>
   <script src="/assets/js/modals.js?v=20260922m" defer></script>
   <script src="/assets/js/atd-demo.js?v=20260709d" defer></script>
-  <script src="/assets/js/tendencias.js?v=20260922k" defer></script>
+  <script src="/assets/js/tendencias.js?v=20261001a" defer></script>
   <script src="/assets/js/app.js?v=20260924a" defer></script>
 </body>
 </html>

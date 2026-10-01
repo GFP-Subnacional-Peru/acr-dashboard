@@ -49,6 +49,7 @@ const Tendencias = (() => {
 
     document.getElementById("tend-tipo")?.addEventListener("change", toggleAcrPanel);
     document.getElementById("btn-analizar-tend")?.addEventListener("click", generarAnalisis);
+    document.getElementById("btn-reset-tend")?.addEventListener("click", restablecer);
     document.getElementById("tend-anio-min")?.addEventListener("input", syncRange);
     document.getElementById("tend-anio-max")?.addEventListener("input", syncRange);
     toggleAcrPanel();
@@ -93,6 +94,26 @@ const Tendencias = (() => {
     const min = +document.getElementById("tend-anio-min").value;
     const max = +document.getElementById("tend-anio-max").value;
     document.getElementById("tend-rango-label").textContent = `${min} – ${max}`;
+  }
+
+  function restablecer() {
+    document.getElementById("tend-tipo").value = "general";
+    const sel = document.getElementById("tend-acr");
+    if (sel) {
+      sel.multiple = false;
+      Array.from(sel.options).forEach((o, i) => {
+        o.selected = i === 0;
+      });
+    }
+    document.getElementById("tend-anio-min").value = 2001;
+    document.getElementById("tend-anio-max").value = 2025;
+    document.getElementById("tend-mostrar-linea").checked = true;
+    syncRange();
+    toggleAcrPanel();
+    const chart = document.getElementById("chart-tendencias-full");
+    if (chart && window.Plotly?.purge) Plotly.purge(chart);
+    document.getElementById("tend-chart-panel")?.classList.add("hidden");
+    document.getElementById("tend-welcome")?.classList.remove("hidden");
   }
 
   function getSelectedAcrs() {
