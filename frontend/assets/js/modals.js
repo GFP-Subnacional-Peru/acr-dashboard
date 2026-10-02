@@ -274,8 +274,8 @@ const Modals = (() => {
         .slice()
         .sort((a, b) => (Number(b.Total) || 0) - (Number(a.Total) || 0))
         .forEach((r) => {
-          table += `<tr><td>${r.Nombre}</td><td>${fmt(r.Total)}</td>
-            <td>${fmt(r.Antropico)}</td><td>${fmt(r.Perdida_natural)}</td></tr>`;
+          table += `<tr><td>${r.Nombre}</td><td>${fmt2(r.Total)}</td>
+            <td>${fmt2(r.Antropico)}</td><td>${fmt2(r.Perdida_natural)}</td></tr>`;
         });
       table += "</tbody></table></div>";
     } else if (!data.length) {
@@ -285,9 +285,9 @@ const Modals = (() => {
     const body = document.getElementById("kpi-modal-body");
     if (body) {
       body.innerHTML = `<div class="kpi-modal-grid">
-        <div class="kpi-mini kpi-mini--total"><h2>${fmt(total)}</h2><span>TOTAL HA</span></div>
-        <div class="kpi-mini kpi-mini--ant"><h2>${fmt(ant)}</h2><span>ANTRÓPICO</span></div>
-        <div class="kpi-mini kpi-mini--nat"><h2>${fmt(nat)}</h2><span>NATURAL</span></div>
+        <div class="kpi-mini kpi-mini--total"><h2>${fmt2(total)}</h2><span>TOTAL HA</span></div>
+        <div class="kpi-mini kpi-mini--ant"><h2>${fmt2(ant)}</h2><span>ANTRÓPICO</span></div>
+        <div class="kpi-mini kpi-mini--nat"><h2>${fmt2(nat)}</h2><span>NATURAL</span></div>
       </div>${table}`;
     }
     attachChartsToModal();
@@ -309,7 +309,7 @@ const Modals = (() => {
           marker: { size: 7, color },
           fill: opts.fill ? "tozeroy" : undefined,
           fillcolor: opts.fillColor || "rgba(11,110,79,0.12)",
-          hovertemplate: "<b>%{x}</b><br>%{y:,.1f} ha<extra></extra>",
+          hovertemplate: "<b>%{x}</b><br>%{y:,.2f} ha<extra></extra>",
         },
       ],
       {
@@ -431,7 +431,7 @@ const Modals = (() => {
         marker: { size: 7, color: "#d9534f" },
         fill: "tozeroy",
         fillcolor: "rgba(217,83,79,0.12)",
-        hovertemplate: "<b>%{x}</b><br>Antrópico: %{y:,.1f} ha<extra></extra>",
+        hovertemplate: "<b>%{x}</b><br>Antrópico: %{y:,.2f} ha<extra></extra>",
       },
     ];
     if (hasNat) {
@@ -443,7 +443,7 @@ const Modals = (() => {
         name: "Natural",
         line: { color: "#5cb85c", width: 2 },
         marker: { size: 6, color: "#5cb85c" },
-        hovertemplate: "<b>%{x}</b><br>Natural: %{y:,.1f} ha<extra></extra>",
+        hovertemplate: "<b>%{x}</b><br>Natural: %{y:,.2f} ha<extra></extra>",
       });
     }
     Plotly.newPlot(
@@ -510,7 +510,7 @@ const Modals = (() => {
             line: { width: 0 },
             cornerradius: 6,
           },
-          text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
+          text: values.map((v) => Number(v).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })),
           textposition: "outside",
           cliponaxis: false,
         },

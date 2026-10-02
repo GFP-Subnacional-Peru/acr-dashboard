@@ -463,7 +463,7 @@ function scheduleRefresh(delay = 220) {
 }
 
 function renderKpis(k) {
-  qs("#kpi-hectareas .number").textContent = `${fmt(k.total_hectareas)} ha`;
+  qs("#kpi-hectareas .number").textContent = `${fmt2(k.total_hectareas)} ha`;
   const v = k.variacion_anual || {};
   const val = v.variacion ?? 0;
   const sign = val >= 0 ? "+" : "";
@@ -496,19 +496,19 @@ function renderKpis(k) {
   qs("#kpi-porcentaje .number").textContent = `${pct}%`;
   qs("#kpi-porcentaje .number").style.color = colorPct;
   const pctSub = k.texto_ambito_kpi
-    ? `${k.texto_ambito_kpi} · ${fmt(k.total_antropico)} ha de ${fmt(k.total_hectareas)} ha`
-    : `${fmt(k.total_antropico)} ha de ${fmt(k.total_hectareas)} ha`;
+    ? `${k.texto_ambito_kpi} · ${fmt2(k.total_antropico)} ha de ${fmt2(k.total_hectareas)} ha`
+    : `${fmt2(k.total_antropico)} ha de ${fmt2(k.total_hectareas)} ha`;
   qs("#kpi-porcentaje .sub").textContent = pctSub;
 
   const causa = k.causa_principal || "Sin datos";
   const causaHa = k.causa_principal_ha ?? 0;
   const causaPct = k.causa_principal_pct ?? 0;
-  qs("#kpi-causa .number").textContent = `${fmt(causaHa)} ha`;
+  qs("#kpi-causa .number").textContent = `${fmt2(causaHa)} ha`;
   qs("#kpi-causa .number").style.color = "#1a4d2e";
   const causaSub = qs("#kpi-causa .sub");
   if (causaSub) {
     causaSub.innerHTML = `<i class="fas fa-search"></i> ${causa} · ${causaPct}% del total`;
-    causaSub.title = `${causa}: ${fmt(causaHa)} ha (${causaPct}% del total filtrado)`;
+    causaSub.title = `${causa}: ${fmt2(causaHa)} ha (${causaPct}% del total filtrado)`;
   }
 }
 
@@ -560,11 +560,11 @@ function renderCharts(g) {
         type: "bar",
         width: 0.48,
         marker: { color: compColors, line: { width: 0 }, opacity: 0.95, cornerradius: 8 },
-        text: composicion.map((d) => Number(d.Hectareas).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
+        text: composicion.map((d) => Number(d.Hectareas).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })),
         textposition: "outside",
         textfont: { size: 12, color: "#0f172a", family: "Segoe UI, Arial, sans-serif" },
         cliponaxis: false,
-        hovertemplate: "<b>%{x}</b><br>%{y:,.1f} ha<extra></extra>",
+        hovertemplate: "<b>%{x}</b><br>%{y:,.2f} ha<extra></extra>",
       }],
       {
         ...sciLayout,
@@ -594,11 +594,11 @@ function renderCharts(g) {
             opacity: 0.95,
             cornerradius: 6,
           },
-          text: values.map((v) => Number(v).toLocaleString("es-PE", { maximumFractionDigits: 1 })),
+          text: values.map((v) => Number(v).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })),
           textposition: "outside",
           textfont: { size: 11, color: "#0f172a" },
           cliponaxis: false,
-          hovertemplate: "<b>%{y}</b><br>%{x:,.1f} ha<extra></extra>",
+          hovertemplate: "<b>%{y}</b><br>%{x:,.2f} ha<extra></extra>",
         }],
         {
           ...sciLayout,
@@ -632,12 +632,12 @@ function renderCharts(g) {
           insidetextorientation: "horizontal",
           sort: false,
           pull: 0.015,
-          hovertemplate: "<b>%{label}</b><br>%{value:,.1f} ha (%{percent})<extra></extra>",
+          hovertemplate: "<b>%{label}</b><br>%{value:,.2f} ha (%{percent})<extra></extra>",
         }],
         {
           ...sciLayout,
           annotations: [{
-            text: `<b style="font-size:17px;color:#1e3a5f">${fmt(distTotal)} ha</b><br><span style="font-size:11px;color:#64748b">total analizado</span>`,
+            text: `<b style="font-size:17px;color:#1e3a5f">${fmt2(distTotal)} ha</b><br><span style="font-size:11px;color:#64748b">total analizado</span>`,
             showarrow: false,
             font: { size: 13 },
           }],

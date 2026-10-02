@@ -205,7 +205,7 @@ const Tendencias = (() => {
           type: "scatter",
           mode: "lines",
           line: { color: "#C0392B", width: 2.2, dash: "dot" },
-          hovertemplate: "<b>Tendencia</b>: %{y:.1f} ha<extra></extra>",
+          hovertemplate: "<b>Tendencia</b>: %{y:,.2f} ha<extra></extra>",
         });
       }
     });

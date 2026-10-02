@@ -60,6 +60,9 @@
   const fmt = (n) =>
     new Intl.NumberFormat("es-PE", { maximumFractionDigits: 0 }).format(Math.round(n || 0));
 
+  const fmt2 = (n) =>
+    new Intl.NumberFormat("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+
   function slugFromPath() {
     const parts = window.location.pathname.replace(/\/+$/, "").split("/");
     const i = parts.indexOf("acr");
@@ -114,7 +117,7 @@
       });
       q.append("acr", meta.codigo);
       const kpis = await fetchJson(`/api/kpis?${q}`);
-      const ha = kpis.total_hectareas != null ? fmt(kpis.total_hectareas) : "—";
+      const ha = kpis.total_hectareas != null ? fmt2(kpis.total_hectareas) : "—";
       const pct =
         kpis.porcentaje_antropico_kpi != null
           ? kpis.porcentaje_antropico_kpi

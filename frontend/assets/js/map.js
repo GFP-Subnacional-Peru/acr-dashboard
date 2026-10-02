@@ -314,7 +314,7 @@ const AcrMap = (() => {
           <div class="map-feature-section-title">Caracterización</div>
           <div class="map-feature-metrics">
             <div class="map-feature-metric ${metricClass}">
-              <strong>${fmtHa(p.area_ha, 1)} ha</strong>
+              <strong>${fmtHa(p.area_ha, 2)} ha</strong>
               <span>Área</span>
             </div>
             <div class="map-feature-metric ${metricClass}">
@@ -349,18 +349,18 @@ const AcrMap = (() => {
           <div class="map-feature-section-title">Resumen de deforestación</div>
           <div class="map-feature-metrics">
             <div class="map-feature-metric map-feature-metric--total">
-              <strong>${fmtHa(total, 1)}</strong>
+              <strong>${fmtHa(total, 2)}</strong>
               <span>Total ha</span>
             </div>
             <div class="map-feature-metric map-feature-metric--ant">
-              <strong>${fmtHa(ant, 1)}</strong>
+              <strong>${fmtHa(ant, 2)}</strong>
               <span>Antrópico</span>
             </div>
             <div class="map-feature-metric map-feature-metric--nat">
-              <strong>${fmtHa(nat, 1)}</strong>
+              <strong>${fmtHa(nat, 2)}</strong>
               <span>Natural</span>
             </div>
-            ${p.Falsa_alerta != null ? `<div class="map-feature-metric"><strong>${fmtHa(p.Falsa_alerta, 1)}</strong><span>Falsa alerta</span></div>` : ""}
+            ${p.Falsa_alerta != null ? `<div class="map-feature-metric"><strong>${fmtHa(p.Falsa_alerta, 2)}</strong><span>Falsa alerta</span></div>` : ""}
           </div>
         </div>
         <div class="map-feature-section">
@@ -395,7 +395,7 @@ const AcrMap = (() => {
           <div class="map-feature-section-title">Área</div>
           <div class="map-feature-metrics">
             <div class="map-feature-metric map-feature-metric--total">
-              <strong>${fmtHa(p.area, 1)} ha</strong>
+              <strong>${fmtHa(p.area, 2)} ha</strong>
               <span>Pérdida</span>
             </div>
           </div>
@@ -654,7 +654,7 @@ const AcrMap = (() => {
         const p = f.properties || {};
         const tipo = p.tipo || "Antropogenico";
         if (p.anno != null) {
-          layer.bindTooltip(`${p.anno} · ${fmtHa(p.area_ha, 1)} ha`, {
+          layer.bindTooltip(`${p.anno} · ${fmtHa(p.area_ha, 2)} ha`, {
             sticky: true,
             opacity: 0.92,
           });
