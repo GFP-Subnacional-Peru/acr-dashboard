@@ -1,3 +1,4 @@
 www/mapas/*.jpg filter=lfs diff=lfs merge=lfs -text
 www/mapas/*.pdf filter=lfs diff=lfs merge=lfs -text
 *.ndjson text eol=lf
+*.sh text eol=lf

@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: atd-service
+  datasource:
+    url: ${ATD_DB_URL:jdbc:postgresql://localhost:5433/atd}
+    username: ${ATD_DB_USER:atd}
+    password: ${ATD_DB_PASSWORD:atd_local}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 10000
+      connection-init-sql: SET search_path = atd, public
+  flyway:
+    enabled: true
+    schemas: atd
+    default-schema: atd
+    create-schemas: true
+  jackson:
+    default-property-inclusion: non_null
+  main:
+    banner-mode: off
+
+server:
+  port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,application/geo+json
+    min-response-size: 2048
+  tomcat:
+    threads:
+      max: 20
+  error:
+    include-stacktrace: never
+    include-message: never
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN

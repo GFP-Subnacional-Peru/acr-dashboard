@@ -58,3 +58,7 @@ deploy.R
 !www/mapas/**
 !www/reportes_atd/
 !www/reportes_atd/**
+
+# Servicio ATD (Java)
+atd-service/target/
+atd-service/db/gdb/

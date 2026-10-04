@@ -1,0 +1,54 @@
+# Entorno local del servicio ATD.
+#   docker compose up -d --build            -> base PostGIS + API Java (http://localhost:8081)
+#   powershell -File db/carga/migrar_gdb.ps1 -> carga las 3 GDB a la base
+name: atd
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: atd
+      POSTGRES_USER: atd
+      POSTGRES_PASSWORD: ${ATD_DB_PASSWORD:-atd_local}
+    ports:
+      - "5433:5432"
+    volumes:
+      - atd_pgdata:/var/lib/postgresql/data
+      - ./db/carga:/carga:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U atd -d atd"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ATD_DB_URL: jdbc:postgresql://db:5432/atd
+      ATD_DB_USER: atd
+      ATD_DB_PASSWORD: ${ATD_DB_PASSWORD:-atd_local}
+    ports:
+      - "8081:8080"
+    mem_limit: 512m
+
+  gdal:
+    image: ghcr.io/osgeo/gdal:ubuntu-small-latest
+    profiles: ["carga"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGDATABASE: atd
+      PGUSER: atd
+      PGPASSWORD: ${ATD_DB_PASSWORD:-atd_local}
+    volumes:
+      - ${ATD_GDB_DIR:-./db/gdb}:/gdb:ro
+      - ../data/cache/geojson:/limites:ro
+      - ./db/carga:/carga:ro
+
+volumes:
+  atd_pgdata:
