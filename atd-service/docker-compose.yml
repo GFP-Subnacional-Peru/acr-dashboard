@@ -49,6 +49,7 @@ services:
       - ${ATD_GDB_DIR:-./db/gdb}:/gdb:ro
       - ../data/cache/geojson:/limites:ro
       - ./db/carga:/carga:ro
+      - ./db/evidencia:/evidencia:ro
 
 volumes:
   atd_pgdata:

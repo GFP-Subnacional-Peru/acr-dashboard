@@ -65,6 +65,8 @@ public class AlertaRepository {
                 'confiabilidad', cf.nombre,
                 'zonificacion', z.nombre,
                 'sector', a.sector,
+                'con_imagen', EXISTS (SELECT 1 FROM evidencia v
+                                       WHERE v.alerta_id = a.id AND v.tipo = 'chip_despues'),
                 'lon', round(ST_X(a.centroide)::numeric, 6),
                 'lat', round(ST_Y(a.centroide)::numeric, 6))
             """;

@@ -3,214 +3,213 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATD · Vista previa</title>
+<title>Alertas Tempranas de Deforestación · ACR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
-  :root { --verde:#1b5e20; --verde2:#e8f5e9; --linea:#dfe6e0; --texto:#1f2a22; --gris:#6b776e; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:Segoe UI, Roboto, Arial, sans-serif; color:var(--texto); background:#f6f8f6; }
-  header { background:var(--verde); color:#fff; padding:14px 22px; }
-  header h1 { margin:0; font-size:19px; }
-  header p { margin:2px 0 0; font-size:13px; opacity:.85; }
-  main { padding:16px 22px; display:grid; gap:14px; }
-  .filtros { display:flex; flex-wrap:wrap; gap:12px; background:#fff; border:1px solid var(--linea); border-radius:10px; padding:12px; }
-  .filtros label { display:flex; flex-direction:column; font-size:12px; color:var(--gris); gap:4px; }
-  .filtros select { min-width:190px; padding:7px 8px; border:1px solid var(--linea); border-radius:6px; font-size:14px; }
-  .kpis { display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; }
-  .kpi { background:#fff; border:1px solid var(--linea); border-radius:10px; padding:12px 14px; }
-  .kpi span { font-size:12px; color:var(--gris); }
-  .kpi strong { display:block; font-size:24px; margin-top:4px; }
-  .kpi small { color:var(--gris); font-size:11px; }
-  .cuerpo { display:grid; grid-template-columns:1.2fr 1fr; gap:14px; min-height:520px; }
-  #mapa { border-radius:10px; border:1px solid var(--linea); min-height:520px; }
-  .tabla { background:#fff; border:1px solid var(--linea); border-radius:10px; overflow:auto; max-height:560px; }
-  table { border-collapse:collapse; width:100%; font-size:13px; }
-  th, td { padding:7px 9px; border-bottom:1px solid var(--linea); text-align:left; white-space:nowrap; }
-  th { position:sticky; top:0; background:var(--verde2); }
-  tbody tr { cursor:pointer; }
-  tbody tr:hover { background:#f1f7f1; }
-  .chip { padding:2px 8px; border-radius:10px; font-size:12px; color:#fff; }
-  .antropica { background:#c62828; } .natural { background:#1565c0; } .falsa { background:#757575; } .pendiente { background:#ef6c00; }
-  .vacio { padding:24px; color:var(--gris); text-align:center; }
-  .leyenda { background:#fff; padding:6px 10px; border-radius:6px; font-size:12px; line-height:1.6; }
-  .leyenda i { display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:6px; vertical-align:-1px; }
-  @media (max-width: 1000px) { .kpis { grid-template-columns:repeat(2, 1fr); } .cuerpo { grid-template-columns:1fr; } }
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="/visor.css">
 </head>
 <body>
-<header>
-  <h1>Alertas Tempranas de Deforestación · Vista previa local</h1>
-  <p>Datos leídos desde la base PostGIS (migrados de las GDB oficiales) a través del servicio Java.</p>
-</header>
-<main>
-  <section class="filtros">
-    <label>Región <select id="region"></select></label>
-    <label>Área de Conservación Regional <select id="acr"></select></label>
-    <label>Ámbito
-      <select id="ambito">
-        <option value="ambos">ACR + Zona de Influencia</option>
-        <option value="acr">Solo ACR</option>
-        <option value="zi">Solo Zona de Influencia</option>
-      </select>
-    </label>
-    <label>Periodo (mes de la imagen) <select id="periodo"></select></label>
-  </section>
 
-  <section class="kpis">
-    <div class="kpi"><span>Alertas recibidas en el mes</span><strong id="k-total">–</strong><small id="k-total-ant"></small></div>
-    <div class="kpi"><span>Alertas validadas</span><strong id="k-valid">–</strong><small id="k-pend"></small></div>
-    <div class="kpi"><span>Pérdida antrópica validada</span><strong id="k-antr">–</strong><small id="k-antr-ant"></small></div>
-    <div class="kpi"><span>Cambio natural validado</span><strong id="k-nat">–</strong></div>
-    <div class="kpi"><span>Falsas alertas</span><strong id="k-falsa">–</strong></div>
-  </section>
+<nav class="rail">
+  <div class="rail-logo" title="Alertas Tempranas de Deforestación">ATD</div>
+  <button class="rail-btn activo" data-modo="consulta" title="Consulta pública"><i class="fas fa-map-location-dot"></i><span>Consulta</span></button>
+  <button class="rail-btn" data-modo="clasificar" title="Clasificación de alertas (validadores)"><i class="fas fa-satellite"></i><span>Clasificar</span><b id="badge-pend" class="rail-badge" hidden></b></button>
+  <button class="rail-btn" id="btn-acerca" title="Acerca del sistema"><i class="fas fa-circle-info"></i><span>Acerca</span></button>
+  <button class="rail-btn rail-abajo" id="btn-panel" title="Ocultar panel"><i class="fas fa-angles-left"></i></button>
+</nav>
 
-  <section class="cuerpo">
-    <div id="mapa"></div>
-    <div class="tabla">
-      <table>
-        <thead><tr><th>Alerta</th><th>Ámbito</th><th>Fecha imagen</th><th>Estado</th><th>Resultado</th><th>Causal</th><th>Área (ha)</th><th>Zonificación</th></tr></thead>
-        <tbody id="filas"><tr><td colspan="8" class="vacio">Seleccione un territorio</td></tr></tbody>
-      </table>
+<aside class="panel" id="panel">
+  <header class="panel-cab">
+    <div>
+      <h1>Alertas Tempranas de Deforestación</h1>
+      <p id="cab-sub">Áreas de Conservación Regional · Consulta pública</p>
+    </div>
+  </header>
+
+  <div class="sync" id="sync">
+    <span class="sync-punto"></span>
+    <div>
+      <strong id="sync-titulo">Conectando con GeoBosques…</strong>
+      <small id="sync-detalle"></small>
+    </div>
+  </div>
+
+  <!-- ===================== MODO CONSULTA ===================== -->
+  <section id="modo-consulta">
+    <ol class="pasos" id="pasos">
+      <li data-paso="1" class="activo"><b>1</b><span>Territorio</span></li>
+      <li data-paso="2" class="bloq"><b>2</b><span>Resumen</span></li>
+      <li data-paso="3" class="bloq"><b>3</b><span>Alertas</span></li>
+      <li data-paso="4" class="bloq"><b>4</b><span>Evidencia</span></li>
+      <li data-paso="5" class="bloq"><b>5</b><span>Reporte</span></li>
+    </ol>
+
+    <div class="cuerpo">
+      <!-- Paso 1 -->
+      <div class="paso" data-paso="1">
+        <h2>¿Qué territorio desea consultar?</h2>
+        <p class="ayuda">Elija la región, el Área de Conservación Regional y el periodo.</p>
+        <label class="etq">Región</label>
+        <div class="regiones" id="regiones"></div>
+        <label class="etq">Área de Conservación Regional</label>
+        <div class="acrs" id="acrs"><p class="vacio-mini">Seleccione primero una región</p></div>
+        <label class="etq">Ámbito</label>
+        <div class="segmento" id="ambito">
+          <button data-v="ambos" class="activo">ACR + ZI</button>
+          <button data-v="acr">Solo ACR</button>
+          <button data-v="zi">Solo Zona de Influencia</button>
+        </div>
+        <label class="etq">Periodo <small>(mes de la imagen satelital)</small></label>
+        <div class="meses" id="meses"><p class="vacio-mini">Seleccione un ACR</p></div>
+        <button class="btn-pri" id="ir-2" disabled>Ver resumen <i class="fas fa-arrow-right"></i></button>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="paso" data-paso="2" hidden>
+        <h2 id="res-titulo">Resumen</h2>
+        <p class="ayuda">Lectura mensual del monitoreo. Las hectáreas solo consideran alertas ya validadas.</p>
+        <div class="kpis">
+          <div class="kpi"><span>Alertas recibidas</span><strong id="k-total">–</strong><em id="k-total-var"></em></div>
+          <div class="kpi"><span>Alertas validadas</span><strong id="k-valid">–</strong><em id="k-valid-sub"></em></div>
+          <div class="kpi rojo"><span>Pérdida antrópica</span><strong id="k-antr">–</strong><em id="k-antr-var"></em></div>
+          <div class="kpi azul"><span>Cambio natural</span><strong id="k-nat">–</strong><em id="k-nat-sub"></em></div>
+        </div>
+        <div class="tarjeta">
+          <h3>Resultado de las alertas del mes</h3>
+          <div class="barra-apilada" id="barra-res"></div>
+          <div class="leyenda-mini" id="leyenda-res"></div>
+        </div>
+        <div class="tarjeta">
+          <h3>Alertas por mes · <span id="graf-anio"></span></h3>
+          <div class="graf-meses" id="graf-meses"></div>
+        </div>
+        <div class="tarjeta" id="tarjeta-causas">
+          <h3>Pérdida antrópica por causal</h3>
+          <div id="causas"></div>
+        </div>
+        <button class="btn-pri" id="ir-3">Ver alertas del mes <i class="fas fa-arrow-right"></i></button>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="paso" data-paso="3" hidden>
+        <h2>Alertas del periodo</h2>
+        <p class="ayuda">"Validada" significa que la alerta ya fue revisada técnicamente. Las pendientes aún no muestran clasificación.</p>
+        <div class="filtros-res" id="filtros-res"></div>
+        <div class="lista" id="lista"></div>
+      </div>
+
+      <!-- Paso 4 -->
+      <div class="paso" data-paso="4" hidden>
+        <div class="cab-alerta">
+          <div><h2 id="ev-codigo">–</h2><p class="ayuda" id="ev-sub"></p></div>
+          <span class="chip" id="ev-chip"></span>
+        </div>
+        <div id="ev-comparador"></div>
+        <div class="ficha" id="ev-ficha"></div>
+        <div class="nota" id="ev-conclusion" hidden></div>
+        <div class="fila-btn">
+          <button class="btn-sec" id="ev-volver"><i class="fas fa-list"></i> Volver a la lista</button>
+          <button class="btn-pri" id="ir-5">Generar reporte <i class="fas fa-file-pdf"></i></button>
+        </div>
+      </div>
+
+      <!-- Paso 5 -->
+      <div class="paso" data-paso="5" hidden>
+        <h2>Reporte de la alerta</h2>
+        <p class="ayuda">El reporte consolida la localización, la evidencia satelital, la clasificación, la causal y la conclusión técnica.</p>
+        <div class="reporte-prev" id="rep-prev"></div>
+        <button class="btn-pri" id="rep-descargar"><i class="fas fa-download"></i> Descargar PDF</button>
+      </div>
     </div>
   </section>
-</main>
+
+  <!-- ===================== MODO CLASIFICAR ===================== -->
+  <section id="modo-clasificar" hidden>
+    <div class="cuerpo">
+      <div class="aviso"><i class="fas fa-flask"></i> <b>Modo demostración.</b> La clasificación se guardará en la base cuando se active el inicio de sesión de validadores.</div>
+      <div class="sel-compacta">
+        <select id="cl-acr"></select>
+        <select id="cl-mes"></select>
+      </div>
+      <div id="cl-cola-cab" class="cola-cab"></div>
+      <div class="cola" id="cl-cola"></div>
+
+      <div id="cl-form" hidden>
+        <div class="cab-alerta">
+          <div><h2 id="cl-codigo">–</h2><p class="ayuda" id="cl-sub"></p></div>
+          <button class="btn-icono" id="cl-cerrar" title="Volver a la bandeja"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div id="cl-comparador"></div>
+        <label class="etq">Resultado <small>(teclas A · N · F)</small></label>
+        <div class="opciones-res" id="cl-resultado">
+          <button data-v="antropica" class="op rojo"><i class="fas fa-tree"></i> Pérdida antrópica <kbd>A</kbd></button>
+          <button data-v="natural" class="op azul"><i class="fas fa-water"></i> Cambio natural <kbd>N</kbd></button>
+          <button data-v="falsa" class="op gris"><i class="fas fa-ban"></i> Falsa alerta <kbd>F</kbd></button>
+        </div>
+        <div id="cl-bloque-causa" hidden>
+          <label class="etq">Causal <small>(dominio CausaDeforestacion)</small></label>
+          <div class="causas-grid" id="cl-causas"></div>
+        </div>
+        <div class="dos-col">
+          <div><label class="etq">Confiabilidad</label><div class="segmento" id="cl-conf"></div></div>
+          <div><label class="etq">Tipo de bosque</label><div class="segmento" id="cl-bosque"></div></div>
+        </div>
+        <label class="etq">Conclusión técnica</label>
+        <textarea id="cl-conclusion" rows="3" placeholder="Ej.: Se observa remoción de cobertura boscosa entre ambas fechas, con patrón de chacra…"></textarea>
+        <div class="fila-btn">
+          <button class="btn-sec" id="cl-saltar">Saltar <kbd>S</kbd></button>
+          <button class="btn-pri" id="cl-guardar" disabled><i class="fas fa-check"></i> Guardar y siguiente <kbd>Enter</kbd></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</aside>
+
+<main id="mapa"></main>
+
+<div class="capas" id="capas">
+  <button class="capas-btn" id="capas-btn" title="Capas"><i class="fas fa-layer-group"></i></button>
+  <div class="capas-cuerpo oculto" id="capas-cuerpo">
+    <h4>Capas</h4>
+    <label><input type="checkbox" id="c-alertas" checked> <i class="sw sw-alerta"></i> Alertas del sistema</label>
+    <label><input type="checkbox" id="c-geob"> <i class="sw sw-geob"></i> ATD GeoBosques 2026 <small>(oficial, en vivo)</small></label>
+    <label><input type="checkbox" id="c-limites" checked> <i class="sw sw-lim"></i> Límites ACR / ZI</label>
+    <h4>Mapa base</h4>
+    <label><input type="radio" name="base" value="esri" checked> Imagen satelital</label>
+    <label><input type="radio" name="base" value="s2"> Sentinel-2 sin nubes 2024</label>
+    <label><input type="radio" name="base" value="topo"> Topográfico</label>
+    <label><input type="radio" name="base" value="gris"> Gris</label>
+  </div>
+</div>
+
+<div class="leyenda" id="leyenda">
+  <div><i style="background:#e53935"></i>Pérdida antrópica</div>
+  <div><i style="background:#1e88e5"></i>Cambio natural</div>
+  <div><i style="background:#9e9e9e"></i>Falsa alerta</div>
+  <div><i style="background:#fb8c00"></i>Pendiente</div>
+  <div><i class="borde" style="border-color:#ffee58"></i>ACR</div>
+  <div><i class="borde punteado" style="border-color:#80deea"></i>Zona de Influencia</div>
+  <div class="ley-geob" hidden><i style="background:#ff00c5"></i>GeoBosques · última semana</div>
+  <div class="ley-geob" hidden><i style="background:#0066ff"></i>GeoBosques · acumulado 2026</div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<dialog id="dlg-acerca">
+  <h3>Sistema de Alertas Tempranas de Deforestación</h3>
+  <p>Monitoreo de las Áreas de Conservación Regional de Loreto, San Martín y Cusco.</p>
+  <ul>
+    <li><b>Alertas:</b> GeoBosques (MINAM) · semana vigente <span id="acerca-semana">–</span>.</li>
+    <li><b>Evidencia:</b> Sentinel-2 L2A (Copernicus / Element84), recorte antes y después de cada alerta.</li>
+    <li><b>Clasificación:</b> especialistas regionales, con los dominios oficiales de la GDB (causal, confiabilidad, tipo de bosque).</li>
+    <li><b>Límites:</b> ACR y Zonas de Influencia del dashboard GFP Subnacional.</li>
+  </ul>
+  <form method="dialog"><button class="btn-pri">Entendido</button></form>
+</dialog>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-const API = '/api/atd';
-const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','setiembre','octubre','noviembre','diciembre'];
-const COLOR = { antropica:'#c62828', natural:'#1565c0', falsa:'#757575', pendiente:'#ef6c00' };
-const TEXTO = { antropica:'Pérdida antrópica', natural:'Cambio natural', falsa:'Falsa alerta', pendiente:'Pendiente' };
-const $ = (id) => document.getElementById(id);
-const ha = (v) => Number(v).toLocaleString('es-PE', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' ha';
-
-const mapa = L.map('mapa').setView([-6.5, -75], 6);
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  { attribution:'Esri World Imagery', maxZoom:18 }).addTo(mapa);
-const capaLimites = L.geoJSON(null, {
-  style: (f) => ({ color: f.properties.tipo === 'ACR' ? '#ffeb3b' : '#80deea', weight:2, fill:false, dashArray: f.properties.tipo === 'ZI' ? '6 4' : null })
-}).addTo(mapa);
-const capaAlertas = L.geoJSON(null, {
-  style: (f) => ({ color: COLOR[clase(f.properties)], weight:2, fillOpacity:.45 }),
-  onEachFeature: (f, l) => l.on('click', () => verDetalle(f.properties.codigo, l))
-}).addTo(mapa);
-
-const leyenda = L.control({ position:'bottomright' });
-leyenda.onAdd = () => {
-  const d = L.DomUtil.create('div', 'leyenda');
-  d.innerHTML = Object.keys(COLOR).map(k => `<i style="background:${COLOR[k]}"></i>${TEXTO[k]}`).join('<br>')
-    + '<br><i style="background:none;border:2px solid #ffeb3b"></i>ACR<br><i style="background:none;border:2px dashed #80deea"></i>Zona de Influencia';
-  return d;
-};
-leyenda.addTo(mapa);
-
-function clase(p) { return p.estado === 'pendiente' ? 'pendiente' : (p.resultado || 'pendiente'); }
-
-async function getJson(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(r.status + ' ' + url);
-  return r.json();
-}
-
-function opciones(select, items, vacio) {
-  select.innerHTML = '';
-  if (vacio) select.add(new Option(vacio, ''));
-  items.forEach(([valor, texto]) => select.add(new Option(texto, valor)));
-}
-
-let territorios = [];
-
-async function iniciar() {
-  territorios = await getJson(`${API}/territorios`);
-  const regiones = [...new Map(territorios.map(t => [t.region, t.regionNombre])).entries()];
-  opciones($('region'), regiones, 'Seleccione una región');
-  $('region').onchange = cambiarRegion;
-  $('acr').onchange = cambiarAcr;
-  $('ambito').onchange = cambiarAcr;
-  $('periodo').onchange = cargarPeriodo;
-}
-
-function cambiarRegion() {
-  const acrs = territorios.filter(t => t.region === $('region').value && t.tipo === 'ACR');
-  opciones($('acr'), acrs.map(t => [t.codigo, t.nombre]), 'Seleccione un ACR');
-  opciones($('periodo'), [], '');
-}
-
-async function cambiarAcr() {
-  const acr = $('acr').value;
-  if (!acr) return;
-  const [limites, periodos] = await Promise.all([
-    getJson(`${API}/territorios/${acr}/limites`),
-    getJson(`${API}/periodos?acr=${acr}&ambito=${$('ambito').value}`)
-  ]);
-  capaLimites.clearLayers().addData(limites);
-  mapa.fitBounds(capaLimites.getBounds(), { padding:[20, 20] });
-  opciones($('periodo'), periodos.map(p => [`${p.anio}-${p.mes}`, `${MESES[p.mes - 1]} ${p.anio} (${p.alertas} alertas)`]),
-    periodos.length ? null : 'Sin alertas');
-  cargarPeriodo();
-}
-
-async function cargarPeriodo() {
-  const acr = $('acr').value, valor = $('periodo').value;
-  capaAlertas.clearLayers();
-  if (!acr || !valor) { $('filas').innerHTML = '<tr><td colspan="8" class="vacio">Sin alertas para este filtro</td></tr>'; return; }
-  const [anio, mes] = valor.split('-');
-  const q = `acr=${acr}&ambito=${$('ambito').value}&anio=${anio}&mes=${mes}`;
-  const [res, geo] = await Promise.all([getJson(`${API}/resumen?${q}`), getJson(`${API}/alertas?${q}`)]);
-
-  const a = res.actual, b = res.mesAnterior;
-  $('k-total').textContent = a.alertasRecibidas;
-  $('k-total-ant').textContent = `Mes anterior: ${b.alertasRecibidas}`;
-  $('k-valid').textContent = a.alertasValidadas;
-  $('k-pend').textContent = `Pendientes: ${a.alertasPendientes} (${ha(a.pendienteHa)})`;
-  $('k-antr').textContent = ha(a.perdidaAntropicaHa);
-  $('k-antr-ant').textContent = `Mes anterior: ${ha(b.perdidaAntropicaHa)}`;
-  $('k-nat').textContent = ha(a.cambioNaturalHa);
-  $('k-falsa').textContent = a.falsasAlertas;
-
-  capaAlertas.addData(geo);
-  const tbody = $('filas');
-  tbody.innerHTML = '';
-  geo.features.forEach(f => {
-    const p = f.properties, c = clase(p);
-    const tr = tbody.insertRow();
-    [p.codigo, p.ambito, p.fecha_imagen, p.estado === 'validada' ? 'Validada' : 'Pendiente'].forEach(v => tr.insertCell().textContent = v ?? '');
-    const chip = document.createElement('span');
-    chip.className = 'chip ' + c; chip.textContent = TEXTO[c];
-    tr.insertCell().appendChild(chip);
-    [p.causa ?? (c === 'antropica' ? '' : 'No aplica'), Number(p.superficie_ha).toFixed(2), p.zonificacion ?? '']
-      .forEach(v => tr.insertCell().textContent = v);
-    tr.onclick = () => {
-      const capa = capaAlertas.getLayers().find(l => l.feature.properties.codigo === p.codigo);
-      mapa.fitBounds(capa.getBounds(), { maxZoom:16 });
-      verDetalle(p.codigo, capa);
-    };
-  });
-  if (!geo.features.length) tbody.innerHTML = '<tr><td colspan="8" class="vacio">Sin alertas para este filtro</td></tr>';
-}
-
-async function verDetalle(codigo, capa) {
-  const d = (await getJson(`${API}/alertas/${codigo}`)).properties;
-  const filas = [
-    ['Alerta', d.codigo], ['ACR', d.acr_nombre], ['Ámbito', d.ambito], ['Región', d.region],
-    ['Fecha imagen', d.fecha_imagen], ['Fecha imagen antes', d.fecha_imagen_antes],
-    ['Superficie', ha(d.superficie_ha)], ['Estado', d.estado], ['Resultado', TEXTO[clase(d)]],
-    ['Causal', d.causa], ['Confiabilidad', d.confiabilidad], ['Tipo de bosque', d.tipo_bosque],
-    ['Zonificación', d.zonificacion], ['Sector', d.sector], ['Fuente', d.fuente],
-    ['Imagen antes', d.img_antes], ['Imagen después', d.img_despues], ['Coordenadas', `${d.lat}, ${d.lon}`]
-  ].filter(([, v]) => v !== null && v !== undefined && v !== '');
-  const div = document.createElement('div');
-  const tabla = document.createElement('table');
-  filas.forEach(([k, v]) => {
-    const tr = tabla.insertRow();
-    const th = document.createElement('th'); th.textContent = k; tr.appendChild(th);
-    tr.insertCell().textContent = v;
-  });
-  div.appendChild(tabla);
-  capa.bindPopup(div, { maxWidth:380 }).openPopup();
-}
-
-iniciar().catch(e => { $('filas').innerHTML = `<tr><td colspan="8" class="vacio">No se pudo conectar con el servicio (${e.message})</td></tr>`; });
-</script>
+<script src="/visor.js"></script>
 </body>
 </html>
