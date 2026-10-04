@@ -53,19 +53,22 @@ CREATE TEMP TABLE stg ON COMMIT DROP AS
 SELECT 1::smallint AS region_id, 'LOR' AS prefijo, 'Linea_base_deforestación_Loreto.gdb' AS gdb,
        oid, anp_codi, md_anno, md_mesrep, md_fecimg, md_fecimg_ant, md_sup, md_causa, md_conf, md_bosque,
        md_fuente, md_zonif, md_sector AS sector, md_exa, md_obs, md_editor, md_fecrev,
-       md_img, md_img_ant, md_img_dep, md_sat_ant, md_sat_dep, md_este, md_norte, geom
+       md_img, md_img_ant, md_img_dep, md_sat_ant, md_sat_dep, md_este, md_norte,
+       md_alert, ac_sepp057, geom
   FROM staging.alerta_loreto
 UNION ALL
 SELECT 2, 'SMA', 'Linea_base_deforestación_San_Martin.gdb',
        oid, anp_codi, md_anno, md_mesrep, md_fecimg, NULL, md_sup, md_causa, md_conf, md_bosque,
        md_fuente, md_zonif, ac_nomb, md_exa, md_obs, md_editor, NULL,
-       md_img, NULL, NULL, NULL, NULL, md_este, md_norte, geom
+       md_img, NULL, NULL, NULL, NULL, md_este, md_norte,
+       md_alert, ac_sepp057, geom
   FROM staging.alerta_san_martin
 UNION ALL
 SELECT 3, 'CUS', 'Linea_base_deforestación_Cuzco.gdb',
        oid, anp_codi, md_anno, md_mesrep, md_fecimg, NULL, md_sup, md_causa, md_conf, md_bosque,
        md_fuente, md_zonif, ac_nomb, md_exa, md_obs, md_editor, NULL,
-       md_img, NULL, NULL, NULL, NULL, md_este, md_norte, geom
+       md_img, NULL, NULL, NULL, NULL, md_este, md_norte,
+       md_alert, ac_sepp057, geom
   FROM staging.alerta_cusco;
 
 CREATE TEMP TABLE alerta_nueva ON COMMIT DROP AS
@@ -81,7 +84,8 @@ INSERT INTO alerta (
     fuente_id, confiabilidad_id, tipo_bosque_id, zonificacion, sector, exa,
     estado, causa_id, observaciones, validado_en, editor_gdb,
     img_antes, img_despues, sat_antes, sat_despues, img_referencia,
-    este_utm, norte_utm, geom, centroide, origen_gdb, origen_capa, origen_oid)
+    este_utm, norte_utm, codigo_gdb, sector_pp057,
+    geom, centroide, origen_gdb, origen_capa, origen_oid)
 SELECT
     n.prefijo || '-' || COALESCE(n.md_anno, extract(year FROM n.md_fecimg)::int) || '-' || lpad(n.oid::text, 4, '0'),
     n.region_id,
@@ -112,6 +116,7 @@ SELECT
     NULLIF(trim(n.md_sat_dep), ''),
     NULLIF(trim(n.md_img), ''),
     n.md_este, n.md_norte,
+    NULLIF(trim(n.md_alert), ''), NULLIF(trim(n.ac_sepp057), ''),
     n.geom_ok, n.centro,
     n.gdb, 'MonitoreoDeforestacion', n.oid
   FROM alerta_nueva n
@@ -131,6 +136,7 @@ ON CONFLICT (origen_gdb, origen_capa, origen_oid) DO UPDATE SET
     img_antes = EXCLUDED.img_antes, img_despues = EXCLUDED.img_despues,
     sat_antes = EXCLUDED.sat_antes, sat_despues = EXCLUDED.sat_despues,
     img_referencia = EXCLUDED.img_referencia, este_utm = EXCLUDED.este_utm, norte_utm = EXCLUDED.norte_utm,
+    codigo_gdb = EXCLUDED.codigo_gdb, sector_pp057 = EXCLUDED.sector_pp057,
     geom = EXCLUDED.geom, centroide = EXCLUDED.centroide,
     -- la validación web (fase 3) manda sobre la GDB: no se pisa una alerta validada en la web
     estado = CASE WHEN alerta.validado_por IS NULL THEN EXCLUDED.estado ELSE alerta.estado END,
