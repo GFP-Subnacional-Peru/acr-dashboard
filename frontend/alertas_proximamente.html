@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Alertas Tempranas — Portal ACR | GFP Subnacional</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20260922j" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20260922j" />
+  <style>
+    .atd-pronto { min-height: calc(100vh - 66px); display: grid; place-items: center; padding: 40px 20px;
+      background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 60%, #0f3d14 100%); }
+    .atd-pronto-card { background: #fff; border-radius: 20px; max-width: 560px; padding: 36px 34px; text-align: center;
+      box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+    .atd-pronto-icono { width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 16px; display: grid; place-items: center;
+      background: linear-gradient(135deg, #8bc34a, #1b5e20); color: #fff; font-size: 26px; }
+    .atd-pronto-card h1 { margin: 0 0 10px; font-size: 26px; color: #1d2b20; }
+    .atd-pronto-card p { margin: 0 0 12px; color: #4a5a4e; line-height: 1.55; }
+    .atd-pronto-card a { display: inline-flex; gap: 8px; align-items: center; margin-top: 10px; padding: 11px 20px; border-radius: 12px;
+      background: #2e7d32; color: #fff; font-weight: 700; text-decoration: none; }
+  </style>
+</head>
+<body class="portal-body">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-logos" aria-label="Identidad institucional GFP · SECO · Basel">
+        <a class="site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
+          <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="48" loading="eager" decoding="async"/>
+        </a>
+        <img class="site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" loading="eager" decoding="async"/>
+        <img class="site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" loading="eager" decoding="async"/>
+      </div>
+      <nav class="navbar" aria-label="Navegación del portal">
+        <ul class="nav-tabs">
+          <li><a href="/"><i class="fas fa-home"></i> Inicio</a></li>
+          <li><a href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
+          <li><a href="/datos"><i class="fas fa-database"></i> Datos</a></li>
+          <li><a href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
+          <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Tendencias</a></li>
+          <li><a class="active" href="/alertas-tempranas"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="atd-pronto">
+    <section class="atd-pronto-card">
+      <div class="atd-pronto-icono"><i class="fas fa-satellite"></i></div>
+      <h1>Alertas Tempranas de Deforestación</h1>
+      <p>Sistema de validación de alertas con imágenes Sentinel-2 antes y después, corrección de polígonos y reporte oficial en PDF.</p>
+      <p>El módulo está en implementación y su acceso será restringido al equipo técnico.</p>
+      <a href="/mapa"><i class="fas fa-map"></i> Ir al mapa de deforestación</a>
+    </section>
+  </main>
+</body>
+</html>

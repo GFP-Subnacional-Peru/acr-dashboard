@@ -810,7 +810,12 @@ if _FRONTEND_DIR.exists():
     @app.get("/alertas-tempranas", include_in_schema=False)
     def portal_alertas_tempranas():
         # El visor ATD es un servicio aparte (Java + PostGIS) con su propio inicio de sesión.
-        return RedirectResponse(os.getenv("ATD_URL", "http://localhost:8081/"), status_code=302)
+        destino = os.getenv("ATD_URL")
+        if destino:
+            return RedirectResponse(destino, status_code=302)
+        if os.getenv("RENDER"):
+            return _html("alertas_proximamente.html")
+        return RedirectResponse("http://localhost:8081/", status_code=302)
 
     @app.get("/acr/{slug}")
     def portal_acr(slug: str):
