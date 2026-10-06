@@ -19,6 +19,11 @@ if ($LASTEXITCODE -ne 0) {
     if (-not $ok) { throw "Docker Desktop no arrancó. Ábrelo manualmente y vuelve a intentar." }
 }
 
+if (-not (Test-Path "$PSScriptRoot\.env")) {
+    Write-Host "Falta atd-service\.env con los usuarios del visor. Sin él nadie puede ingresar. Contenido esperado:" -ForegroundColor Yellow
+    Write-Host "  ATD_USUARIO_CONSULTA=usuario1`n  ATD_CLAVE_CONSULTA=...`n  ATD_USUARIO_EDITOR=editor1`n  ATD_CLAVE_EDITOR=..." -ForegroundColor Yellow
+}
+
 Write-Host "Levantando base PostGIS y servicio Java..." -ForegroundColor Cyan
 docker compose up -d --build db api 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "No se pudo levantar docker compose" }
@@ -36,6 +41,7 @@ if ($salud.alertas -eq 0) {
 
 Write-Host ""
 Write-Host "Listo. Vista previa:        http://localhost:8081/" -ForegroundColor Green
+Write-Host "Usuarios del visor:         los de atd-service\.env (consulta y editor)" -ForegroundColor Green
 Write-Host "Base para QGIS:             host localhost, puerto 5433, base atd, usuario atd, clave atd_local" -ForegroundColor Green
 Write-Host "Para apagar todo:           docker compose stop   (los datos se conservan)" -ForegroundColor Green
 Start-Process "http://localhost:8081/"

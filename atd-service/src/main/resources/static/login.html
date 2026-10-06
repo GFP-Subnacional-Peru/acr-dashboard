@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Ingresar · Alertas Tempranas de Deforestación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="/login.css">
+</head>
+<body>
+<main class="lg">
+  <section class="lg-hero">
+    <span class="lg-eyebrow"><i class="fas fa-satellite"></i> Monitoreo satelital · Sentinel-2</span>
+    <h1>Alertas Tempranas de Deforestación</h1>
+    <p>Áreas de Conservación Regional de Loreto, San Martín y Cusco.</p>
+    <ul>
+      <li><i class="fas fa-images"></i> Imágenes antes y después de cada alerta</li>
+      <li><i class="fas fa-draw-polygon"></i> Corrección del polígono sobre la imagen</li>
+      <li><i class="fas fa-file-pdf"></i> Reporte oficial en PDF al instante</li>
+    </ul>
+  </section>
+
+  <section class="lg-tarjeta">
+    <div class="lg-marca">ATD</div>
+    <h2>Ingresar</h2>
+    <p class="lg-sub">Acceso restringido al equipo técnico.</p>
+
+    <div class="lg-aviso" id="aviso" hidden></div>
+
+    <form method="post" action="/login" id="form" autocomplete="on">
+      <input type="hidden" name="_csrf" id="csrf">
+      <label for="usuario">Usuario</label>
+      <div class="lg-campo">
+        <i class="fas fa-user"></i>
+        <input id="usuario" name="username" autocomplete="username" required autofocus maxlength="60">
+      </div>
+      <label for="clave">Contraseña</label>
+      <div class="lg-campo">
+        <i class="fas fa-lock"></i>
+        <input id="clave" name="password" type="password" autocomplete="current-password" required maxlength="120">
+        <button type="button" class="lg-ver" id="ver" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
+      </div>
+      <button type="submit" class="lg-entrar" id="entrar"><i class="fas fa-right-to-bracket"></i> Ingresar</button>
+    </form>
+
+    <a class="lg-volver" href="https://acr-dashboard-5iqz.onrender.com/"><i class="fas fa-arrow-left"></i> Volver al dashboard de ACR</a>
+
+    <div class="lg-logos">
+      <img src="/img/gfp.png" alt="GFP Subnacional" height="44">
+      <img src="/img/seco.png" alt="SECO" height="30">
+      <img src="/img/basel.png" alt="Basel Institute on Governance" height="22">
+    </div>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  // También al volver con "Atrás": el token pudo cambiar al ingresar.
+  window.addEventListener('pageshow', () => {
+    const cookie = document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN='));
+    $('csrf').value = cookie ? decodeURIComponent(cookie.slice(11)) : '';
+    $('entrar').disabled = false;
+    $('entrar').innerHTML = '<i class="fas fa-right-to-bracket"></i> Ingresar';
+  });
+
+  const q = new URLSearchParams(location.search);
+  const avisos = {
+    error: ['error', 'Usuario o contraseña incorrectos.'],
+    bloqueado: ['error', 'Demasiados intentos fallidos. Espere 10 minutos e intente de nuevo.'],
+    expirada: ['error', 'La página de ingreso había caducado. Vuelva a ingresar.'],
+    salir: ['ok', 'Sesión cerrada correctamente.'],
+  };
+  const clave = Object.keys(avisos).find((k) => q.has(k));
+  if (clave) {
+    $('aviso').className = `lg-aviso ${avisos[clave][0]}`;
+    $('aviso').textContent = avisos[clave][1];
+    $('aviso').hidden = false;
+  }
+
+  $('ver').onclick = () => {
+    const visible = $('clave').type === 'text';
+    $('clave').type = visible ? 'password' : 'text';
+    $('ver').innerHTML = `<i class="fas fa-eye${visible ? '' : '-slash'}"></i>`;
+  };
+  $('form').onsubmit = () => {
+    $('entrar').disabled = true;
+    $('entrar').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Ingresando…';
+  };
+})();
+</script>
+</body>
+</html>

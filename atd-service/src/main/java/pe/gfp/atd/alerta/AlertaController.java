@@ -24,7 +24,7 @@ public class AlertaController {
 
     private static final String PATRON_AMBITO = "(?i)acr|zi|ambos";
     private static final MediaType GEOJSON = MediaType.parseMediaType("application/geo+json");
-    private static final CacheControl CACHE_CORTO = CacheControl.maxAge(Duration.ofMinutes(5)).cachePublic();
+    private static final CacheControl CACHE_CORTO = CacheControl.maxAge(Duration.ofMinutes(5)).cachePrivate();
 
     private final AlertaRepository repo;
 

@@ -15,17 +15,25 @@
 
 <nav class="rail">
   <div class="rail-logo" title="Alertas Tempranas de Deforestación">ATD</div>
-  <button class="rail-btn activo" data-modo="consulta" title="Consulta pública"><i class="fas fa-map-location-dot"></i><span>Consulta</span></button>
-  <button class="rail-btn" data-modo="clasificar" title="Clasificación de alertas (validadores)"><i class="fas fa-satellite"></i><span>Clasificar</span><b id="badge-pend" class="rail-badge" hidden></b></button>
+  <button class="rail-btn activo" data-modo="consulta" title="Consulta de alertas"><i class="fas fa-map-location-dot"></i><span>Consulta</span></button>
+  <button class="rail-btn" data-modo="clasificar" title="Clasificación de alertas (validadores)" hidden><i class="fas fa-satellite"></i><span>Clasificar</span><b id="badge-pend" class="rail-badge" hidden></b></button>
   <button class="rail-btn" id="btn-acerca" title="Acerca del sistema"><i class="fas fa-circle-info"></i><span>Acerca</span></button>
-  <button class="rail-btn rail-abajo" id="btn-panel" title="Ocultar panel"><i class="fas fa-angles-left"></i></button>
+  <div class="rail-usuario rail-abajo" id="rail-usuario" hidden>
+    <span class="rail-avatar" id="usr-inicial"></span>
+    <small id="usr-nombre"></small>
+    <form method="post" action="/logout" id="form-salir">
+      <input type="hidden" name="_csrf" id="salir-csrf">
+      <button class="rail-btn" type="submit" title="Cerrar sesión"><i class="fas fa-right-from-bracket"></i><span>Salir</span></button>
+    </form>
+  </div>
+  <button class="rail-btn" id="btn-panel" title="Ocultar panel"><i class="fas fa-angles-left"></i></button>
 </nav>
 
 <aside class="panel" id="panel">
   <header class="panel-cab">
     <div>
       <h1>Alertas Tempranas de Deforestación</h1>
-      <p id="cab-sub">Áreas de Conservación Regional · Consulta pública</p>
+      <p id="cab-sub">Áreas de Conservación Regional · Consulta de alertas</p>
     </div>
   </header>
 
@@ -117,10 +125,6 @@
           </div>
         </div>
         <button class="btn-sec btn-editar" id="ev-editar" hidden><i class="fas fa-draw-polygon"></i> Editar polígono</button>
-        <form class="ed-clave" id="ed-clave" hidden>
-          <input type="password" id="ed-clave-txt" placeholder="Clave de edición" autocomplete="current-password" required>
-          <button class="btn-pri" type="submit"><i class="fas fa-lock-open"></i> Entrar</button>
-        </form>
         <div class="tarjeta editor" id="ed-panel" hidden>
           <h3><i class="fas fa-draw-polygon"></i> Edición del polígono</h3>
           <p class="ayuda">Use la imagen Sentinel-2 de fondo como guía. En <b>Vértices</b>, arrastre los puntos; los puntos intermedios agregan vértices y el clic derecho los quita.</p>

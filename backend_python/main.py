@@ -5,6 +5,7 @@ Ejecutar: uvicorn main:app --reload --port 8000
 from __future__ import annotations
 
 import io
+import os
 import sys
 import threading
 import zipfile
@@ -805,6 +806,11 @@ if _FRONTEND_DIR.exists():
     @app.get("/datos")
     def portal_datos():
         return _html("datos.html")
+
+    @app.get("/alertas-tempranas", include_in_schema=False)
+    def portal_alertas_tempranas():
+        # El visor ATD es un servicio aparte (Java + PostGIS) con su propio inicio de sesión.
+        return RedirectResponse(os.getenv("ATD_URL", "http://localhost:8081/"), status_code=302)
 
     @app.get("/acr/{slug}")
     def portal_acr(slug: str):

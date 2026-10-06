@@ -3,23 +3,19 @@ package pe.gfp.atd.edicion;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -36,28 +32,19 @@ public class GeometriaController {
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
-    private final byte[] token;
 
-    public GeometriaController(JdbcTemplate jdbc, ObjectMapper json, @Value("${atd.edicion.token:}") String token) {
+    public GeometriaController(JdbcTemplate jdbc, ObjectMapper json) {
         this.jdbc = jdbc;
         this.json = json;
-        this.token = token.getBytes(StandardCharsets.UTF_8);
     }
 
-    @GetMapping("/api/atd/edicion")
-    public Map<String, Boolean> estado() {
-        return Map.of("habilitada", token.length > 0);
-    }
-
+    /** Solo alcanzable con perfil editor (ver Seguridad). */
     @PutMapping("/api/atd/alertas/{codigo}/geometria")
     @Transactional
-    public ResponseEntity<?> guardar(@PathVariable String codigo,
-                                     @RequestHeader(value = "X-ATD-Token", required = false) String clave,
-                                     @RequestHeader(value = "X-ATD-Editor", required = false) String editor,
+    public ResponseEntity<?> guardar(@PathVariable String codigo, Authentication auth,
                                      @RequestBody JsonNode geometria) {
-        ResponseEntity<?> rechazo = validar(codigo, clave);
-        if (rechazo != null) {
-            return rechazo;
+        if (!PATRON_CODIGO.matcher(codigo).matches()) {
+            return error(HttpStatus.NOT_FOUND, "Alerta no encontrada");
         }
         String tipo = geometria.path("type").asText();
         if (!tipo.equals("Polygon") && !tipo.equals("MultiPolygon")) {
@@ -97,18 +84,16 @@ public class GeometriaController {
                        actualizado_en = now()
                   FROM nueva n
                  WHERE a.codigo = ?
-                """, geometria.toString(), nombreEditor(editor), codigo);
+                """, geometria.toString(), auth.getName(), codigo);
         recalcularAmbito(codigo);
         return ResponseEntity.ok(resumen(codigo));
     }
 
     @DeleteMapping("/api/atd/alertas/{codigo}/geometria")
     @Transactional
-    public ResponseEntity<?> restaurar(@PathVariable String codigo,
-                                       @RequestHeader(value = "X-ATD-Token", required = false) String clave) {
-        ResponseEntity<?> rechazo = validar(codigo, clave);
-        if (rechazo != null) {
-            return rechazo;
+    public ResponseEntity<?> restaurar(@PathVariable String codigo) {
+        if (!PATRON_CODIGO.matcher(codigo).matches()) {
+            return error(HttpStatus.NOT_FOUND, "Alerta no encontrada");
         }
         int n = jdbc.update("""
                 UPDATE alerta SET
@@ -154,27 +139,6 @@ public class GeometriaController {
             throw new IllegalStateException(e);
         }
         return r;
-    }
-
-    private ResponseEntity<?> validar(String codigo, String clave) {
-        if (token.length == 0) {
-            return error(HttpStatus.FORBIDDEN, "La edición no está habilitada en este servidor");
-        }
-        if (clave == null || !MessageDigest.isEqual(token, clave.getBytes(StandardCharsets.UTF_8))) {
-            return error(HttpStatus.FORBIDDEN, "Clave de edición incorrecta");
-        }
-        if (!PATRON_CODIGO.matcher(codigo).matches()) {
-            return error(HttpStatus.NOT_FOUND, "Alerta no encontrada");
-        }
-        return null;
-    }
-
-    private static String nombreEditor(String editor) {
-        if (editor == null || editor.isBlank()) {
-            return "editor web";
-        }
-        String limpio = editor.replaceAll("[^\\p{L}\\p{N} ._-]", "").trim();
-        return limpio.isEmpty() ? "editor web" : limpio.substring(0, Math.min(80, limpio.length()));
     }
 
     private static ResponseEntity<Map<String, String>> error(HttpStatus status, String mensaje) {

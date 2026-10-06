@@ -30,7 +30,11 @@ services:
       ATD_DB_URL: jdbc:postgresql://db:5432/atd
       ATD_DB_USER: atd
       ATD_DB_PASSWORD: ${ATD_DB_PASSWORD:-atd_local}
-      ATD_EDITOR_TOKEN: ${ATD_EDITOR_TOKEN:-editor_local}
+      # Usuarios del visor: definir en atd-service/.env (ignorado por git).
+      ATD_USUARIO_CONSULTA: ${ATD_USUARIO_CONSULTA:-usuario1}
+      ATD_CLAVE_CONSULTA: ${ATD_CLAVE_CONSULTA:-}
+      ATD_USUARIO_EDITOR: ${ATD_USUARIO_EDITOR:-editor1}
+      ATD_CLAVE_EDITOR: ${ATD_CLAVE_EDITOR:-}
     ports:
       - "8081:8080"
     mem_limit: 512m

@@ -29,6 +29,10 @@ kbd { font: 600 10px Inter, sans-serif; background: rgba(0,0,0,.08); border-radi
 .rail-btn:hover { background: var(--verde-fondo); color: var(--verde); }
 .rail-btn.activo { background: var(--verde); color: #fff; box-shadow: 0 4px 12px rgba(46,125,50,.3); }
 .rail-abajo { margin-top: auto; }
+.rail-usuario { display: flex; flex-direction: column; align-items: center; gap: 3px; padding-top: 10px; border-top: 1px solid var(--linea); width: 60px; }
+.rail-avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--verde-fondo); color: var(--verde); font-weight: 800; font-size: 14px; border: 1.5px solid #dcedc8; text-transform: uppercase; }
+.rail-usuario small { font-size: 10px; font-weight: 600; color: var(--gris); max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rail-usuario form { margin: 0; }
 .rail-badge { position: absolute; top: 3px; right: 6px; background: var(--naranja); color: #fff; font-size: 10px; border-radius: 10px; padding: 1px 6px; }
 
 /* ---------- Panel lateral ---------- */
@@ -151,9 +155,6 @@ section { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .escena-mapa > span { white-space: nowrap; }
 .escena-mapa .segmento { flex: 1; }
 .btn-editar { width: 100%; margin-top: 10px; padding: 10px 14px; }
-.ed-clave { display: flex; gap: 8px; margin-top: 8px; }
-.ed-clave input { flex: 1; min-width: 0; border: 1.5px solid var(--linea); border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 13px; }
-.ed-clave .btn-pri { width: auto; margin-top: 0; padding: 9px 14px; font-size: 13px; }
 .editor { border-color: #00acc1; box-shadow: 0 0 0 3px rgba(0,229,255,.15); }
 .editor .ayuda { margin: 0 0 10px; }
 .ed-herr { display: flex; gap: 5px; }

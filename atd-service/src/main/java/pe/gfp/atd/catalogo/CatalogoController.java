@@ -25,6 +25,6 @@ public class CatalogoController {
                 "causas", jdbc.queryForList("SELECT id, nombre, resultado FROM cat_causa ORDER BY id"),
                 "confiabilidad", jdbc.queryForList("SELECT id, nombre FROM cat_confiabilidad ORDER BY id"),
                 "tipoBosque", jdbc.queryForList("SELECT id, nombre FROM cat_tipo_bosque ORDER BY id"));
-        return ResponseEntity.ok().cacheControl(CacheControl.maxAge(Duration.ofHours(12)).cachePublic()).body(r);
+        return ResponseEntity.ok().cacheControl(CacheControl.maxAge(Duration.ofHours(12)).cachePrivate()).body(r);
     }
 }

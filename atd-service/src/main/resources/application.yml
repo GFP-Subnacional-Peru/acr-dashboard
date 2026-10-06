@@ -22,6 +22,15 @@ spring:
 
 server:
   port: 8080
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        name: ATD_SESION
+        http-only: true
+        same-site: lax
+        secure: ${ATD_COOKIE_SEGURA:false}
   compression:
     enabled: true
     mime-types: application/json,application/geo+json
@@ -38,9 +47,14 @@ atd:
     responsable: ${ATD_REPORTE_RESPONSABLE:Favio Campos}
     cargo: ${ATD_REPORTE_CARGO:Promotor Ambiental}
     dashboard-url: ${ATD_DASHBOARD_URL:https://acr-dashboard-5iqz.onrender.com/}
-  edicion:
-    # Sin token configurado la edición de geometrías queda deshabilitada (hasta el inicio de sesión).
-    token: ${ATD_EDITOR_TOKEN:}
+  # Un perfil sin clave queda deshabilitado. Las claves nunca van en el repositorio.
+  acceso:
+    consulta:
+      usuario: ${ATD_USUARIO_CONSULTA:usuario1}
+      clave: ${ATD_CLAVE_CONSULTA:}
+    editor:
+      usuario: ${ATD_USUARIO_EDITOR:editor1}
+      clave: ${ATD_CLAVE_EDITOR:}
 
 logging:
   level:

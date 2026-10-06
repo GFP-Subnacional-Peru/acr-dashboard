@@ -13,8 +13,12 @@
   const fecha = (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '–');
   const clase = (p) => (p.estado === 'pendiente' ? 'pendiente' : p.resultado || 'pendiente');
 
+  const irAlLogin = () => location.assign('/login.html');
+  const tokenCsrf = () => decodeURIComponent((document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN=')) || '').slice(11));
+
   async function api(ruta, fresco = false) {
     const r = await fetch(API + ruta, fresco ? { cache: 'reload' } : undefined);
+    if (r.status === 401) { irAlLogin(); throw new Error('Sesión vencida'); }
     if (!r.ok) throw new Error(`${r.status} ${ruta}`);
     return r.json();
   }
@@ -387,7 +391,6 @@
     $('ev-escena').hidden = !escenas.some((e) => e.recorte);
     verEscena('');
     $('ev-editar').hidden = !ed.habilitada;
-    $('ed-clave').hidden = true;
     $('ev-ficha').innerHTML = ficha(d, escenas);
     const concl = d.conclusion || (d.estado === 'pendiente' ? 'Alerta pendiente de validación técnica: aún no tiene clasificación ni causal definitiva.' : null);
     $('ev-conclusion').hidden = !concl;
@@ -416,7 +419,16 @@
 
   /* ---------- Edición del polígono ---------- */
   const ed = { habilitada: false, capa: null, codigo: null, herr: 'vertices' };
-  api('/edicion').then((r) => { ed.habilitada = !!r.habilitada; }).catch(() => {});
+  api('/sesion', true).then((s) => {
+    ed.habilitada = !!s.editor;
+    $('usr-inicial').textContent = s.usuario.charAt(0);
+    $('usr-nombre').textContent = s.usuario;
+    $('rail-usuario').title = `${s.usuario} · ${s.editor ? 'editor' : 'consulta'}`;
+    $('rail-usuario').hidden = false;
+    document.querySelector('.rail-btn[data-modo="clasificar"]').hidden = !s.editor;
+    if (st.alerta && $('ed-panel').hidden) $('ev-editar').hidden = !ed.habilitada;
+  }).catch(() => {});
+  $('form-salir').onsubmit = () => { $('salir-csrf').value = tokenCsrf(); };
 
   function anilloHa(anillo) {
     const R = 6378137, rad = Math.PI / 180;
@@ -464,12 +476,6 @@
   async function editar() {
     const m = marcas.get(st.alerta);
     if (!ed.habilitada || !m || ed.capa || ed.abriendo) return;
-    if (!sessionStorage.getItem('atdClave')) {
-      $('ed-clave').hidden = false;
-      $('ed-clave-txt').focus();
-      return;
-    }
-    $('ed-clave').hidden = true;
     ed.codigo = st.alerta;
     ed.herr = 'vertices';
     ed.abriendo = true;
@@ -511,11 +517,12 @@
   async function enviarGeometria(metodo, geometria) {
     const r = await fetch(`${API}/alertas/${ed.codigo}/geometria`, {
       method: metodo,
-      headers: { 'Content-Type': 'application/json', 'X-ATD-Token': sessionStorage.getItem('atdClave') || '' },
+      headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': tokenCsrf() },
       body: geometria ? JSON.stringify(geometria) : undefined,
     });
+    if (r.status === 401) { irAlLogin(); throw new Error('Sesión vencida'); }
+    if (r.status === 403) throw new Error('Su usuario no tiene permiso para editar polígonos');
     const j = await r.json().catch(() => ({}));
-    if (r.status === 403) sessionStorage.removeItem('atdClave');
     if (!r.ok) throw new Error(j.error || 'No se pudo guardar el polígono');
     return j;
   }
@@ -531,12 +538,6 @@
   }
 
   $('ev-editar').onclick = editar;
-  $('ed-clave').onsubmit = (e) => {
-    e.preventDefault();
-    sessionStorage.setItem('atdClave', $('ed-clave-txt').value);
-    $('ed-clave-txt').value = '';
-    editar();
-  };
   $('ed-herr').querySelectorAll('[data-h]').forEach((b) => (b.onclick = () => { ed.herr = b.dataset.h; aplicarHerramienta(); }));
   $('ed-mas').onclick = () => escalar(1.05);
   $('ed-menos').onclick = () => escalar(1 / 1.05);
@@ -585,7 +586,7 @@
     document.querySelectorAll('.rail-btn[data-modo]').forEach((b) => b.classList.toggle('activo', b.dataset.modo === modo));
     $('modo-consulta').hidden = modo !== 'consulta';
     $('modo-clasificar').hidden = modo !== 'clasificar';
-    $('cab-sub').textContent = modo === 'consulta' ? 'Áreas de Conservación Regional · Consulta pública' : 'Bandeja de clasificación · Especialistas regionales';
+    $('cab-sub').textContent = modo === 'consulta' ? 'Áreas de Conservación Regional · Consulta de alertas' : 'Bandeja de clasificación · Especialistas regionales';
     if (modo === 'clasificar') iniciarClasificacion();
     else if (st.geo) dibujarAlertas(st.geo.features);
   }

@@ -74,7 +74,7 @@ def stac_buscar(lon, lat, desde, hasta, descendente):
         "datetime": f"{desde.isoformat()}T00:00:00Z/{hasta.isoformat()}T23:59:59Z",
         "query": {"eo:cloud_cover": {"lte": MAX_NUBES_ESCENA}},
         "sortby": [{"field": "properties.datetime", "direction": "desc" if descendente else "asc"}],
-        "limit": 12,
+        "limit": 40,
     }
     req = urllib.request.Request(f"{STAC}/search", data=json.dumps(cuerpo).encode(),
                                  headers={"Content-Type": "application/json"})
@@ -90,6 +90,16 @@ def nubosidad_centro(item, bounds):
                     outputBounds=(x0 + dx, y0 + dy, x1 - dx, y1 - dy), width=50, height=50,
                     resampleAlg="near").ReadAsArray()
     return float((scl == 0).mean()), float(np.isin(scl, SCL_NUBE).mean())
+
+
+def blancura_centro(ds):
+    """Fracción de píxeles blancos y sin color en la mitad central del recorte (color natural sin realzar).
+    Cubre las nubes que la SCL confunde con suelo desnudo, frecuente en selva alta."""
+    rgb = ds.ReadAsArray().astype(np.int16)
+    h, w = rgb.shape[1:]
+    c = rgb[:, h // 4:3 * h // 4, w // 4:3 * w // 4]
+    minimo, maximo = c.min(axis=0), c.max(axis=0)
+    return float(((minimo > 140) & (maximo - minimo < 40)).mean())
 
 
 def recortar(item, bounds):
@@ -140,7 +150,11 @@ def elegir(candidatos, bounds, elegida_id=None):
             fechas_vistas.add(fecha)
             if nubes > MAX_NUBES_LOCAL and not propia:
                 continue
-            return item, recortar(item, bounds), nubes
+            ds = recortar(item, bounds)
+            nubes = max(nubes, blancura_centro(ds))
+            if nubes > MAX_NUBES_LOCAL and not propia:
+                continue
+            return item, ds, nubes
         except Exception:  # tile sin cobertura en la ventana: se prueba el siguiente
             continue
     return None, None, None
@@ -172,13 +186,21 @@ def _procesar(a, elegidas):
                 pass
         return lista + stac_buscar(a["lon"], a["lat"], desde, hasta, desc)
 
-    dep, ds_dep, n_dep = elegir(candidatos(id_dep, fecha - dt.timedelta(days=3),
-                                           fecha + dt.timedelta(days=45), False), bounds, id_dep)
+    dias = dt.timedelta
+    dep, ds_dep, n_dep = elegir(candidatos(id_dep, fecha - dias(days=3), fecha + dias(days=45), False),
+                                bounds, id_dep)
+    if not dep:
+        dep, ds_dep, n_dep = elegir(stac_buscar(a["lon"], a["lat"], fecha + dias(days=46),
+                                                fecha + dias(days=120), False), bounds)
     if not dep:
         return a, None, "sin escena DESPUÉS utilizable"
     fecha_dep = dt.date.fromisoformat(dep["properties"]["datetime"][:10])
-    ant, ds_ant, n_ant = elegir(candidatos(id_ant, fecha_dep - dt.timedelta(days=180),
-                                           fecha_dep - dt.timedelta(days=10), True), bounds, id_ant)
+    ant, ds_ant, n_ant = elegir(candidatos(id_ant, fecha_dep - dias(days=180), fecha_dep - dias(days=10), True),
+                                bounds, id_ant)
+    if not ant:
+        # En selva alta la temporada de lluvias (nov-abr) deja casi todo nublado: se va a la seca anterior.
+        ant, ds_ant, n_ant = elegir(stac_buscar(a["lon"], a["lat"], fecha_dep - dias(days=420),
+                                                fecha_dep - dias(days=181), True), bounds)
     if not ant:
         return a, None, "sin escena ANTES utilizable"
     salida = []

@@ -39,7 +39,7 @@ public class EvidenciaController {
                 .orElseThrow(() -> new NoEncontradoException("Imagen no disponible"));
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
-                .cacheControl(CacheControl.maxAge(Duration.ofDays(7)).cachePublic())
+                .cacheControl(CacheControl.maxAge(Duration.ofDays(7)).cachePrivate())
                 .body(png);
     }
 }

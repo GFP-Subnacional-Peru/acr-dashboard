@@ -41,7 +41,7 @@ public class TerritorioController {
         }
         return ResponseEntity.ok()
                 .contentType(GEOJSON)
-                .cacheControl(CacheControl.maxAge(Duration.ofHours(12)).cachePublic())
+                .cacheControl(CacheControl.maxAge(Duration.ofHours(12)).cachePrivate())
                 .body(repo.limitesGeoJson(acr));
     }
 }
