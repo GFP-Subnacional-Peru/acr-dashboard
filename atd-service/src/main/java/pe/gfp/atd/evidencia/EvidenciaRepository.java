@@ -41,14 +41,16 @@ public class EvidenciaRepository {
                 codigoAlerta);
     }
 
-    public Optional<byte[]> imagen(String codigoAlerta, String momento) {
-        List<byte[]> filas = jdbc.query("""
-                SELECT v.contenido
+    public record Imagen(byte[] datos, String mime) {}
+
+    public Optional<Imagen> imagen(String codigoAlerta, String momento) {
+        List<Imagen> filas = jdbc.query("""
+                SELECT v.contenido, v.mime
                   FROM evidencia v
                   JOIN alerta a ON a.id = v.alerta_id
                   JOIN escena e ON e.id = v.escena_id AND e.publica
                  WHERE a.codigo = ? AND v.tipo = ? AND v.contenido IS NOT NULL
-                """, (rs, i) -> rs.getBytes(1), codigoAlerta, "chip_" + momento);
+                """, (rs, i) -> new Imagen(rs.getBytes(1), rs.getString(2)), codigoAlerta, "chip_" + momento);
         return filas.stream().findFirst();
     }
 }

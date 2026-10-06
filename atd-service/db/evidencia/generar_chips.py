@@ -121,9 +121,10 @@ def realzar(ds):
         ds.GetRasterBand(b + 1).WriteArray(np.where(validos, estirada, 0).astype(np.uint8))
 
 
-def a_png(ds):
-    ruta = f"/vsimem/chip_{id(ds)}.png"
-    gdal.Translate(ruta, ds, format="PNG")
+def a_jpeg(ds):
+    """JPEG calidad 88: ~4 veces más liviano que PNG sin diferencia visible en imágenes satelitales."""
+    ruta = f"/vsimem/chip_{id(ds)}.jpg"
+    gdal.Translate(ruta, ds, format="JPEG", creationOptions=["QUALITY=88"])
     f = gdal.VSIFOpenL(ruta, "rb")
     gdal.VSIFSeekL(f, 0, 2)
     n = gdal.VSIFTellL(f)
@@ -206,7 +207,7 @@ def _procesar(a, elegidas):
     salida = []
     for momento, item, ds, nubes in (("antes", ant, ds_ant, n_ant), ("despues", dep, ds_dep, n_dep)):
         realzar(ds)
-        salida.append((momento, item, nubes, a_png(ds)))
+        salida.append((momento, item, nubes, a_jpeg(ds)))
     return a, (bounds, salida), f"antes={ant['id']}  despues={dep['id']}"
 
 
@@ -228,12 +229,12 @@ def guardar(con, alerta_id, bounds, momento, item, nubes, png):
     """)
     con.ExecuteSQL(f"""
         INSERT INTO atd.evidencia (alerta_id, escena_id, tipo, mime, contenido, descripcion)
-        SELECT {alerta_id}, e.id, 'chip_{momento}', 'image/png', decode('{png.hex()}', 'hex'),
+        SELECT {alerta_id}, e.id, 'chip_{momento}', 'image/jpeg', decode('{png.hex()}', 'hex'),
                'Sentinel-2 L2A color natural · ' || e.escena_id
           FROM atd.escena e
          WHERE e.alerta_id = {alerta_id} AND e.momento = '{momento}' AND e.proveedor = 'sentinel2'
         ON CONFLICT (alerta_id, tipo) DO UPDATE
-           SET escena_id = EXCLUDED.escena_id, contenido = EXCLUDED.contenido,
+           SET escena_id = EXCLUDED.escena_id, contenido = EXCLUDED.contenido, mime = EXCLUDED.mime,
                descripcion = EXCLUDED.descripcion, creado_en = now()
     """)
 

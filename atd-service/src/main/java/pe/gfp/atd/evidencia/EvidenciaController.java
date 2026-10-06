@@ -35,11 +35,13 @@ public class EvidenciaController {
     public ResponseEntity<byte[]> imagen(
             @PathVariable @Pattern(regexp = PATRON_CODIGO) String codigo,
             @PathVariable @Pattern(regexp = "antes|despues") String momento) {
-        byte[] png = repo.imagen(codigo, momento)
+        EvidenciaRepository.Imagen img = repo.imagen(codigo, momento)
                 .orElseThrow(() -> new NoEncontradoException("Imagen no disponible"));
+        // La URL conserva ".png" por compatibilidad con enlaces ya emitidos; el tipo real va en la cabecera.
+        MediaType tipo = img.mime() == null ? MediaType.IMAGE_PNG : MediaType.parseMediaType(img.mime());
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
+                .contentType(tipo)
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(7)).cachePrivate())
-                .body(png);
+                .body(img.datos());
     }
 }
