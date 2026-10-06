@@ -1,5 +1,6 @@
 # Levanta el sistema ATD en esta PC y abre la vista previa en el navegador.
-$ErrorActionPreference = 'Stop'
+# 'Continue': en PowerShell 5 la salida de error de docker con 'Stop' corta el script aunque Docker solo esté cerrado.
+$ErrorActionPreference = 'Continue'
 Set-Location $PSScriptRoot
 
 function Esperar($mensaje, [scriptblock]$prueba, $intentos = 60) {

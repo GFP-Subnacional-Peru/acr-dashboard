@@ -8,17 +8,19 @@ BEGIN;
 INSERT INTO ingesta (fuente) VALUES ('gdb_inicial');
 
 -- Códigos del dashboard <-> códigos oficiales SERNANP usados en las GDB
-CREATE TEMP TABLE acr_map (codigo text, oficial text, nombre text, region_id smallint) ON COMMIT DROP;
+-- Provincia y distrito: los mismos que usa el toolbox H3 en el reporte oficial.
+CREATE TEMP TABLE acr_map (codigo text, oficial text, nombre text, region_id smallint,
+                           provincia text, distrito text) ON COMMIT DROP;
 INSERT INTO acr_map VALUES
-    ('ACR_AA',    'ACR09', 'Ampiyacu Apayacu',                 1),
-    ('ACR_CTT',   'ACR04', 'Comunal Tamshiyacu Tahuayo',       1),
-    ('ACR_ANPCH', 'ACR10', 'Alto Nanay - Pintuyacu Chambira',  1),
-    ('ACR_MK',    'ACR17', 'Maijuna Kichwa',                   1),
-    ('ACR_CE',    'ACR01', 'Cordillera Escalera',              2),
-    ('ACR_BSM',   'ACR21', 'Bosques de Shunté y Mishollo',     2),
-    ('ACR_CHQ',   'ACR07', 'Choquequirao',                     3),
-    ('ACR_CHU',   'ACR26', 'Chuyapi Urusayhua',                3),
-    ('ACR_QK',    'ACR30', 'Q''eros Kosñipata',                3);
+    ('ACR_AA',    'ACR09', 'Ampiyacu Apayacu',                1, 'Mariscal Ramón Castilla / Loreto', 'Ramón Castilla / Pebas'),
+    ('ACR_CTT',   'ACR04', 'Comunal Tamshiyacu Tahuayo',      1, 'Loreto / Requena',                 'Parinari / Sapuena'),
+    ('ACR_ANPCH', 'ACR10', 'Alto Nanay - Pintuyacu Chambira', 1, 'Maynas',                           'Alto Nanay'),
+    ('ACR_MK',    'ACR17', 'Maijuna Kichwa',                  1, 'Putumayo / Maynas',                'Putumayo / Mazán'),
+    ('ACR_CE',    'ACR01', 'Cordillera Escalera',             2, 'San Martín / Rioja / Picota',      'Según sector ACR'),
+    ('ACR_BSM',   'ACR21', 'Bosques de Shunté y Mishollo',    2, 'Mariscal Cáceres',                 'Huicungo / Pachiza'),
+    ('ACR_CHQ',   'ACR07', 'Choquequirao',                    3, 'Anta / La Convención',             'Mollepata / Santa Teresa'),
+    ('ACR_CHU',   'ACR26', 'Chuyapi Urusayhua',               3, 'La Convención',                    NULL),
+    ('ACR_QK',    'ACR30', 'Q''eros Kosñipata',               3, 'Paucartambo',                      'Kosñipata');
 
 -- ------------------------------------------------------------
 -- Territorios (límites idénticos a los del dashboard)
@@ -33,18 +35,30 @@ WITH lim AS (
       FROM lim
      GROUP BY codigo, tipo, acr_codigo
 )
-INSERT INTO territorio (codigo, tipo, acr_codigo, codigo_oficial, nombre, region_id, area_ha, geom)
+INSERT INTO territorio (codigo, tipo, acr_codigo, codigo_oficial, nombre, region_id, area_ha, geom,
+                        provincia, distrito)
 SELECT d.codigo, d.tipo, d.acr_codigo,
        CASE WHEN d.tipo = 'ACR' THEN m.oficial END,
        CASE WHEN d.tipo = 'ACR' THEN 'ACR ' ELSE 'ZI ' END || m.nombre,
        m.region_id,
        round((ST_Area(d.geom::geography) / 10000)::numeric, 2),
-       d.geom
+       d.geom, m.provincia, m.distrito
   FROM dis d
   JOIN acr_map m ON m.codigo = d.acr_codigo
 ON CONFLICT (codigo) DO UPDATE SET
     tipo = EXCLUDED.tipo, acr_codigo = EXCLUDED.acr_codigo, codigo_oficial = EXCLUDED.codigo_oficial,
-    nombre = EXCLUDED.nombre, region_id = EXCLUDED.region_id, area_ha = EXCLUDED.area_ha, geom = EXCLUDED.geom;
+    nombre = EXCLUDED.nombre, region_id = EXCLUDED.region_id, area_ha = EXCLUDED.area_ha, geom = EXCLUDED.geom,
+    provincia = EXCLUDED.provincia, distrito = EXCLUDED.distrito;
+
+-- ------------------------------------------------------------
+-- Centros de vigilancia comunal (OLV) para el reporte
+-- ------------------------------------------------------------
+TRUNCATE olv RESTART IDENTITY;
+INSERT INTO olv (acr_oficial, nombre, lugar_poblado, geom)
+SELECT 'ACR' || lpad(substring(o.codacr FROM '\d+'), 2, '0'),
+       trim(o.noment), NULLIF(trim(o.denomi), ''), o.geom
+  FROM staging.cvc_gestion o
+ WHERE o.codacr ~ '\d' AND NULLIF(trim(o.noment), '') IS NOT NULL AND o.geom IS NOT NULL;
 
 -- ------------------------------------------------------------
 -- Alertas: unión de las 3 regiones con columnas homogéneas
@@ -54,22 +68,32 @@ SELECT 1::smallint AS region_id, 'LOR' AS prefijo, 'Linea_base_deforestación_Lo
        oid, anp_codi, md_anno, md_mesrep, md_fecimg, md_fecimg_ant, md_sup, md_causa, md_conf, md_bosque,
        md_fuente, md_zonif, md_sector AS sector, md_exa, md_obs, md_editor, md_fecrev,
        md_img, md_img_ant, md_img_dep, md_sat_ant, md_sat_dep, md_este, md_norte,
-       md_alert, ac_sepp057, geom
+       md_alert, ac_sepp057, md_codigo, geom
   FROM staging.alerta_loreto
 UNION ALL
 SELECT 2, 'SMA', 'Linea_base_deforestación_San_Martin.gdb',
        oid, anp_codi, md_anno, md_mesrep, md_fecimg, NULL, md_sup, md_causa, md_conf, md_bosque,
        md_fuente, md_zonif, ac_nomb, md_exa, md_obs, md_editor, NULL,
        md_img, NULL, NULL, NULL, NULL, md_este, md_norte,
-       md_alert, ac_sepp057, geom
+       md_alert, ac_sepp057, md_codigo, geom
   FROM staging.alerta_san_martin
 UNION ALL
 SELECT 3, 'CUS', 'Linea_base_deforestación_Cuzco.gdb',
        oid, anp_codi, md_anno, md_mesrep, md_fecimg, NULL, md_sup, md_causa, md_conf, md_bosque,
        md_fuente, md_zonif, ac_nomb, md_exa, md_obs, md_editor, NULL,
        md_img, NULL, NULL, NULL, NULL, md_este, md_norte,
-       md_alert, ac_sepp057, geom
+       md_alert, ac_sepp057, md_codigo, geom
   FROM staging.alerta_cusco;
+
+-- Alertas que ya no están en la GDB (salvo las validadas o editadas en la web).
+DELETE FROM alerta a
+ WHERE a.origen_capa = 'MonitoreoDeforestacion'
+   AND a.validado_por IS NULL AND a.geom_editada_en IS NULL
+   AND NOT EXISTS (SELECT 1 FROM stg s WHERE s.gdb = a.origen_gdb AND s.oid = a.origen_oid);
+
+-- Ubicación previa: si el OID ahora corresponde a otro polígono, su evidencia ya no sirve.
+CREATE TEMP TABLE previo ON COMMIT DROP AS
+SELECT id, origen_gdb, origen_oid, centroide FROM alerta;
 
 CREATE TEMP TABLE alerta_nueva ON COMMIT DROP AS
 SELECT s.*, m.codigo AS acr_codigo,
@@ -84,8 +108,8 @@ INSERT INTO alerta (
     fuente_id, confiabilidad_id, tipo_bosque_id, zonificacion, sector, exa,
     estado, causa_id, observaciones, validado_en, editor_gdb,
     img_antes, img_despues, sat_antes, sat_despues, img_referencia,
-    este_utm, norte_utm, codigo_gdb, sector_pp057,
-    geom, centroide, origen_gdb, origen_capa, origen_oid)
+    este_utm, norte_utm, codigo_gdb, sector_pp057, codigo_reporte,
+    geom, geom_original, centroide, origen_gdb, origen_capa, origen_oid)
 SELECT
     n.prefijo || '-' || COALESCE(n.md_anno, extract(year FROM n.md_fecimg)::int) || '-' || lpad(n.oid::text, 4, '0'),
     n.region_id,
@@ -116,8 +140,8 @@ SELECT
     NULLIF(trim(n.md_sat_dep), ''),
     NULLIF(trim(n.md_img), ''),
     n.md_este, n.md_norte,
-    NULLIF(trim(n.md_alert), ''), NULLIF(trim(n.ac_sepp057), ''),
-    n.geom_ok, n.centro,
+    NULLIF(trim(n.md_alert), ''), NULLIF(trim(n.ac_sepp057), ''), NULLIF(trim(n.md_codigo), ''),
+    n.geom_ok, n.geom_ok, n.centro,
     n.gdb, 'MonitoreoDeforestacion', n.oid
   FROM alerta_nueva n
   LEFT JOIN cat_causa c ON c.id = n.md_causa
@@ -129,7 +153,8 @@ ON CONFLICT (origen_gdb, origen_capa, origen_oid) DO UPDATE SET
     territorio_codigo = EXCLUDED.territorio_codigo, ambito = EXCLUDED.ambito,
     anio = EXCLUDED.anio, mes = EXCLUDED.mes, mes_reporte = EXCLUDED.mes_reporte,
     fecha_imagen = EXCLUDED.fecha_imagen, fecha_imagen_ant = EXCLUDED.fecha_imagen_ant,
-    superficie_ha = EXCLUDED.superficie_ha, fuente_id = EXCLUDED.fuente_id,
+    superficie_ha = CASE WHEN alerta.geom_editada_en IS NULL THEN EXCLUDED.superficie_ha ELSE alerta.superficie_ha END,
+    fuente_id = EXCLUDED.fuente_id,
     confiabilidad_id = EXCLUDED.confiabilidad_id, tipo_bosque_id = EXCLUDED.tipo_bosque_id,
     zonificacion = EXCLUDED.zonificacion, sector = EXCLUDED.sector, exa = EXCLUDED.exa,
     observaciones = EXCLUDED.observaciones, editor_gdb = EXCLUDED.editor_gdb,
@@ -137,12 +162,22 @@ ON CONFLICT (origen_gdb, origen_capa, origen_oid) DO UPDATE SET
     sat_antes = EXCLUDED.sat_antes, sat_despues = EXCLUDED.sat_despues,
     img_referencia = EXCLUDED.img_referencia, este_utm = EXCLUDED.este_utm, norte_utm = EXCLUDED.norte_utm,
     codigo_gdb = EXCLUDED.codigo_gdb, sector_pp057 = EXCLUDED.sector_pp057,
-    geom = EXCLUDED.geom, centroide = EXCLUDED.centroide,
+    codigo_reporte = EXCLUDED.codigo_reporte,
+    -- un polígono corregido en la web manda sobre el de la GDB, que queda como original
+    geom = CASE WHEN alerta.geom_editada_en IS NULL THEN EXCLUDED.geom ELSE alerta.geom END,
+    geom_original = EXCLUDED.geom_original,
+    centroide = CASE WHEN alerta.geom_editada_en IS NULL THEN EXCLUDED.centroide ELSE alerta.centroide END,
     -- la validación web (fase 3) manda sobre la GDB: no se pisa una alerta validada en la web
     estado = CASE WHEN alerta.validado_por IS NULL THEN EXCLUDED.estado ELSE alerta.estado END,
     causa_id = CASE WHEN alerta.validado_por IS NULL THEN EXCLUDED.causa_id ELSE alerta.causa_id END,
     validado_en = CASE WHEN alerta.validado_por IS NULL THEN EXCLUDED.validado_en ELSE alerta.validado_en END,
     actualizado_en = now();
+
+CREATE TEMP TABLE movidas ON COMMIT DROP AS
+SELECT a.id FROM alerta a JOIN previo p ON p.id = a.id
+ WHERE ST_Distance(p.centroide::geography, a.centroide::geography) > 30;
+DELETE FROM evidencia WHERE alerta_id IN (SELECT id FROM movidas);
+DELETE FROM escena    WHERE alerta_id IN (SELECT id FROM movidas);
 
 UPDATE ingesta
    SET terminado_en = now(), estado = 'ok',

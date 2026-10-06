@@ -18,12 +18,13 @@ public class EvidenciaRepository {
     /** Solo escenas públicas (Sentinel-2); Planet queda reservado a validadores. */
     public List<Escena> escenas(String codigoAlerta) {
         return jdbc.query("""
-                SELECT e.momento, e.proveedor, e.escena_id, e.fecha, e.nubosidad
+                SELECT e.momento, e.proveedor, e.escena_id, e.fecha, e.nubosidad, e.nubosidad_escena,
+                       e.rec_xmin, e.rec_ymin, e.rec_xmax, e.rec_ymax,
+                       extract(epoch FROM v.creado_en)::bigint AS version
                   FROM escena e
                   JOIN alerta a ON a.id = e.alerta_id
+                  JOIN evidencia v ON v.escena_id = e.id AND v.contenido IS NOT NULL
                  WHERE a.codigo = ? AND e.publica
-                   AND EXISTS (SELECT 1 FROM evidencia v
-                                WHERE v.escena_id = e.id AND v.contenido IS NOT NULL)
                  ORDER BY e.momento = 'despues', e.fecha
                 """, (rs, i) -> new Escena(
                 rs.getString("momento"),
@@ -31,7 +32,12 @@ public class EvidenciaRepository {
                 rs.getString("escena_id"),
                 rs.getObject("fecha", LocalDate.class),
                 rs.getBigDecimal("nubosidad"),
-                "/api/atd/alertas/" + codigoAlerta + "/imagen/" + rs.getString("momento") + ".png"),
+                rs.getBigDecimal("nubosidad_escena"),
+                rs.getObject("rec_xmin") == null ? null : new double[] {
+                        rs.getDouble("rec_xmin"), rs.getDouble("rec_ymin"),
+                        rs.getDouble("rec_xmax"), rs.getDouble("rec_ymax")},
+                "/api/atd/alertas/" + codigoAlerta + "/imagen/" + rs.getString("momento") + ".png?v="
+                        + rs.getLong("version")),
                 codigoAlerta);
     }
 

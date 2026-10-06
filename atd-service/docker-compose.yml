@@ -30,6 +30,7 @@ services:
       ATD_DB_URL: jdbc:postgresql://db:5432/atd
       ATD_DB_USER: atd
       ATD_DB_PASSWORD: ${ATD_DB_PASSWORD:-atd_local}
+      ATD_EDITOR_TOKEN: ${ATD_EDITOR_TOKEN:-editor_local}
     ports:
       - "8081:8080"
     mem_limit: 512m
@@ -47,6 +48,8 @@ services:
       PGPASSWORD: ${ATD_DB_PASSWORD:-atd_local}
     volumes:
       - ${ATD_GDB_DIR:-./db/gdb}:/gdb:ro
+      - ${ATD_GDB_LORETO_DIR:-./db/gdb_loreto}:/gdb_loreto:ro
+      - ${ATD_ESCENAS_DIR:-./db/escenas}:/escenas:ro
       - ../data/cache/geojson:/limites:ro
       - ./db/carga:/carga:ro
       - ./db/evidencia:/evidencia:ro

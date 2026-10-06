@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/visor.css">
 </head>
@@ -107,6 +108,36 @@
           <span class="chip" id="ev-chip"></span>
         </div>
         <div id="ev-comparador"></div>
+        <div class="escena-mapa" id="ev-escena" hidden>
+          <span><i class="fas fa-satellite"></i> Imagen en el mapa</span>
+          <div class="segmento" id="ev-escena-sel">
+            <button data-v="" class="activo">Ninguna</button>
+            <button data-v="antes">Antes</button>
+            <button data-v="despues">Después</button>
+          </div>
+        </div>
+        <button class="btn-sec btn-editar" id="ev-editar" hidden><i class="fas fa-draw-polygon"></i> Editar polígono</button>
+        <form class="ed-clave" id="ed-clave" hidden>
+          <input type="password" id="ed-clave-txt" placeholder="Clave de edición" autocomplete="current-password" required>
+          <button class="btn-pri" type="submit"><i class="fas fa-lock-open"></i> Entrar</button>
+        </form>
+        <div class="tarjeta editor" id="ed-panel" hidden>
+          <h3><i class="fas fa-draw-polygon"></i> Edición del polígono</h3>
+          <p class="ayuda">Use la imagen Sentinel-2 de fondo como guía. En <b>Vértices</b>, arrastre los puntos; los puntos intermedios agregan vértices y el clic derecho los quita.</p>
+          <div class="ed-herr" id="ed-herr">
+            <button data-h="vertices"><i class="fas fa-bezier-curve"></i> Vértices</button>
+            <button data-h="mover"><i class="fas fa-up-down-left-right"></i> Mover</button>
+            <button data-h="rotar"><i class="fas fa-rotate"></i> Rotar</button>
+            <button id="ed-menos" title="Reducir 5 %"><i class="fas fa-compress"></i></button>
+            <button id="ed-mas" title="Agrandar 5 %"><i class="fas fa-expand"></i></button>
+          </div>
+          <div class="ed-area">Superficie: <b id="ed-ha">–</b> <small id="ed-orig"></small></div>
+          <div class="fila-btn">
+            <button class="btn-sec" id="ed-cancelar">Cancelar</button>
+            <button class="btn-sec" id="ed-restaurar" hidden><i class="fas fa-clock-rotate-left"></i> Original</button>
+            <button class="btn-pri" id="ed-guardar"><i class="fas fa-check"></i> Guardar</button>
+          </div>
+        </div>
         <div class="ficha" id="ev-ficha"></div>
         <div class="nota" id="ev-conclusion" hidden></div>
         <div class="fila-btn">
@@ -117,8 +148,8 @@
 
       <!-- Paso 5 -->
       <div class="paso" data-paso="5" hidden>
-        <h2>Reporte de la alerta</h2>
-        <p class="ayuda">El reporte consolida la localización, la evidencia satelital, la clasificación, la causal y la conclusión técnica.</p>
+        <h2>Reporte técnico de la alerta</h2>
+        <p class="ayuda">Formato oficial: ubicación, mapa, imágenes Sentinel-2 antes y después, datos de monitoreo, afectación y producción.</p>
         <div class="reporte-prev" id="rep-prev"></div>
         <button class="btn-pri" id="rep-descargar"><i class="fas fa-download"></i> Descargar PDF</button>
       </div>
@@ -178,6 +209,7 @@
     <label><input type="checkbox" id="c-limites" checked> <i class="sw sw-lim"></i> Límites ACR / ZI</label>
     <h4>Mapa base</h4>
     <label><input type="radio" name="base" value="esri" checked> Imagen satelital</label>
+    <label><input type="radio" name="base" value="s2026"> Sentinel-2 2026 <small>(actual, nubes ≤ 30 %)</small></label>
     <label><input type="radio" name="base" value="s2"> Sentinel-2 sin nubes 2024</label>
     <label><input type="radio" name="base" value="topo"> Topográfico</label>
     <label><input type="radio" name="base" value="gris"> Gris</label>
@@ -189,8 +221,8 @@
   <div><i style="background:#1e88e5"></i>Cambio natural</div>
   <div><i style="background:#9e9e9e"></i>Falsa alerta</div>
   <div><i style="background:#fb8c00"></i>Pendiente</div>
-  <div><i class="borde" style="border-color:#ffee58"></i>ACR</div>
-  <div><i class="borde punteado" style="border-color:#80deea"></i>Zona de Influencia</div>
+  <div><i class="borde" style="border-color:#2ecc40"></i>ACR</div>
+  <div><i class="borde" style="border-color:#b0b6ba"></i>Zona de Influencia</div>
   <div class="ley-geob" hidden><i style="background:#ff00c5"></i>GeoBosques · última semana</div>
   <div class="ley-geob" hidden><i style="background:#0066ff"></i>GeoBosques · acumulado 2026</div>
 </div>
@@ -210,6 +242,7 @@
 </dialog>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
 <script src="/visor.js"></script>
 </body>
 </html>

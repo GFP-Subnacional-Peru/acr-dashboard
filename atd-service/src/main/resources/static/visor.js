@@ -13,8 +13,8 @@
   const fecha = (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '–');
   const clase = (p) => (p.estado === 'pendiente' ? 'pendiente' : p.resultado || 'pendiente');
 
-  async function api(ruta) {
-    const r = await fetch(API + ruta);
+  async function api(ruta, fresco = false) {
+    const r = await fetch(API + ruta, fresco ? { cache: 'reload' } : undefined);
     if (!r.ok) throw new Error(`${r.status} ${ruta}`);
     return r.json();
   }
@@ -36,31 +36,35 @@
 
   /* ====================================================== MAPA */
   const mapa = L.map('mapa', { zoomControl: true, preferCanvas: false }).setView([-7.8, -74.8], 6);
+  // Servicios ArcGIS sin caché de teselas: se pide cada tesela como un export con su bbox en EPSG:3857.
+  const TeselaExport = L.TileLayer.extend({
+    getTileUrl(c) {
+      const t = this.getTileSize();
+      const nw = mapa.options.crs.project(mapa.unproject([c.x * t.x, c.y * t.y], c.z));
+      const se = mapa.options.crs.project(mapa.unproject([(c.x + 1) * t.x, (c.y + 1) * t.y], c.z));
+      return `${this._url}?bbox=${nw.x},${se.y},${se.x},${nw.y}&bboxSR=3857&imageSR=3857&size=${t.x},${t.y}&${this.options.extra}`;
+    },
+  });
+  // Escenas Sentinel-2 L2A de 2026 con nubosidad ≤ 30 %, la más reciente encima (archivo vivo de Esri).
+  const S2_2026 = 'format=jpgpng&f=image'
+    + `&mosaicRule=${encodeURIComponent(JSON.stringify({ mosaicMethod: 'esriMosaicAttribute', sortField: 'acquisitiondate', sortValue: '2099/12/31', ascending: true, where: "acquisitiondate >= timestamp '2026-01-01 00:00:00' AND cloudcover <= 0.3" }))}`
+    // Sin DRA: el estiramiento por tesela deja costuras; el contraste se realza con CSS (.s2-2026).
+    + `&renderingRule=${encodeURIComponent(JSON.stringify({ rasterFunction: 'Natural Color' }))}`;
   const bases = {
     esri: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri World Imagery' }),
+    s2026: new TeselaExport('https://sentinel.arcgis.com/arcgis/rest/services/Sentinel2/ImageServer/exportImage', { maxZoom: 18, maxNativeZoom: 16, extra: S2_2026, className: 's2-2026', attribution: 'Sentinel-2 L2A 2026 (nubes ≤ 30 %) · Copernicus / Esri' }),
     s2: L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg', { maxZoom: 17, attribution: 'Sentinel-2 cloudless 2024 · EOX (Copernicus)' }),
     topo: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri' }),
     gris: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© OpenStreetMap · CARTO' }),
   };
   let base = bases.esri.addTo(mapa);
   const etiquetas = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: .8 }).addTo(mapa);
-  // La caché de teselas de GeoBosques está vacía; el export dinámico sí dibuja la semana vigente.
-  const GeoBosquesExport = L.TileLayer.extend({
-    getTileUrl(c) {
-      const t = this.getTileSize();
-      const nw = mapa.options.crs.project(mapa.unproject([c.x * t.x, c.y * t.y], c.z));
-      const se = mapa.options.crs.project(mapa.unproject([(c.x + 1) * t.x, (c.y + 1) * t.y], c.z));
-      return `${this._url}?bbox=${nw.x},${se.y},${se.x},${nw.y}&bboxSR=3857&imageSR=3857&size=${t.x},${t.y}&format=png32&transparent=true&f=image`;
-    },
-  });
-  const geobosques = new GeoBosquesExport('https://gis.bosques.gob.pe/server/rest/services/Interoperabilidad/alertas_tempranas_2026/MapServer/export', { maxZoom: 19, opacity: .95, attribution: 'ATD GeoBosques · MINAM' });
+  const geobosques = new TeselaExport('https://gis.bosques.gob.pe/server/rest/services/Interoperabilidad/alertas_tempranas_2026/MapServer/export', { maxZoom: 19, opacity: .95, extra: 'format=png32&transparent=true&f=image', attribution: 'ATD GeoBosques · MINAM' });
 
   const capaLimites = L.geoJSON(null, {
     style: (f) => {
       const sel = f.properties.codigo === st.acr || f.properties.codigo === (st.acr || '').replace('ACR_', 'ZI_');
-      return f.properties.tipo === 'ACR'
-        ? { color: '#ffee58', weight: sel ? 3 : 1.6, opacity: sel ? 1 : .7, fill: false }
-        : { color: '#80deea', weight: sel ? 2.4 : 1.4, opacity: sel ? 1 : .6, dashArray: '7 5', fill: false };
+      return { color: f.properties.tipo === 'ACR' ? '#2ecc40' : '#b0b6ba', weight: 1.5, opacity: sel || !st.acr ? 1 : .55, fill: false };
     },
     onEachFeature: (f, l) => l.bindTooltip(f.properties.nombre, { sticky: true }),
   }).addTo(mapa);
@@ -154,7 +158,7 @@
       const g = s.geobosques;
       $('sync').classList.add('ok');
       $('sync-titulo').textContent = g ? `GeoBosques: monitoreo del ${g.desde} al ${g.hasta}` : 'GeoBosques sin respuesta';
-      $('sync-detalle').textContent = `${num(s.alertas.total, 0)} alertas en el sistema · ${num(s.alertas.por_clasificar, 0)} por clasificar · ${num(s.alertas.con_sentinel2, 0)} con imagen Sentinel-2`;
+      $('sync-detalle').textContent = 'Actualización de alertas cada 15 días aprox.';
       $('acerca-semana').textContent = g ? `${g.desde} – ${g.hasta}` : '–';
       const b = $('badge-pend');
       b.textContent = s.alertas.por_clasificar;
@@ -323,16 +327,29 @@
   }
 
   /* ---------- Paso 4: evidencia ---------- */
-  function comparador(cont, escenas) {
+  // Polígono vigente dibujado sobre el recorte (extensión EPSG:3857) en un lienzo SVG de 1000 × 1000.
+  function contornoSvg(geom, recorte) {
+    if (!geom || !recorte) return '';
+    const [x0, y0, x1, y1] = recorte;
+    const poligonos = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+    const d = poligonos.flat().map((anillo) => 'M' + anillo.map(([lon, lat]) => {
+      const p = L.CRS.EPSG3857.project(L.latLng(lat, lon));
+      return `${(((p.x - x0) / (x1 - x0)) * 1000).toFixed(1)},${(((y1 - p.y) / (y1 - y0)) * 1000).toFixed(1)}`;
+    }).join('L') + 'Z').join('');
+    return `<svg class="contorno" viewBox="0 0 1000 1000" preserveAspectRatio="none"><path d="${d}"/></svg>`;
+  }
+
+  function comparador(cont, escenas, geom) {
     const antes = escenas.find((e) => e.momento === 'antes');
     const despues = escenas.find((e) => e.momento === 'despues');
     if (!antes || !despues) {
-      cont.innerHTML = `<div class="sin-imagen"><i class="fas fa-cloud-sun"></i>Aún no hay un par de imágenes Sentinel-2 sin nubes para esta alerta.<br>Se generará automáticamente en la próxima actualización.</div>`;
+      cont.innerHTML = `<div class="sin-imagen"><i class="fas fa-cloud-sun"></i>Aún no hay un par de imágenes Sentinel-2 con nubosidad menor al 30 % para esta alerta.<br>Se generará automáticamente en la próxima actualización.</div>`;
       return;
     }
     cont.innerHTML = `<div class="comparador" style="--pos:50%">
         <img src="${despues.imagen}" alt="Imagen después">
         <img class="antes" src="${antes.imagen}" alt="Imagen antes">
+        ${contornoSvg(geom, despues.recorte || antes.recorte)}
         <div class="divisor"></div>
         <span class="rot izq">ANTES<small>${fecha(antes.fecha)}</small></span>
         <span class="rot der">DESPUÉS<small>${fecha(despues.fecha)}</small></span>
@@ -355,17 +372,22 @@
     return filas.map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join('');
   }
 
-  async function verAlerta(codigo) {
+  async function verAlerta(codigo, fresco = false) {
     if (st.modo !== 'consulta') return;
+    if (ed.capa) terminarEdicion();
     st.alerta = codigo;
-    const [det, escenas] = await Promise.all([api(`/alertas/${codigo}`), api(`/alertas/${codigo}/evidencia`)]);
+    const [det, escenas] = await Promise.all([api(`/alertas/${codigo}`, fresco), api(`/alertas/${codigo}/evidencia`)]);
     const d = det.properties, c = clase(d);
-    st.detalle = d; st.escenas = escenas;
-    $('ev-codigo').textContent = d.codigo;
-    $('ev-sub').textContent = `${d.acr_nombre} · ${d.region}`;
+    st.detalle = d; st.escenas = escenas; st.geomDetalle = det.geometry;
+    $('ev-codigo').textContent = d.codigo_reporte || d.codigo;
+    $('ev-sub').textContent = `${d.codigo_reporte ? d.codigo + ' · ' : ''}${d.acr_nombre} · ${d.region}`;
     $('ev-chip').textContent = TEXTO[c];
     $('ev-chip').style.setProperty('--c', COLOR[c]);
-    comparador($('ev-comparador'), escenas);
+    comparador($('ev-comparador'), escenas, det.geometry);
+    $('ev-escena').hidden = !escenas.some((e) => e.recorte);
+    verEscena('');
+    $('ev-editar').hidden = !ed.habilitada;
+    $('ed-clave').hidden = true;
     $('ev-ficha').innerHTML = ficha(d, escenas);
     const concl = d.conclusion || (d.estado === 'pendiente' ? 'Alerta pendiente de validación técnica: aún no tiene clasificación ni causal definitiva.' : null);
     $('ev-conclusion').hidden = !concl;
@@ -374,47 +396,187 @@
     renderLista();
     desbloquear(4);
   }
-  $('ev-volver').onclick = () => irPaso(3);
+  $('ev-volver').onclick = () => { if (ed.capa) terminarEdicion(); verEscena(''); irPaso(3); };
+
+  /* ---------- Escena Sentinel-2 exacta sobre el mapa ---------- */
+  mapa.createPane('escena').style.zIndex = 350;
+  let capaEscena = null;
+  function verEscena(momento) {
+    if (capaEscena) { mapa.removeLayer(capaEscena); capaEscena = null; }
+    $('ev-escena-sel').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', b.dataset.v === momento));
+    const e = st.escenas.find((x) => x.momento === momento);
+    if (!e || !e.recorte) return;
+    const [x0, y0, x1, y1] = e.recorte;
+    const limites = L.latLngBounds(L.CRS.EPSG3857.unproject(L.point(x0, y0)), L.CRS.EPSG3857.unproject(L.point(x1, y1)));
+    capaEscena = L.imageOverlay(e.imagen, limites, { pane: 'escena', interactive: false }).addTo(mapa);
+    if (!mapa.getBounds().intersects(limites)) mapa.flyToBounds(limites, encuadre(20));
+    toast(`Sentinel-2 ${momento === 'antes' ? 'antes' : 'después'}: ${fecha(e.fecha)} · ${e.escenaId}`);
+  }
+  $('ev-escena-sel').querySelectorAll('button').forEach((b) => (b.onclick = () => verEscena(b.dataset.v)));
+
+  /* ---------- Edición del polígono ---------- */
+  const ed = { habilitada: false, capa: null, codigo: null, herr: 'vertices' };
+  api('/edicion').then((r) => { ed.habilitada = !!r.habilitada; }).catch(() => {});
+
+  function anilloHa(anillo) {
+    const R = 6378137, rad = Math.PI / 180;
+    let a = 0;
+    for (let i = 0; i < anillo.length; i++) {
+      const p1 = anillo[i], p2 = anillo[(i + 1) % anillo.length];
+      a += (p2.lng - p1.lng) * rad * (2 + Math.sin(p1.lat * rad) + Math.sin(p2.lat * rad));
+    }
+    return Math.abs((a * R * R) / 2) / 10000;
+  }
+  function areaHa(ll) {
+    if (ll[0] instanceof L.LatLng) return anilloHa(ll);
+    if (ll[0][0] instanceof L.LatLng) return ll.reduce((s, anillo, i) => s + (i ? -anilloHa(anillo) : anilloHa(anillo)), 0);
+    return ll.reduce((s, p) => s + areaHa(p), 0);
+  }
+  function actualizarArea() {
+    if (!ed.capa) return;
+    $('ed-ha').textContent = ha(areaHa(ed.capa.getLatLngs()));
+  }
+
+  function aplicarHerramienta() {
+    const pm = ed.capa.pm;
+    pm.disable();
+    pm.disableLayerDrag();
+    if (pm.rotateEnabled()) pm.disableRotate();
+    if (ed.herr === 'vertices') pm.enable({ allowSelfIntersection: false, snappable: false });
+    else if (ed.herr === 'mover') pm.enableLayerDrag();
+    else pm.enableRotate();
+    $('ed-herr').querySelectorAll('[data-h]').forEach((b) => b.classList.toggle('activo', b.dataset.h === ed.herr));
+  }
+
+  // Escala alrededor del centro en metros (EPSG:3857), para agrandar o achicar sin deformar.
+  function escalar(factor) {
+    const c = L.CRS.EPSG3857.project(ed.capa.getBounds().getCenter());
+    const mover = (ll) => (Array.isArray(ll) ? ll.map(mover) : (() => {
+      const p = L.CRS.EPSG3857.project(ll);
+      return L.CRS.EPSG3857.unproject(L.point(c.x + (p.x - c.x) * factor, c.y + (p.y - c.y) * factor));
+    })());
+    ed.capa.pm.disable();
+    ed.capa.setLatLngs(mover(ed.capa.getLatLngs()));
+    aplicarHerramienta();
+    actualizarArea();
+  }
+
+  async function editar() {
+    const m = marcas.get(st.alerta);
+    if (!ed.habilitada || !m || ed.capa || ed.abriendo) return;
+    if (!sessionStorage.getItem('atdClave')) {
+      $('ed-clave').hidden = false;
+      $('ed-clave-txt').focus();
+      return;
+    }
+    $('ed-clave').hidden = true;
+    ed.codigo = st.alerta;
+    ed.herr = 'vertices';
+    ed.abriendo = true;
+    // El polígono vigente se pide sin caché: otra persona pudo corregirlo hace instantes.
+    const det = await api(`/alertas/${ed.codigo}`, true).finally(() => { ed.abriendo = false; });
+    if (ed.codigo !== st.alerta) return;
+    st.detalle = det.properties;
+    ed.capa = L.geoJSON(det.geometry, { style: () => ({ color: '#00e5ff', weight: 2.2, fillColor: '#00e5ff', fillOpacity: .12 }) }).getLayers()[0];
+    if (!ed.capa) return;
+    ed.capa.addTo(mapa);
+    ed.capa.on('pm:edit pm:dragend pm:rotateend pm:vertexadded pm:vertexremoved pm:markerdragend', actualizarArea);
+    capaAlertas.removeLayer(m.poli);
+    capaPuntos.removeLayer(m.punto);
+    verEscena('despues');
+    mapa.flyToBounds(ed.capa.getBounds(), { ...encuadre(70), maxZoom: 17 });
+    $('ed-orig').textContent = `(antes: ${ha(st.detalle.superficie_ha)})`;
+    $('ed-restaurar').hidden = !st.detalle.editada;
+    $('ed-panel').hidden = false;
+    $('ev-editar').hidden = true;
+    aplicarHerramienta();
+    actualizarArea();
+    $('ed-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function terminarEdicion() {
+    if (ed.capa) {
+      ed.capa.pm.disable();
+      ed.capa.pm.disableLayerDrag();
+      if (ed.capa.pm.rotateEnabled()) ed.capa.pm.disableRotate();
+      mapa.removeLayer(ed.capa);
+      ed.capa = null;
+    }
+    const m = marcas.get(ed.codigo);
+    if (m) { capaAlertas.addLayer(m.poli); capaPuntos.addLayer(m.punto); }
+    $('ed-panel').hidden = true;
+    $('ev-editar').hidden = !ed.habilitada;
+  }
+
+  async function enviarGeometria(metodo, geometria) {
+    const r = await fetch(`${API}/alertas/${ed.codigo}/geometria`, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json', 'X-ATD-Token': sessionStorage.getItem('atdClave') || '' },
+      body: geometria ? JSON.stringify(geometria) : undefined,
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 403) sessionStorage.removeItem('atdClave');
+    if (!r.ok) throw new Error(j.error || 'No se pudo guardar el polígono');
+    return j;
+  }
+
+  async function aplicarResultado() {
+    const codigo = ed.codigo;
+    terminarEdicion();
+    if (st.geo) {
+      st.geo = await api(`/alertas?acr=${st.acr}&ambito=${st.ambito}&anio=${st.anio}&mes=${st.mes}`, true);
+      dibujarAlertas(st.geo.features);
+    }
+    await verAlerta(codigo, true);
+  }
+
+  $('ev-editar').onclick = editar;
+  $('ed-clave').onsubmit = (e) => {
+    e.preventDefault();
+    sessionStorage.setItem('atdClave', $('ed-clave-txt').value);
+    $('ed-clave-txt').value = '';
+    editar();
+  };
+  $('ed-herr').querySelectorAll('[data-h]').forEach((b) => (b.onclick = () => { ed.herr = b.dataset.h; aplicarHerramienta(); }));
+  $('ed-mas').onclick = () => escalar(1.05);
+  $('ed-menos').onclick = () => escalar(1 / 1.05);
+  $('ed-cancelar').onclick = terminarEdicion;
+  $('ed-guardar').onclick = async () => {
+    try {
+      const j = await enviarGeometria('PUT', ed.capa.toGeoJSON().geometry);
+      toast(`Polígono guardado · ${ha(j.superficieHa)}`);
+      await aplicarResultado();
+    } catch (e) { toast(e.message); }
+  };
+  $('ed-restaurar').onclick = async () => {
+    if (!confirm('¿Restaurar el polígono original de la GDB? Se perderá la corrección.')) return;
+    try {
+      await enviarGeometria('DELETE');
+      toast('Polígono original restaurado');
+      await aplicarResultado();
+    } catch (e) { toast(e.message); }
+  };
 
   /* ---------- Paso 5: reporte ---------- */
+  const urlReporte = () => `${API}/alertas/${st.detalle.codigo}/reporte.pdf`;
   function renderReporte() {
     const d = st.detalle, e = st.escenas;
     const antes = e.find((x) => x.momento === 'antes'), despues = e.find((x) => x.momento === 'despues');
-    $('rep-prev').innerHTML = `<div class="rp-cab">Reporte de alerta ${esc(d.codigo)}<small>${esc(d.acr_nombre)} · ${esc(d.region)}</small></div>
-      ${antes && despues ? `<div class="rp-img"><figure style="margin:0"><img src="${antes.imagen}"><figcaption>Antes · ${fecha(antes.fecha)}</figcaption></figure>
-      <figure style="margin:0"><img src="${despues.imagen}"><figcaption>Después · ${fecha(despues.fecha)}</figcaption></figure></div>` : ''}
-      <div class="ficha">${ficha(d, e)}</div>`;
+    $('rep-prev').innerHTML = `<div class="rp-pdf"><i class="fas fa-file-pdf"></i><div><b>Reporte técnico ${esc(d.codigo_reporte || d.codigo)}</b>
+        <small>${esc(d.acr_nombre)} · ${esc(d.region)} · 1 página A4</small></div></div>
+      <ul class="rp-lista">
+        <li><i class="fas fa-location-dot"></i> Ubicación (circunscripción, ACR, sector, OLV y lugar poblado cercanos) y mapa</li>
+        <li><i class="fas fa-satellite"></i> ${antes && despues ? `Sentinel-2 antes (${fecha(antes.fecha)}) y después (${fecha(despues.fecha)}) con el polígono` : 'Sin par de imágenes Sentinel-2 todavía'}</li>
+        <li><i class="fas fa-clipboard-list"></i> Datos de monitoreo, afectación, producción y elaboración</li>
+      </ul>
+      <a class="btn-sec rp-abrir" href="${urlReporte()}" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> Abrir PDF</a>`;
   }
-  $('ir-5').onclick = () => { renderReporte(); desbloquear(5); };
-
+  $('ir-5').onclick = () => { if (ed.capa) terminarEdicion(); renderReporte(); desbloquear(5); };
   $('rep-descargar').onclick = () => {
-    const d = st.detalle, e = st.escenas, c = clase(d);
-    const antes = e.find((x) => x.momento === 'antes'), despues = e.find((x) => x.momento === 'despues');
-    const w = window.open('', '_blank');
-    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Reporte ${esc(d.codigo)}</title>
-      <style>
-        @page { size: A4; margin: 16mm; }
-        body { font-family: Inter, Segoe UI, Arial, sans-serif; color: #1d2b20; font-size: 12px; }
-        .cab { background: linear-gradient(120deg,#7cb342,#1b5e20); color:#fff; padding:16px 18px; border-radius:10px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-        .cab h1 { margin:0; font-size:20px; } .cab p { margin:4px 0 0; opacity:.9; }
-        .chip { display:inline-block; padding:3px 10px; border-radius:12px; color:#fff; background:${COLOR[c]}; font-weight:700; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-        .imgs { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0; }
-        .imgs img { width:100%; border-radius:8px; } figcaption { text-align:center; color:#66756a; margin-top:3px; }
-        table { width:100%; border-collapse:collapse; margin-top:8px; } td { border-bottom:1px solid #e3e9e4; padding:6px 8px; }
-        td:first-child { color:#66756a; width:38%; }
-        .concl { margin-top:14px; padding:10px 12px; border-left:4px solid #2e7d32; background:#f1f8e9; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-        .pie { margin-top:22px; color:#66756a; font-size:10px; border-top:1px solid #e3e9e4; padding-top:8px; }
-      </style></head><body>
-      <div class="cab"><h1>Reporte de Alerta Temprana de Deforestación</h1><p>${esc(d.acr_nombre)} · ${esc(d.region)} · Alerta ${esc(d.codigo)}</p></div>
-      <p style="margin-top:14px">Resultado: <span class="chip">${TEXTO[c]}</span></p>
-      ${antes && despues ? `<div class="imgs"><figure style="margin:0"><img src="${location.origin + antes.imagen}"><figcaption>Antes · Sentinel-2 · ${fecha(antes.fecha)}</figcaption></figure>
-      <figure style="margin:0"><img src="${location.origin + despues.imagen}"><figcaption>Después · Sentinel-2 · ${fecha(despues.fecha)}</figcaption></figure></div>` : ''}
-      <table>${ficha(d, e).replace(/<div><span>(.*?)<\/span><b>(.*?)<\/b><\/div>/g, '<tr><td>$1</td><td><b>$2</b></td></tr>')}</table>
-      <div class="concl"><b>Conclusión técnica:</b> ${esc(d.conclusion || (d.estado === 'pendiente' ? 'Alerta pendiente de validación.' : 'Sin conclusión registrada.'))}</div>
-      <div class="pie">Fuente de alertas: GeoBosques (MINAM). Imágenes: Sentinel-2 L2A (Copernicus). Generado el ${new Date().toLocaleString('es-PE')} · GFP Subnacional.</div>
-      <script>Promise.all([...document.images].map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; }))).then(() => setTimeout(() => print(), 300));<\/script>
-      </body></html>`);
-    w.document.close();
+    const a = Object.assign(document.createElement('a'), { href: urlReporte(), download: '' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   /* ====================================================== MODO CLASIFICAR */
@@ -509,7 +671,8 @@
     $('cl-comparador').innerHTML = '<div class="sin-imagen"><i class="fas fa-spinner fa-spin"></i>Cargando imágenes…</div>';
     resaltar(codigo);
     pintarForm();
-    comparador($('cl-comparador'), await api(`/alertas/${codigo}/evidencia`));
+    const feat = st.cl.geo.features.find((f) => f.properties.codigo === codigo);
+    comparador($('cl-comparador'), await api(`/alertas/${codigo}/evidencia`), feat?.geometry);
   }
 
   function pintarForm() {
@@ -581,11 +744,28 @@
   };
   $('btn-acerca').onclick = () => $('dlg-acerca').showModal();
 
+  // Enlace directo desde el reporte PDF: /?alerta=LOR-2026-0205
+  async function abrirEnlace(codigo) {
+    if (!/^[A-Z]{3}-\d{4}-\d{4,6}$/.test(codigo)) return;
+    const d = (await api(`/alertas/${codigo}`)).properties;
+    const t = st.territorios.find((x) => x.codigo === d.acr);
+    if (!t) return;
+    await elegirRegion(t.region);
+    await elegirAcr(d.acr);
+    st.anio = d.anio; st.mes = d.mes;
+    marcarMes();
+    await cargarResumen();
+    desbloquear(3);
+    await verAlerta(codigo);
+  }
+
   (async function iniciar() {
     sincronizacion();
     try {
       st.territorios = await api('/territorios');
       renderRegiones();
+      const enlace = new URLSearchParams(location.search).get('alerta');
+      if (enlace) await abrirEnlace(enlace).catch(() => toast('No se encontró la alerta del enlace'));
     } catch (e) {
       $('regiones').innerHTML = '<p class="vacio-mini">No se pudo conectar con el servicio ATD.</p>';
     }

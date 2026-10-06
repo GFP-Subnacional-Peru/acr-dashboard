@@ -62,3 +62,5 @@ deploy.R
 # Servicio ATD (Java)
 atd-service/target/
 atd-service/db/gdb/
+atd-service/db/gdb_loreto/
+atd-service/db/escenas/

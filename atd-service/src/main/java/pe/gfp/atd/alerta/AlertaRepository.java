@@ -105,7 +105,9 @@ public class AlertaRepository {
                          'img_antes', a.img_antes,
                          'img_despues', a.img_despues,
                          'sat_antes', a.sat_antes,
-                         'sat_despues', a.sat_despues))::text
+                         'sat_despues', a.sat_despues,
+                         'codigo_reporte', a.codigo_reporte,
+                         'editada', a.geom_editada_en IS NOT NULL))::text
               FROM alerta a
               JOIN region r ON r.id = a.region_id
               JOIN territorio t ON t.codigo = a.acr_codigo

@@ -33,6 +33,15 @@ server:
     include-stacktrace: never
     include-message: never
 
+atd:
+  reporte:
+    responsable: ${ATD_REPORTE_RESPONSABLE:Favio Campos}
+    cargo: ${ATD_REPORTE_CARGO:Promotor Ambiental}
+    dashboard-url: ${ATD_DASHBOARD_URL:https://acr-dashboard-5iqz.onrender.com/}
+  edicion:
+    # Sin token configurado la edición de geometrías queda deshabilitada (hasta el inicio de sesión).
+    token: ${ATD_EDITOR_TOKEN:}
+
 logging:
   level:
     root: INFO
