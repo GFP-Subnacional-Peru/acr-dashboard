@@ -1,7 +1,8 @@
 /* Mapa Leaflet — polígonos ACR/ZI + vectores deforestación acumulada (Loreto) */
 const AcrMap = (() => {
   let map = null;
-  let defoLayer = null;
+  let defoAnt = null;
+  let defoNat = null;
   let clusterGroup = null;
   const layerRefs = { acr: null, zi: null, limites: null };
 
@@ -82,7 +83,8 @@ const AcrMap = (() => {
     map._tiles = { sat, topo, osm };
     map._activeBase = "sat";
 
-    defoLayer = L.layerGroup([], { pane: "defoPane" });
+    defoAnt = L.layerGroup([], { pane: "defoPane" });
+    defoNat = L.layerGroup([], { pane: "defoPane" });
     clusterGroup = L.markerClusterGroup({
       maxClusterRadius: 80,
       disableClusteringAtZoom: 15,
@@ -436,10 +438,11 @@ const AcrMap = (() => {
       if (l) map.removeLayer(l);
     });
     layerRefs.acr = layerRefs.zi = layerRefs.limites = null;
-    if (defoLayer) {
-      defoLayer.clearLayers();
-      map.removeLayer(defoLayer);
-    }
+    [defoAnt, defoNat].forEach((l) => {
+      if (!l) return;
+      l.clearLayers();
+      map.removeLayer(l);
+    });
     if (clusterGroup) {
       clusterGroup.clearLayers();
       map.removeLayer(clusterGroup);
@@ -480,12 +483,16 @@ const AcrMap = (() => {
     }
     if (mode === "vectors" || mode === "mixed") {
       items.push({
-        label: "Origen antrópico / Natural",
-        layer: defoLayer,
+        label: "Pérdida de bosque · antrópico",
+        layer: defoAnt,
         swatch: "map-legend-dot--antropico",
-        swatch2: "map-legend-dot--natural",
         defaultOn: true,
-        hint: "Deforestación (polígonos)",
+      });
+      items.push({
+        label: "Pérdida de bosque · natural",
+        layer: defoNat,
+        swatch: "map-legend-dot--natural",
+        defaultOn: true,
       });
     }
 
@@ -645,16 +652,19 @@ const AcrMap = (() => {
       updateMapVectorsNote(state, meta, "vectors");
       return { ok: false, meta };
     }
-    defoLayer.clearLayers();
-    map.addLayer(defoLayer);
+    defoAnt.clearLayers();
+    defoNat.clearLayers();
+    map.addLayer(defoAnt);
+    map.addLayer(defoNat);
     const geoOpts = {
       pane: "defoPane",
       style: (f) => defoStyle(f.properties?.tipo || "Antropogenico"),
       onEachFeature: (f, layer) => {
         const p = f.properties || {};
         const tipo = p.tipo || "Antropogenico";
+        const origen = tipo === "Natural" ? "Natural" : "Antrópico";
         if (p.anno != null) {
-          layer.bindTooltip(`${p.anno} · ${fmtHa(p.area_ha, 2)} ha`, {
+          layer.bindTooltip(`${p.anno} · ${origen} · ${fmtHa(p.area_ha, 2)} ha`, {
             sticky: true,
             opacity: 0.92,
           });
@@ -677,21 +687,28 @@ const AcrMap = (() => {
         });
       },
     };
-    // Por tandas: el mapa sigue respondiendo mientras se dibujan miles de polígonos
-    for (let i = 0; i < features.length; i += DRAW_CHUNK) {
-      if (stale()) return { ok: false, stale: true };
-      L.geoJSON({ type: "FeatureCollection", features: features.slice(i, i + DRAW_CHUNK) }, geoOpts)
-        .eachLayer((l) => defoLayer.addLayer(l));
-      if (i + DRAW_CHUNK < features.length) {
-        await new Promise((r) => (document.hidden ? setTimeout(r, 0) : requestAnimationFrame(() => r())));
+    const antFeatures = features.filter((f) => (f.properties?.tipo || "Antropogenico") !== "Natural");
+    const natFeatures = features.filter((f) => f.properties?.tipo === "Natural");
+    const drawGroup = async (grupo, feats) => {
+      for (let i = 0; i < feats.length; i += DRAW_CHUNK) {
+        if (stale()) return false;
+        L.geoJSON({ type: "FeatureCollection", features: feats.slice(i, i + DRAW_CHUNK) }, geoOpts)
+          .eachLayer((l) => grupo.addLayer(l));
+        if (i + DRAW_CHUNK < feats.length) {
+          await new Promise((r) => (document.hidden ? setTimeout(r, 0) : requestAnimationFrame(() => r())));
+        }
       }
-    }
-    // Asegura prioridad visual y de click por encima de ACR/ZI/límites
+      return true;
+    };
+    if (!(await drawGroup(defoAnt, antFeatures))) return { ok: false, stale: true };
+    if (!(await drawGroup(defoNat, natFeatures))) return { ok: false, stale: true };
     try {
       const pane = map.getPane("defoPane");
       if (pane) pane.style.zIndex = 460;
-      defoLayer.eachLayer((l) => {
-        if (typeof l.bringToFront === "function") l.bringToFront();
+      [defoAnt, defoNat].forEach((grupo) => {
+        grupo.eachLayer((l) => {
+          if (typeof l.bringToFront === "function") l.bringToFront();
+        });
       });
     } catch (_) {}
     console.info(`Mapa: ${features.length} polígonos acumulados (${deptoApi}, ${state.annoDesde}–${state.annoHasta}, limit=${limit}).`);

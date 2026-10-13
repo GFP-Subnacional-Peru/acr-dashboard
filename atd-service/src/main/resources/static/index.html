@@ -59,17 +59,17 @@
       <!-- Paso 1 -->
       <div class="paso" data-paso="1">
         <h2>¿Qué territorio desea consultar?</h2>
-        <p class="ayuda">Elija la región, el Área de Conservación Regional y el periodo.</p>
+        <p class="ayuda">Elija la región, el ámbito, el Área de Conservación Regional y el periodo.</p>
         <label class="etq">Región</label>
         <div class="regiones" id="regiones"></div>
-        <label class="etq">Área de Conservación Regional</label>
-        <div class="acrs" id="acrs"><p class="vacio-mini">Seleccione primero una región</p></div>
         <label class="etq">Ámbito</label>
         <div class="segmento" id="ambito">
           <button data-v="ambos" class="activo">ACR + ZI</button>
           <button data-v="acr">Solo ACR</button>
           <button data-v="zi">Solo Zona de Influencia</button>
         </div>
+        <label class="etq">Área de Conservación Regional</label>
+        <div class="acrs" id="acrs"><p class="vacio-mini">Seleccione primero una región</p></div>
         <label class="etq">Periodo <small>(mes de la imagen satelital)</small></label>
         <div class="meses" id="meses"><p class="vacio-mini">Seleccione un ACR</p></div>
         <button class="btn-pri" id="ir-2" disabled>Ver resumen <i class="fas fa-arrow-right"></i></button>
@@ -165,15 +165,22 @@
     <div class="cuerpo">
       <div class="aviso"><i class="fas fa-flask"></i> <b>Modo demostración.</b> La clasificación se guardará en la base cuando se active el inicio de sesión de validadores.</div>
       <div class="sel-compacta">
-        <select id="cl-acr"></select>
-        <select id="cl-mes"></select>
+        <select id="cl-region" aria-label="Región"></select>
+        <select id="cl-ambito" aria-label="Ámbito">
+          <option value="ambos">ACR + zona de influencia</option>
+          <option value="acr">Solo dentro del ACR</option>
+          <option value="zi">Solo zona de influencia</option>
+        </select>
+        <select id="cl-acr" aria-label="ACR"></select>
+        <select id="cl-mes" aria-label="Periodo"></select>
       </div>
+      <div id="cl-ultimo" class="nota" hidden></div>
       <div id="cl-cola-cab" class="cola-cab"></div>
       <div class="cola" id="cl-cola"></div>
 
       <div id="cl-form" hidden>
         <div class="cab-alerta">
-          <div><h2 id="cl-codigo">–</h2><p class="ayuda" id="cl-sub"></p></div>
+          <div><h2 id="cl-codigo">–</h2><p class="ayuda" id="cl-sub"></p><p class="ayuda" id="cl-codigo-nota"></p></div>
           <button class="btn-icono" id="cl-cerrar" title="Volver a la bandeja"><i class="fas fa-xmark"></i></button>
         </div>
         <div id="cl-comparador"></div>
@@ -191,7 +198,9 @@
           <div><label class="etq">Confiabilidad</label><div class="segmento" id="cl-conf"></div></div>
           <div><label class="etq">Tipo de bosque</label><div class="segmento" id="cl-bosque"></div></div>
         </div>
-        <label class="etq">Conclusión técnica</label>
+        <label class="etq">Especialista que clasifica</label>
+        <input id="cl-especialista" type="text" maxlength="80" placeholder="Nombre y apellido" autocomplete="name">
+        <label class="etq">Conclusión técnica <small>se imprime en el reporte PDF, en la sección Conclusión técnica</small></label>
         <textarea id="cl-conclusion" rows="3" placeholder="Ej.: Se observa remoción de cobertura boscosa entre ambas fechas, con patrón de chacra…"></textarea>
         <div class="fila-btn">
           <button class="btn-sec" id="cl-saltar">Saltar <kbd>S</kbd></button>
@@ -220,11 +229,14 @@
   </div>
 </div>
 
+<div id="escena-fija" class="escena-fija" hidden></div>
+
 <div class="leyenda" id="leyenda">
   <div><i style="background:#e53935"></i>Pérdida antrópica</div>
   <div><i style="background:#1e88e5"></i>Cambio natural</div>
   <div><i style="background:#9e9e9e"></i>Falsa alerta</div>
-  <div><i style="background:#fb8c00"></i>Pendiente</div>
+  <div><i style="background:#fb8c00"></i>Pendiente (un solo polígono)</div>
+  <div><i class="punto" style="background:#fb8c00"></i>Centro de esa misma alerta</div>
   <div><i class="borde" style="border-color:#2ecc40"></i>ACR</div>
   <div><i class="borde" style="border-color:#b0b6ba"></i>Zona de Influencia</div>
   <div class="ley-geob" hidden><i style="background:#ff00c5"></i>GeoBosques · última semana</div>
@@ -237,9 +249,12 @@
   <h3>Sistema de Alertas Tempranas de Deforestación</h3>
   <p>Monitoreo de las Áreas de Conservación Regional de Loreto, San Martín y Cusco.</p>
   <ul>
+    <li><b>Consulta:</b> mira alertas, evidencias y el reporte. No clasifica.</li>
+    <li><b>Clasificador:</b> el especialista de la región revisa Sentinel-2 y asigna pérdida antrópica, cambio natural o falsa alerta, más la causal y la conclusión.</li>
+    <li><b>Validador:</b> confirma esa clasificación para dejar la alerta como validada. Hoy la bandeja guarda la revisión en la sesión; el cierre de validador se activa con el inicio de sesión de validadores.</li>
     <li><b>Alertas:</b> GeoBosques (MINAM) · semana vigente <span id="acerca-semana">–</span>.</li>
-    <li><b>Evidencia:</b> Sentinel-2 L2A (Copernicus / Element84), recorte antes y después de cada alerta.</li>
-    <li><b>Clasificación:</b> especialistas regionales, con los dominios oficiales de la GDB (causal, confiabilidad, tipo de bosque).</li>
+    <li><b>Código de trabajo</b> (LOR-2026-0570): prefijo de región, año de la imagen e identificador de origen. Vale para pendientes y para ya clasificadas. El código del PDF es el de la GDB (por ejemplo ACR10-2026-084).</li>
+    <li><b>Evidencia:</b> Sentinel-2 L2A (Copernicus / Element84). Las fechas antes y después se eligen solas: la escena con menos nubes más cercana a la detección. En esta pantalla no se busca otro día.</li>
     <li><b>Límites:</b> ACR y Zonas de Influencia del dashboard GFP Subnacional.</li>
   </ul>
   <form method="dialog"><button class="btn-pri">Entendido</button></form>

@@ -33,5 +33,7 @@ public record DatosReporte(
         double norte,
         int zonaUtm,
         /** Polígono vigente (editado o no) como GeoJSON en EPSG:3857. */
-        String geom3857) {
+        String geom3857,
+        /** Texto que el especialista escribió al clasificar. Sale en el PDF. */
+        String conclusion) {
 }

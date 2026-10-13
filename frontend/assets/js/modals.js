@@ -315,15 +315,53 @@ const Modals = (() => {
       {
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(248,250,252,0.65)",
-        margin: { t: 28, b: 44, l: 56, r: 20 },
-        height: opts.height || 320,
-        xaxis: { title: "Año", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
+        margin: { t: 28, b: 78, l: 56, r: 20 },
+        height: opts.height || 360,
+        xaxis: {
+          title: "Año",
+          dtick: 1,
+          tickangle: -60,
+          tickfont: { size: 10 },
+          gridcolor: "rgba(226,232,240,0.9)",
+          zeroline: false,
+        },
         yaxis: { title: "Hectáreas (ha)", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
         font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#334155" },
         showlegend: false,
       },
-      { responsive: true, displayModeBar: false }
+      plotConfig("perdida-anual")
     );
+  }
+
+  function plotConfig(filename) {
+    return {
+      responsive: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"],
+      toImageButtonOptions: { format: "png", filename, scale: 2 },
+    };
+  }
+
+  function downloadCsv(filename, headers, rows) {
+    const csv = [headers, ...rows]
+      .map((r) => r.map((c) => `"${String(c ?? "").replaceAll('"', '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function bindChartDownloads(pngId, csvId, chartId, filename, headers, rows) {
+    document.getElementById(pngId)?.addEventListener("click", () => {
+      const el = document.getElementById(chartId);
+      if (el && typeof Plotly !== "undefined") {
+        Plotly.downloadImage(el, { format: "png", filename, scale: 2 });
+      }
+    });
+    document.getElementById(csvId)?.addEventListener("click", () => downloadCsv(filename + ".csv", headers, rows));
   }
 
   async function openVariacion(state) {
@@ -356,7 +394,11 @@ const Modals = (() => {
       <p class="kpi-detail-lead">${sub || "Comparación respecto al año anterior."} Serie de pérdida anual en el período filtrado.</p>
       <div class="chart-block" style="margin-top:0.75rem">
         <h6><i class="fas fa-chart-line"></i> Pérdida anual (ha)</h6>
-        <div id="modal-chart-variacion" style="height:320px"></div>
+        <div class="chart-tools">
+          <button type="button" id="var-descargar-png"><i class="fas fa-image"></i> Descargar imagen</button>
+          <button type="button" id="var-descargar-csv"><i class="fas fa-file-csv"></i> Descargar datos</button>
+        </div>
+        <div id="modal-chart-variacion" style="height:360px"></div>
       </div>`;
     }
     if (years.length && typeof Plotly !== "undefined") {
@@ -365,7 +407,16 @@ const Modals = (() => {
         fill: true,
         fillColor: "rgba(230,126,34,0.12)",
         name: "Pérdida anual",
+        height: 360,
       });
+      bindChartDownloads(
+        "var-descargar-png",
+        "var-descargar-csv",
+        "modal-chart-variacion",
+        "perdida-anual",
+        ["Anio", "Perdida_ha"],
+        years.map((y, i) => [y, vals[i]])
+      );
     } else if (body) {
       body.insertAdjacentHTML(
         "beforeend",
@@ -454,12 +505,20 @@ const Modals = (() => {
         plot_bgcolor: "rgba(248,250,252,0.65)",
         margin: { t: 28, b: 44, l: 56, r: 20 },
         height: 340,
-        xaxis: { title: "Año", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
+        xaxis: {
+          title: "Año",
+          dtick: 1,
+          tickangle: -60,
+          tickfont: { size: 10 },
+          gridcolor: "rgba(226,232,240,0.9)",
+          zeroline: false,
+        },
         yaxis: { title: "Hectáreas (ha)", gridcolor: "rgba(226,232,240,0.9)", zeroline: false },
-        legend: { orientation: "h", y: -0.18 },
+        legend: { orientation: "h", y: -0.28 },
         font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#334155" },
+        margin: { t: 28, b: 88, l: 56, r: 20 },
       },
-      { responsive: true, displayModeBar: false }
+      plotConfig("origen-antropico")
     );
   }
 
@@ -523,7 +582,7 @@ const Modals = (() => {
         yaxis: { automargin: true },
         font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#2c3e50" },
       },
-      { responsive: true, displayModeBar: false }
+      plotConfig("causas-antropicas")
     );
   }
 

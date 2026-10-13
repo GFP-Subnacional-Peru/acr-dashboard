@@ -2635,6 +2635,17 @@ body.kpi-modal-open { overflow: hidden; }
   margin: 0;
   padding: 0;
 }
+.chart-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.chart-tools button {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1e293b;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.chart-tools button:hover { background: #f8fafc; }
 .btn-restablecer {
   display: inline-flex;
   align-items: center;

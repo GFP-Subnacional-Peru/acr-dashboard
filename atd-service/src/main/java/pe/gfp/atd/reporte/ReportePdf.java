@@ -153,6 +153,14 @@ public class ReportePdf {
                                     base + "/docs/ATD_procedimiento_fotointerpretacion.html"},
                             {"Visualización:", "Abrir Dashboard ACR (monitoreo deforestación)", dashboardUrl}},
                             wa, wb, true)));
+            if (d.conclusion() != null && !d.conclusion().isBlank()) {
+                doc.add(banda("Conclusión técnica"));
+                PdfPTable concl = tabla(new float[] {W});
+                PdfPCell texto = sinBorde(new Phrase(d.conclusion(), fuente(8, false, Color.BLACK)));
+                texto.setPadding(6);
+                concl.addCell(texto);
+                doc.add(caja(concl, 1.2f, AZUL, mm(1)));
+            }
             doc.add(pie());
         } catch (DocumentException e) {
             throw new IllegalStateException("No se pudo armar el reporte " + d.codigo(), e);

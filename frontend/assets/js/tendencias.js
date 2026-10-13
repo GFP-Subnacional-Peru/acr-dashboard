@@ -19,16 +19,18 @@ const Tendencias = (() => {
   };
 
   const SCI_PALETTE = [
-    "#0B6E4F",
-    "#1B4F72",
+    "#C0392B",
+    "#1A5276",
     "#B9770E",
     "#6C3483",
-    "#148F77",
-    "#C0392B",
-    "#2471A3",
-    "#1E8449",
-    "#D35400",
+    "#117A65",
+    "#E67E22",
+    "#1C2833",
+    "#1A7A4C",
+    "#7B241C",
   ];
+  const LINE_DASH = ["solid", "dash", "dot", "dashdot"];
+  let lastData = null;
 
   function init() {
     const sel = document.getElementById("tend-acr");
@@ -53,6 +55,7 @@ const Tendencias = (() => {
     document.getElementById("tend-anio-min")?.addEventListener("input", syncRange);
     document.getElementById("tend-anio-max")?.addEventListener("input", syncRange);
     toggleAcrPanel();
+    initDownloads();
   }
 
   function toggleAcrPanel() {
@@ -183,9 +186,9 @@ const Tendencias = (() => {
         mode: "lines+markers",
         line: {
           color,
-          width: isSingle ? 3.2 : 2.4,
-          shape: "spline",
-          smoothing: 0.55,
+          width: isSingle ? 3.2 : 2.6,
+          dash: LINE_DASH[i % LINE_DASH.length],
+          shape: "linear",
         },
         marker: {
           size: isSingle ? 8 : 6,
@@ -225,7 +228,8 @@ const Tendencias = (() => {
         font: { family: "Segoe UI, Helvetica, Arial, sans-serif", size: 12, color: "#334155" },
         xaxis: {
           title: { text: "Año", font: { size: 12, color: "#475569" } },
-          dtick: 2,
+          dtick: 1,
+          tickangle: -60,
           gridcolor: "#e2e8f0",
           zeroline: false,
           showline: true,
@@ -256,11 +260,52 @@ const Tendencias = (() => {
           bordercolor: "#0f172a",
           font: { color: "#f8fafc", size: 12 },
         },
-        margin: { t: 56, b: 96, l: 64, r: 28 },
-        height: 440,
+        margin: { t: 56, b: 120, l: 64, r: 28 },
+        height: 480,
       },
-      { responsive: true, displayModeBar: false, staticPlot: false }
+      {
+        responsive: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"],
+        toImageButtonOptions: { format: "png", filename: "tendencia-deforestacion", scale: 2 },
+      }
     );
+    const tools = document.getElementById("tend-tools");
+    if (tools) tools.hidden = false;
+    lastData = data;
+  }
+
+  function descargarCsv() {
+    const data = lastData;
+    if (!data?.series?.length) return;
+    const years = [...new Set(data.series.flatMap((s) => s.points.map((p) => p.Anio)))].sort((a, b) => a - b);
+    const header = ["Anio", ...data.series.map((s) => s.name)];
+    const rows = years.map((y) => [
+      y,
+      ...data.series.map((s) => {
+        const p = s.points.find((pt) => pt.Anio === y);
+        return p ? p.Deforestacion_ha : "";
+      }),
+    ]);
+    const csv = [header, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replaceAll('"', '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "tendencia-deforestacion.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function initDownloads() {
+    document.getElementById("tend-descargar-png")?.addEventListener("click", () => {
+      const el = document.getElementById("chart-tendencias-full");
+      if (el && typeof Plotly !== "undefined") {
+        Plotly.downloadImage(el, { format: "png", filename: "tendencia-deforestacion", scale: 2 });
+      }
+    });
+    document.getElementById("tend-descargar-csv")?.addEventListener("click", descargarCsv);
   }
 
   return { init, generarAnalisis };

@@ -33,7 +33,8 @@ public class ReporteRepository {
                        o.nombre AS olv, o.lugar_poblado,
                        ST_X(ST_Transform(a.centroide, 32700 + u.zona)) AS este,
                        ST_Y(ST_Transform(a.centroide, 32700 + u.zona)) AS norte, u.zona,
-                       ST_AsGeoJSON(ST_Transform(a.geom, 3857), 2) AS geom3857
+                       ST_AsGeoJSON(ST_Transform(a.geom, 3857), 2) AS geom3857,
+                       a.conclusion
                   FROM alerta a
                   JOIN region r ON r.id = a.region_id
                   JOIN territorio t ON t.codigo = a.acr_codigo
@@ -74,7 +75,8 @@ public class ReporteRepository {
                 rs.getDouble("este"),
                 rs.getDouble("norte"),
                 rs.getInt("zona"),
-                rs.getString("geom3857")), codigo).stream().findFirst();
+                rs.getString("geom3857"),
+                rs.getString("conclusion")), codigo).stream().findFirst();
     }
 
     public List<ImagenEscena> imagenes(String codigo) {

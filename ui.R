@@ -380,10 +380,13 @@ ui <- navbarPage(
                                   tags$li(strong("Normalización geométrica:"), " Transformación al sistema de coordenadas WGS84 (EPSG:4326) ",
                                           "y simplificación de geometrías para optimización computacional"),
                                   tags$li(strong("Intersección espacial:"), " Cruce de capas de deforestación con polígonos de ACRs y sus ",
-                                          "respectivas zonas de influencia (buffer de 5 km)"),
+                                          "zonas de influencia. En la línea base histórica el límite de comparación es un buffer de 5 km. ",
+                                          "Si el ACR tiene zona de influencia aprobada (Loreto) o en propuesta (San Martín), ",
+                                          "el monitoreo de alertas usa ese límite, sea mayor o menor que 5 km"),
                                   tags$li(strong("Clasificación de alertas:"), " Cada polígono de pérdida fue clasificado en: ",
                                           tags$ul(
-                                            tags$li(tags$strong("Antrópico:"), " Causas directas humanas (agricultura, ganadería, minería, infraestructura)"),
+                                            tags$li(tags$strong("Antrópico:"), " Causas directas humanas (agricultura, ganadería, minería e infraestructura). ",
+                                                    "Infraestructura agrupa edificaciones y viviendas, vías de transporte y tendidos eléctricos, sin separar esos tres tipos"),
                                             tags$li(tags$strong("Natural:"), " Eventos naturales (inundaciones, deslizamientos, muerte natural de árboles)"),
                                             tags$li(tags$strong("Falsa alerta:"), " Detecciones erróneas por nubes, sombras o cambios espectrales temporales")
                                           )
@@ -396,8 +399,11 @@ ui <- navbarPage(
                           h3(icon("shield-alt"), " 4. Zona de Influencia"),
                           
                           p(style = "text-align:justify; font-size:15px; line-height: 1.8;",
-                            "Se definió una ", strong("zona de influencia"), " como un buffer de 5 km alrededor de cada ACR, ",
-                            "con el propósito de analizar la presión antrópica en áreas adyacentes. Esta delimitación permite:",
+                            "Para comparar las 9 ACR con el mismo criterio, la línea base histórica usa una ",
+                            strong("zona de influencia"), " de 5 km alrededor de cada ACR. ",
+                            "Cuando el área ya tiene zona de influencia aprobada, como en Loreto, o en propuesta, como en San Martín, ",
+                            "el visor de alertas usa ese límite oficial aunque pase de 5 km o quede por debajo. ",
+                            "El buffer de 5 km queda como referencia común de la línea base. Esta delimitación permite:",
                             tags$ul(
                               tags$li("Identificar frentes de deforestación que podrían avanzar hacia el ACR"),
                               tags$li("Evaluar la efectividad de las ACRs como barreras contra la pérdida de bosques"),
@@ -451,8 +457,9 @@ ui <- navbarPage(
                           p(style = "text-align:justify; font-size:15px; line-height: 1.8;",
                             "Se realizó un proceso de ", strong("validación cruzada"), " mediante:",
                             tags$ul(
-                              tags$li("Comparación con reportes oficiales del MINAM y estudios académicos previos"),
-                              tags$li("Verificación visual de polígonos de deforestación en imágenes de alta resolución (Google Earth, Planet)"),
+                                    tags$li("Comparación con reportes oficiales del MINAM y estudios académicos previos"),
+                                    tags$li("Contraste con MapBiomas Alertas Perú, para revisar si la pérdida coincide con alertas independientes de cambio de cobertura"),
+                                    tags$li("Verificación visual de polígonos de deforestación en imágenes de alta resolución (Google Earth, Planet)"),
                               tags$li("Consulta con técnicos de las Gerencias Regionales de Recursos Naturales")
                             )
                           ),

@@ -92,8 +92,9 @@
       const punto = L.circleMarker([p.lat, p.lon], {
         radius: 6, color: '#fff', weight: 1.5, fillColor: COLOR[clase(p)], fillOpacity: .95,
       });
+      poli.bindTooltip(`${p.codigo} · ${ha(p.superficie_ha)} · un solo polígono`);
+      punto.bindTooltip(`${p.codigo} · centro de esta misma alerta`);
       [poli, punto].forEach((l) => {
-        l.bindTooltip(`${p.codigo} · ${ha(p.superficie_ha)}`);
         l.on('click', () => (st.modo === 'clasificar' ? abrirClasificacion(p.codigo) : verAlerta(p.codigo)));
       });
       capaAlertas.addLayer(poli);
@@ -120,7 +121,7 @@
   }
 
   function ajustarPuntos() {
-    const ver = mapa.getZoom() < 14 && $('c-alertas').checked;
+    const ver = mapa.getZoom() < 13 && $('c-alertas').checked;
     if (ver && !mapa.hasLayer(capaPuntos)) mapa.addLayer(capaPuntos);
     if (!ver && mapa.hasLayer(capaPuntos)) mapa.removeLayer(capaPuntos);
   }
@@ -358,7 +359,8 @@
         <span class="rot izq">ANTES<small>${fecha(antes.fecha)}</small></span>
         <span class="rot der">DESPUÉS<small>${fecha(despues.fecha)}</small></span>
         <input type="range" min="0" max="100" value="50" aria-label="Deslizar para comparar">
-      </div>`;
+      </div>
+      <p class="sensor-nota">Sensor: Sentinel-2 L2A (Copernicus / Element84). Las fechas ${fecha(antes.fecha)} y ${fecha(despues.fecha)} son automáticas: la escena con nubosidad menor al 30 % más cercana a la detección. En esta pantalla no se elige otro día. El contorno naranja sobre la imagen es el mismo polígono de la alerta.</p>`;
     const c = cont.querySelector('.comparador');
     c.querySelector('input').oninput = (e) => c.style.setProperty('--pos', `${e.target.value}%`);
   }
@@ -408,12 +410,14 @@
     if (capaEscena) { mapa.removeLayer(capaEscena); capaEscena = null; }
     $('ev-escena-sel').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', b.dataset.v === momento));
     const e = st.escenas.find((x) => x.momento === momento);
-    if (!e || !e.recorte) return;
+    const fija = $('escena-fija');
+    if (!e || !e.recorte) { fija.hidden = true; return; }
     const [x0, y0, x1, y1] = e.recorte;
     const limites = L.latLngBounds(L.CRS.EPSG3857.unproject(L.point(x0, y0)), L.CRS.EPSG3857.unproject(L.point(x1, y1)));
     capaEscena = L.imageOverlay(e.imagen, limites, { pane: 'escena', interactive: false }).addTo(mapa);
     if (!mapa.getBounds().intersects(limites)) mapa.flyToBounds(limites, encuadre(20));
-    toast(`Sentinel-2 ${momento === 'antes' ? 'antes' : 'después'}: ${fecha(e.fecha)} · ${e.escenaId}`);
+    fija.hidden = false;
+    fija.textContent = `Sentinel-2 L2A · ${momento === 'antes' ? 'antes' : 'después'} · ${fecha(e.fecha)} · ${e.escenaId}`;
   }
   $('ev-escena-sel').querySelectorAll('button').forEach((b) => (b.onclick = () => verEscena(b.dataset.v)));
 
@@ -592,7 +596,16 @@
   }
   document.querySelectorAll('.rail-btn[data-modo]').forEach((b) => (b.onclick = () => cambiarModo(b.dataset.modo)));
 
+  function notaCodigo(codigo) {
+    const pref = String(codigo || '').split('-')[0];
+    const region = { LOR: 'Loreto', SMA: 'San Martín', CUS: 'Cusco' }[pref] || 'la región';
+    return `${codigo} es el código de trabajo: ${region}, año de la imagen e identificador de origen. Se usa igual si la alerta está pendiente o ya clasificada. El código oficial del PDF es el de la GDB (por ejemplo ACR10-2026-084).`;
+  }
+
   async function iniciarClasificacion() {
+    const esp = $('cl-especialista');
+    if (esp && !esp.value) esp.value = localStorage.getItem('atd-especialista') || '';
+    if (esp) esp.onchange = () => localStorage.setItem('atd-especialista', esp.value.trim());
     if (!st.catalogos) {
       st.catalogos = await api('/catalogos');
       $('cl-causas').innerHTML = st.catalogos.causas.filter((c) => c.resultado === 'antropica')
@@ -609,14 +622,31 @@
         if (per.length) conPend.push([t, per]);
       }
       st.cl.periodos = new Map(conPend.map(([t, per]) => [t.codigo, per]));
-      $('cl-acr').innerHTML = conPend.map(([t]) => `<option value="${t.codigo}">${esc(t.nombre)} (${esc(t.regionNombre)})</option>`).join('');
-      const inicial = conPend.find(([t]) => t.region === 'cusco') || conPend[0];
-      $('cl-acr').value = inicial[0].codigo;
+      st.cl.acrs = conPend.map(([t]) => t);
+      const regiones = [...new Map(st.cl.acrs.map((t) => [t.region, t.regionNombre])).entries()];
+      $('cl-region').innerHTML = regiones.map(([cod, nom]) => `<option value="${esc(cod)}">${esc(nom)}</option>`).join('');
+      $('cl-region').onchange = () => { llenarAcrsCl(); llenarMesesCl(); cargarCola(); };
+      $('cl-ambito').onchange = async () => {
+        const acr = $('cl-acr').value;
+        if (acr) {
+          const per = await api(`/periodos?acr=${acr}&ambito=${$('cl-ambito').value}`);
+          st.cl.periodos.set(acr, per);
+          llenarMesesCl();
+        }
+        cargarCola();
+      };
       $('cl-acr').onchange = () => { llenarMesesCl(); cargarCola(); };
       $('cl-mes').onchange = cargarCola;
+      llenarAcrsCl();
       llenarMesesCl();
     }
     await cargarCola();
+  }
+
+  function llenarAcrsCl() {
+    const region = $('cl-region').value;
+    const acrs = (st.cl.acrs || []).filter((t) => t.region === region);
+    $('cl-acr').innerHTML = acrs.map((t) => `<option value="${t.codigo}">${esc(t.nombre)}</option>`).join('');
   }
 
   function llenarMesesCl() {
@@ -626,9 +656,10 @@
 
   async function cargarCola() {
     const acr = $('cl-acr').value;
+    const ambito = $('cl-ambito').value || 'ambos';
     const [anio, mes] = ($('cl-mes').value || '-').split('-');
     if (!acr || !anio) return;
-    const geo = await api(`/alertas?acr=${acr}&ambito=ambos&anio=${anio}&mes=${mes}`);
+    const geo = await api(`/alertas?acr=${acr}&ambito=${ambito}&anio=${anio}&mes=${mes}`);
     st.cl.geo = geo;
     st.cl.cola = geo.features.map((f) => f.properties)
       .sort((x, y) => (y.con_imagen - x.con_imagen) || (y.estado === 'pendiente') - (x.estado === 'pendiente') || y.superficie_ha - x.superficie_ha);
@@ -657,6 +688,26 @@
         <span class="ha">${num(p.superficie_ha)}<small>ha</small></span></button>`;
     }).join('');
     $('cl-cola').querySelectorAll('.item').forEach((b) => (b.onclick = () => abrirClasificacion(b.dataset.c)));
+    const filas = cola.map((p) => {
+      const hecha = st.cl.hechas[p.codigo];
+      const causa = hecha?.causaNombre || p.causa || (p.estado === 'pendiente' ? 'Pendiente' : '');
+      return `<tr><td>${esc(p.codigo)}</td><td>${p.ambito === 'ZI' ? 'ZI' : 'ACR'}</td><td>${num(p.lon, 5)}</td><td>${num(p.lat, 5)}</td><td>${esc(causa)}</td><td>${hecha ? 'Clasificada en sesión' : (p.estado === 'pendiente' ? 'Pendiente' : 'Validada')}</td></tr>`;
+    }).join('');
+    $('cl-cola').insertAdjacentHTML('beforeend', `<div class="cl-tabla-wrap"><table class="cl-tabla"><thead><tr><th>Código</th><th>Ámbito</th><th>X</th><th>Y</th><th>Causa</th><th>Estado</th></tr></thead><tbody>${filas}</tbody></table></div>
+      <button type="button" class="btn-sec" id="cl-csv" style="margin-top:8px"><i class="fas fa-download"></i> Descargar coordenadas</button>`);
+    $('cl-csv').onclick = () => {
+      const header = ['codigo', 'ambito', 'x', 'y', 'causa', 'estado'];
+      const lineas = [header.join(',')].concat(cola.map((p) => {
+        const hecha = st.cl.hechas[p.codigo];
+        const causa = hecha?.causaNombre || p.causa || '';
+        const estado = hecha ? 'clasificada_sesion' : p.estado;
+        return [p.codigo, p.ambito === 'ZI' ? 'ZI' : 'ACR', p.lon, p.lat, `"${String(causa).replaceAll('"', '""')}"`, estado].join(',');
+      }));
+      const blob = new Blob(['\ufeff' + lineas.join('\n')], { type: 'text/csv;charset=utf-8' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'alertas-clasificar.csv' });
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
   }
 
   async function abrirClasificacion(codigo) {
@@ -667,7 +718,8 @@
     Object.assign(st.cl, { resultado: previa?.resultado || null, causa: previa?.causa || null, conf: previa?.conf || 1, bosque: previa?.bosque || 1 });
     $('cl-conclusion').value = previa?.conclusion || '';
     $('cl-codigo').textContent = p.codigo;
-    $('cl-sub').textContent = `${ha(p.superficie_ha)} · detectada el ${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'ACR'}`;
+    $('cl-codigo-nota').textContent = notaCodigo(p.codigo);
+    $('cl-sub').textContent = `${ha(p.superficie_ha)} · detectada el ${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'Dentro del ACR'}`;
     $('cl-cola').hidden = true; $('cl-cola-cab').hidden = true; $('cl-form').hidden = false;
     $('cl-comparador').innerHTML = '<div class="sin-imagen"><i class="fas fa-spinner fa-spin"></i>Cargando imágenes…</div>';
     resaltar(codigo);
@@ -711,7 +763,21 @@
   function guardar() {
     if ($('cl-guardar').disabled) return;
     const p = st.cl.cola[st.cl.idx];
-    st.cl.hechas[p.codigo] = { resultado: st.cl.resultado, causa: st.cl.causa, conf: st.cl.conf, bosque: st.cl.bosque, conclusion: $('cl-conclusion').value };
+    const especialista = ($('cl-especialista').value || '').trim() || 'Sin nombre';
+    localStorage.setItem('atd-especialista', $('cl-especialista').value.trim());
+    const causaNombre = st.catalogos?.causas?.find((c) => c.id === st.cl.causa)?.nombre || '';
+    const conclusion = $('cl-conclusion').value.trim();
+    st.cl.hechas[p.codigo] = {
+      resultado: st.cl.resultado, causa: st.cl.causa, causaNombre, conf: st.cl.conf,
+      bosque: st.cl.bosque, conclusion, especialista,
+    };
+    const caja = $('cl-ultimo');
+    caja.hidden = false;
+    caja.innerHTML = `<b>Última clasificación guardada en esta sesión</b><br>
+      ${esc(p.codigo)} · ${esc(TEXTO[st.cl.resultado])}${causaNombre ? ' · ' + esc(causaNombre) : ''}<br>
+      Especialista: ${esc(especialista)}<br>
+      ${conclusion ? 'Conclusión: ' + esc(conclusion) + '<br>' : ''}
+      Ese texto de conclusión es el que va al reporte PDF, sección Conclusión técnica.`;
     const m = marcas.get(p.codigo);
     if (m) {
       const fake = { estado: 'validada', resultado: st.cl.resultado };
