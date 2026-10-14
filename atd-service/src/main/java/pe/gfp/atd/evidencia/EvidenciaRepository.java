@@ -41,6 +41,20 @@ public class EvidenciaRepository {
                 codigoAlerta);
     }
 
+    public record PuntoAlerta(double lon, double lat, LocalDate fechaImagen) {}
+
+    public Optional<PuntoAlerta> punto(String codigoAlerta) {
+        List<PuntoAlerta> filas = jdbc.query("""
+                SELECT ST_X(centroide) AS lon, ST_Y(centroide) AS lat, fecha_imagen
+                  FROM alerta
+                 WHERE codigo = ?
+                """, (rs, i) -> new PuntoAlerta(
+                rs.getDouble("lon"),
+                rs.getDouble("lat"),
+                rs.getObject("fecha_imagen", LocalDate.class)), codigoAlerta);
+        return filas.stream().findFirst();
+    }
+
     public record Imagen(byte[] datos, String mime) {}
 
     public Optional<Imagen> imagen(String codigoAlerta, String momento) {

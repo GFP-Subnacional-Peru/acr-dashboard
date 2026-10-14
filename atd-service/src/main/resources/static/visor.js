@@ -344,14 +344,69 @@
     return `<svg class="contorno" viewBox="0 0 1000 1000" preserveAspectRatio="none"><path d="${d}"/></svg>`;
   }
 
-  function comparador(cont, escenas, geom) {
+  let capaBusqueda = null;
+
+  function quitarBusquedaMapa() {
+    if (capaBusqueda) { mapa.removeLayer(capaBusqueda); capaBusqueda = null; }
+  }
+
+  function buscarSentinel(cont, codigo, sugerida) {
+    const desde = cont.querySelector('.s2-desde');
+    const hasta = cont.querySelector('.s2-hasta');
+    const base = (sugerida || new Date().toISOString().slice(0, 10));
+    const dia = new Date(`${base}T00:00:00`);
+    const iso = (d) => d.toISOString().slice(0, 10);
+    desde.value = iso(new Date(dia.getTime() - 45 * 86400000));
+    hasta.value = iso(new Date(dia.getTime() + 20 * 86400000));
+    const lista = cont.querySelector('.s2-lista');
+    const vista = cont.querySelector('.s2-vista');
+    cont.querySelector('.s2-buscar').onclick = async () => {
+      lista.innerHTML = '<p class="vacio-mini">Buscando en Sentinel-2…</p>';
+      vista.hidden = true;
+      quitarBusquedaMapa();
+      try {
+        const r = await api(`/alertas/${codigo}/sentinel?desde=${desde.value}&hasta=${hasta.value}`);
+        if (!r.escenas.length) {
+          lista.innerHTML = `<p class="vacio-mini">${esc(r.nota || 'No hay escenas en esas fechas.')}</p>`;
+          return;
+        }
+        lista.innerHTML = r.escenas.map((e) =>
+          `<button type="button" class="s2-fecha" data-i="${esc(e.escenaId)}">${fecha(e.fecha)}<small>${num(e.nubes, 0)} % nubes</small></button>`).join('');
+        lista.querySelectorAll('.s2-fecha').forEach((b) => {
+          b.onclick = () => {
+            const e = r.escenas.find((x) => x.escenaId === b.dataset.i);
+            lista.querySelectorAll('.s2-fecha').forEach((x) => x.classList.toggle('activo', x === b));
+            const src = e.recorte || e.miniatura;
+            vista.hidden = false;
+            vista.innerHTML = `<img alt="Sentinel-2 ${esc(e.fecha)}" src="${esc(src)}"><p>Sentinel-2 L2A · ${fecha(e.fecha)} · ${esc(e.escenaId)} · ${num(e.nubes, 0)} % nubes. Esta vista no reemplaza el par del reporte.</p>`;
+            const img = vista.querySelector('img');
+            img.onerror = () => {
+              if (e.miniatura && !img.dataset.fallback) {
+                img.dataset.fallback = '1';
+                img.src = e.miniatura;
+              }
+            };
+            quitarBusquedaMapa();
+            if (e.recorte) {
+              const bounds = L.latLngBounds([e.sur, e.oeste], [e.norte, e.este]);
+              capaBusqueda = L.imageOverlay(e.recorte, bounds, { opacity: 0.92 }).addTo(mapa);
+              if (!mapa.getBounds().intersects(bounds)) mapa.flyToBounds(bounds, encuadre(20));
+              $('escena-fija').hidden = false;
+              $('escena-fija').textContent = `Sentinel-2 L2A · ${fecha(e.fecha)} · ${e.escenaId}`;
+            }
+          };
+        });
+      } catch (e) {
+        lista.innerHTML = '<p class="vacio-mini">No se pudo consultar el catálogo Sentinel-2.</p>';
+      }
+    };
+  }
+
+  function comparador(cont, escenas, geom, codigo) {
     const antes = escenas.find((e) => e.momento === 'antes');
     const despues = escenas.find((e) => e.momento === 'despues');
-    if (!antes || !despues) {
-      cont.innerHTML = `<div class="sin-imagen"><i class="fas fa-cloud-sun"></i>Aún no hay un par de imágenes Sentinel-2 con nubosidad menor al 30 % para esta alerta.<br>Se generará automáticamente en la próxima actualización.</div>`;
-      return;
-    }
-    cont.innerHTML = `<div class="comparador" style="--pos:50%">
+    const sugerida = despues?.fecha || antes?.fecha || '';
+    const par = (antes && despues) ? `<div class="comparador" style="--pos:50%">
         <img src="${despues.imagen}" alt="Imagen después">
         <img class="antes" src="${antes.imagen}" alt="Imagen antes">
         ${contornoSvg(geom, despues.recorte || antes.recorte)}
@@ -360,9 +415,22 @@
         <span class="rot der">DESPUÉS<small>${fecha(despues.fecha)}</small></span>
         <input type="range" min="0" max="100" value="50" aria-label="Deslizar para comparar">
       </div>
-      <p class="sensor-nota">Sensor: Sentinel-2 L2A (Copernicus / Element84). Las fechas ${fecha(antes.fecha)} y ${fecha(despues.fecha)} son automáticas: la escena con nubosidad menor al 30 % más cercana a la detección. En esta pantalla no se elige otro día. El contorno naranja sobre la imagen es el mismo polígono de la alerta.</p>`;
+      <p class="sensor-nota">Par del reporte: Sentinel-2 L2A, ${fecha(antes.fecha)} y ${fecha(despues.fecha)}. El contorno es el polígono de la alerta.</p>`
+      : `<div class="sin-imagen"><i class="fas fa-cloud-sun"></i>Aún no hay un par guardado para el reporte. Puede buscar otra fecha abajo.</div>`;
+    cont.innerHTML = `${par}
+      <div class="busqueda-s2">
+        <p class="sensor-nota">Buscar otro día en el catálogo Sentinel-2 L2A (Copernicus / Element84). Nubes de la escena completa, hasta 80 %.</p>
+        <div class="busqueda-s2-fechas">
+          <label>Desde <input class="s2-desde" type="date"></label>
+          <label>Hasta <input class="s2-hasta" type="date"></label>
+          <button type="button" class="btn-sec s2-buscar">Buscar</button>
+        </div>
+        <div class="s2-lista"></div>
+        <div class="s2-vista" hidden></div>
+      </div>`;
     const c = cont.querySelector('.comparador');
-    c.querySelector('input').oninput = (e) => c.style.setProperty('--pos', `${e.target.value}%`);
+    if (c) c.querySelector('input').oninput = (e) => c.style.setProperty('--pos', `${e.target.value}%`);
+    if (codigo) buscarSentinel(cont, codigo, sugerida);
   }
 
   function ficha(d, escenas) {
@@ -389,7 +457,7 @@
     $('ev-sub').textContent = `${d.codigo_reporte ? d.codigo + ' · ' : ''}${d.acr_nombre} · ${d.region}`;
     $('ev-chip').textContent = TEXTO[c];
     $('ev-chip').style.setProperty('--c', COLOR[c]);
-    comparador($('ev-comparador'), escenas, det.geometry);
+    comparador($('ev-comparador'), escenas, det.geometry, codigo);
     $('ev-escena').hidden = !escenas.some((e) => e.recorte);
     verEscena('');
     $('ev-editar').hidden = !ed.habilitada;
@@ -725,7 +793,7 @@
     resaltar(codigo);
     pintarForm();
     const feat = st.cl.geo.features.find((f) => f.properties.codigo === codigo);
-    comparador($('cl-comparador'), await api(`/alertas/${codigo}/evidencia`), feat?.geometry);
+    comparador($('cl-comparador'), await api(`/alertas/${codigo}/evidencia`), feat?.geometry, codigo);
   }
 
   function pintarForm() {
