@@ -65,8 +65,10 @@ _EMPTY_KPIS = {
     "causa_principal_pct": 0.0,
 }
 
-# Dominio GDB CausaDeforestacion_1 (md_causa)
+# Dominio GDB CausaDeforestacion_1 (md_causa).
+# El 0 no está en el dominio: el polígono es antrópico, pero nadie le asignó causa.
 MD_CAUSA_NOMBRES: dict[int, str] = {
+    0: "Sin especificar",
     1: "Agricultura",
     2: "Ganadería",
     3: "Extracción forestal",

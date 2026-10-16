@@ -547,14 +547,21 @@ const Modals = (() => {
       return;
     }
 
+    const haySinCausa = data.some((d) => String(d.Causa || "").toLowerCase() === "sin especificar");
     if (body) {
-      body.innerHTML = `<p class="kpi-detail-lead">Causas antrópicas · período ${periodo}.</p>
+      body.innerHTML = `<p class="kpi-detail-lead">Causas antrópicas · período ${periodo}.${
+        haySinCausa
+          ? " «Sin especificar» son polígonos antrópicos sin causa asignada en la base."
+          : ""
+      }</p>
         <div id="modal-chart-causas" style="height:${Math.max(360, 34 * data.length + 90)}px"></div>`;
     }
 
     const labels = data.map((d) => d.Causa).reverse();
     const values = data.map((d) => d.Area_Ha).reverse();
     const colors = ["#006D5B", "#1a4d2e", "#66c2a5", "#2e8b57", "#8fbc8f", "#3d9970"];
+    const barColor = (label, i) =>
+      String(label || "").toLowerCase() === "sin especificar" ? "#64748b" : colors[i % colors.length];
     Plotly.newPlot(
       "modal-chart-causas",
       [
@@ -564,7 +571,7 @@ const Modals = (() => {
           type: "bar",
           orientation: "h",
           marker: {
-            color: values.map((_, i) => colors[i % colors.length]),
+            color: labels.map((label, i) => barColor(label, i)),
             opacity: 0.95,
             line: { width: 0 },
             cornerradius: 6,

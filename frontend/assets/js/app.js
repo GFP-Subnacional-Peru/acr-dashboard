@@ -589,7 +589,11 @@ function renderCharts(g) {
           type: "bar",
           orientation: "h",
           marker: {
-            color: values.map((_, i) => COL.causas[i % COL.causas.length]),
+            color: labels.map((label, i) =>
+              String(label || "").toLowerCase() === "sin especificar"
+                ? "#64748b"
+                : COL.causas[i % COL.causas.length]
+            ),
             line: { width: 0 },
             opacity: 0.95,
             cornerradius: 6,
