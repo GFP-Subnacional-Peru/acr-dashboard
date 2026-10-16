@@ -96,6 +96,18 @@
     },
   }).addTo(mapa);
 
+  const capaPerdida = L.geoJSON(null, {
+    renderer: L.canvas({ padding: 0.5 }),
+    interactive: false,
+    pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+      radius: 3.2,
+      color: '#7f1d1d',
+      weight: 0.6,
+      fillColor: '#e53935',
+      fillOpacity: 0.92,
+    }),
+  }).addTo(mapa);
+
   const capaAlertas = L.featureGroup().addTo(mapa);
   const capaPuntos = L.featureGroup().addTo(mapa);
   const marcas = new Map();
@@ -152,15 +164,18 @@
 
   async function cargarLimitesOficiales() {
     if (capaLimites.getLayers().length) return;
-    const [acr, zi] = await Promise.all([
+    const [acr, zi, alertas] = await Promise.all([
       fetch('/limites/acr.geojson').then((r) => r.json()),
       fetch('/limites/zi.geojson').then((r) => r.json()),
+      fetch('/limites/alertas_loreto.geojson?v=20261016f').then((r) => r.json()),
     ]);
+    capaPerdida.addData(alertas);
     capaLimites.addData(acr);
     capaLimites.addData(zi);
-    if (!st.region && capaLimites.getLayers().length) {
-      mapa.fitBounds(capaLimites.getBounds(), encuadre(40));
-    }
+    capaLimites.bringToFront();
+    const loreto = new Set(['ACR_AA', 'ZI_AA', 'ACR_ANPCH', 'ZI_ANPCH', 'ACR_CTT', 'ZI_CTT', 'ACR_MK', 'ZI_MK']);
+    const foco = capaLimites.getLayers().filter((l) => loreto.has(l.feature.properties.codigo));
+    if (!st.region && foco.length) mapa.fitBounds(L.featureGroup(foco).getBounds(), encuadre(40));
   }
 
   async function cargarLimitesRegion(region) {
@@ -182,6 +197,10 @@
   /* Panel de capas */
   $('capas-btn').onclick = () => $('capas-cuerpo').classList.toggle('oculto');
   $('c-alertas').onchange = (e) => { e.target.checked ? mapa.addLayer(capaAlertas) : mapa.removeLayer(capaAlertas); ajustarPuntos(); };
+  $('c-perdida').onchange = (e) => {
+    if ($('f-c-perdida')) $('f-c-perdida').checked = e.target.checked;
+    e.target.checked ? mapa.addLayer(capaPerdida) : mapa.removeLayer(capaPerdida);
+  };
   $('c-geob').onchange = (e) => {
     document.querySelectorAll('.ley-geob').forEach((d) => (d.hidden = !e.target.checked));
     if ($('f-c-geob')) $('f-c-geob').checked = e.target.checked;
@@ -591,6 +610,7 @@
   $('f-reset').onclick = () => resetFiltros();
   $('ir-2').onclick = () => buscar();
   $('f-c-alertas').onchange = (e) => { $('c-alertas').checked = e.target.checked; $('c-alertas').onchange(e); };
+  $('f-c-perdida').onchange = (e) => { $('c-perdida').checked = e.target.checked; $('c-perdida').onchange(e); };
   $('f-c-geob').onchange = (e) => { $('c-geob').checked = e.target.checked; $('c-geob').onchange(e); };
   $('f-c-limites').onchange = (e) => { $('c-limites').checked = e.target.checked; $('c-limites').onchange(e); };
   $('f-base').onchange = () => {
@@ -1258,11 +1278,8 @@
       if (enlace) {
         await abrirEnlace(enlace).catch(() => toast('No se encontró la alerta del enlace'));
       } else if ($('f-region').options.length) {
-        const mejor = [...$('f-region').options].sort((a, b) => {
-          const n = (op) => Number(String(op.textContent).replace(/[^\d]/g, '')) || 0;
-          return n(b) - n(a);
-        })[0];
-        $('f-region').value = mejor.value;
+        const loreto = [...$('f-region').options].find((op) => /loreto/i.test(op.value) || /loreto/i.test(op.textContent));
+        $('f-region').value = (loreto || $('f-region').options[0]).value;
         await alCambiarRegion();
         await buscar();
       }
