@@ -96,25 +96,17 @@
     },
   }).addTo(mapa);
 
-  const capaPerdida = L.geoJSON(null, {
-    renderer: L.canvas({ padding: 0.5 }),
-    interactive: false,
-    pointToLayer: (f, latlng) => L.circleMarker(latlng, {
-      radius: 3.2,
-      color: '#7f1d1d',
-      weight: 0.6,
-      fillColor: '#e53935',
-      fillOpacity: 0.92,
-    }),
-  }).addTo(mapa);
-
   const capaAlertas = L.featureGroup().addTo(mapa);
   const capaPuntos = L.featureGroup().addTo(mapa);
   const marcas = new Map();
 
   function estiloAlerta(p, sel) {
-    const c = COLOR[clase(p)];
-    return { color: sel ? '#ffffff' : c, weight: sel ? 3 : 1.6, fillColor: c, fillOpacity: sel ? .55 : .4 };
+    return {
+      color: sel ? '#ffffff' : '#9f1d1d',
+      weight: sel ? 2.4 : 1,
+      fillColor: '#e53935',
+      fillOpacity: sel ? 0.9 : 0.78,
+    };
   }
 
   function dibujarAlertas(features) {
@@ -136,6 +128,7 @@
       capaPuntos.addLayer(punto);
       marcas.set(p.codigo, { poli, punto, p });
     });
+    capaLimites.bringToFront();
     ajustarPuntos();
   }
 
@@ -156,7 +149,7 @@
   }
 
   function ajustarPuntos() {
-    const ver = mapa.getZoom() < 13 && $('c-alertas').checked;
+    const ver = mapa.getZoom() >= 15 && $('c-alertas').checked;
     if (ver && !mapa.hasLayer(capaPuntos)) mapa.addLayer(capaPuntos);
     if (!ver && mapa.hasLayer(capaPuntos)) mapa.removeLayer(capaPuntos);
   }
@@ -164,12 +157,10 @@
 
   async function cargarLimitesOficiales() {
     if (capaLimites.getLayers().length) return;
-    const [acr, zi, alertas] = await Promise.all([
+    const [acr, zi] = await Promise.all([
       fetch('/limites/acr.geojson').then((r) => r.json()),
       fetch('/limites/zi.geojson').then((r) => r.json()),
-      fetch('/limites/alertas_loreto.geojson?v=20261016f').then((r) => r.json()),
     ]);
-    capaPerdida.addData(alertas);
     capaLimites.addData(acr);
     capaLimites.addData(zi);
     capaLimites.bringToFront();
@@ -197,10 +188,6 @@
   /* Panel de capas */
   $('capas-btn').onclick = () => $('capas-cuerpo').classList.toggle('oculto');
   $('c-alertas').onchange = (e) => { e.target.checked ? mapa.addLayer(capaAlertas) : mapa.removeLayer(capaAlertas); ajustarPuntos(); };
-  $('c-perdida').onchange = (e) => {
-    if ($('f-c-perdida')) $('f-c-perdida').checked = e.target.checked;
-    e.target.checked ? mapa.addLayer(capaPerdida) : mapa.removeLayer(capaPerdida);
-  };
   $('c-geob').onchange = (e) => {
     document.querySelectorAll('.ley-geob').forEach((d) => (d.hidden = !e.target.checked));
     if ($('f-c-geob')) $('f-c-geob').checked = e.target.checked;
@@ -610,7 +597,6 @@
   $('f-reset').onclick = () => resetFiltros();
   $('ir-2').onclick = () => buscar();
   $('f-c-alertas').onchange = (e) => { $('c-alertas').checked = e.target.checked; $('c-alertas').onchange(e); };
-  $('f-c-perdida').onchange = (e) => { $('c-perdida').checked = e.target.checked; $('c-perdida').onchange(e); };
   $('f-c-geob').onchange = (e) => { $('c-geob').checked = e.target.checked; $('c-geob').onchange(e); };
   $('f-c-limites').onchange = (e) => { $('c-limites').checked = e.target.checked; $('c-limites').onchange(e); };
   $('f-base').onchange = () => {
