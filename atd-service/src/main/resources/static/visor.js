@@ -33,7 +33,7 @@
 
   const st = {
     territorios: [], region: null, acr: null, ambito: 'ambos', anio: null, mes: null,
-    periodos: [], resumen: null, geo: null, filtro: 'todas', alerta: null, escenas: [],
+    periodos: [], periodosPorAcr: {}, eje: [], resumen: null, geo: null, filtro: 'todas', alerta: null, escenas: [],
     pasoMax: 1, modo: 'consulta', catalogos: null,
     cl: { cola: [], idx: -1, hechas: {}, resultado: null, causa: null, conf: 1, bosque: 1 },
   };
@@ -65,12 +65,35 @@
   const etiquetas = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: .8 }).addTo(mapa);
   const geobosques = new TeselaExport('https://gis.bosques.gob.pe/server/rest/services/Interoperabilidad/alertas_tempranas_2026/MapServer/export', { maxZoom: 19, opacity: .95, extra: 'format=png32&transparent=true&f=image', attribution: 'ATD GeoBosques · MINAM' });
 
+  const NOMBRE_LIMITE = {
+    ACR_AA: 'ACR Ampiyacu Apayacu', ZI_AA: 'ZI Ampiyacu Apayacu',
+    ACR_ANPCH: 'ACR Alto Nanay - Pintuyacu Chambira', ZI_ANPCH: 'ZI Alto Nanay - Pintuyacu Chambira',
+    ACR_CTT: 'ACR Comunal Tamshiyacu Tahuayo', ZI_CTT: 'ZI Comunal Tamshiyacu Tahuayo',
+    ACR_MK: 'ACR Maijuna Kichwa', ZI_MK: 'ZI Maijuna Kichwa',
+    ACR_BSM: 'ACR Bosques de Shunté y Mishollo', ZI_BSM: 'ZI Bosques de Shunté y Mishollo',
+    ACR_CE: 'ACR Cordillera Escalera', ZI_CE: 'ZI Cordillera Escalera',
+    ACR_CHQ: 'ACR Choquequirao', ZI_CHQ: 'ZI Choquequirao',
+    ACR_CHU: 'ACR Chuyapi Urusayhua', ZI_CHU: 'ZI Chuyapi Urusayhua',
+    ACR_QK: "ACR Q'eros Kosñipata", ZI_QK: "ZI Q'eros Kosñipata",
+  };
+
   const capaLimites = L.geoJSON(null, {
     style: (f) => {
-      const sel = f.properties.codigo === st.acr || f.properties.codigo === (st.acr || '').replace('ACR_', 'ZI_');
-      return { color: f.properties.tipo === 'ACR' ? '#2ecc40' : '#b0b6ba', weight: 1.5, opacity: sel || !st.acr ? 1 : .55, fill: false };
+      const p = f.properties || {};
+      const sel = p.codigo === st.acr || p.codigo === (st.acr || '').replace('ACR_', 'ZI_');
+      const esAcr = String(p.tipo || p.layer || '').toUpperCase() === 'ACR';
+      return {
+        color: esAcr ? '#2E7D32' : '#616161',
+        weight: esAcr ? 2.5 : 2,
+        opacity: sel || !st.acr ? 1 : .4,
+        fill: false,
+      };
     },
-    onEachFeature: (f, l) => l.bindTooltip(f.properties.nombre, { sticky: true }),
+    onEachFeature: (f, l) => {
+      const p = f.properties || {};
+      const nombre = p.nombre || NOMBRE_LIMITE[p.codigo] || p.codigo;
+      l.bindTooltip(nombre, { sticky: true });
+    },
   }).addTo(mapa);
 
   const capaAlertas = L.featureGroup().addTo(mapa);
@@ -127,12 +150,27 @@
   }
   mapa.on('zoomend', ajustarPuntos);
 
+  async function cargarLimitesOficiales() {
+    if (capaLimites.getLayers().length) return;
+    const [acr, zi] = await Promise.all([
+      fetch('/limites/acr.geojson').then((r) => r.json()),
+      fetch('/limites/zi.geojson').then((r) => r.json()),
+    ]);
+    capaLimites.addData(acr);
+    capaLimites.addData(zi);
+    if (!st.region && capaLimites.getLayers().length) {
+      mapa.fitBounds(capaLimites.getBounds(), encuadre(40));
+    }
+  }
+
   async function cargarLimitesRegion(region) {
-    const acrs = st.territorios.filter((t) => t.region === region && t.tipo === 'ACR');
-    const colecciones = await Promise.all(acrs.map((t) => api(`/territorios/${t.codigo}/limites`)));
-    capaLimites.clearLayers();
-    colecciones.forEach((fc) => capaLimites.addData(fc));
-    if (capaLimites.getLayers().length) mapa.flyToBounds(capaLimites.getBounds(), encuadre(30));
+    await cargarLimitesOficiales();
+    const codigos = new Set(st.territorios
+      .filter((t) => t.region === region)
+      .flatMap((t) => [t.codigo, t.codigo.replace('ACR_', 'ZI_')]));
+    const capas = capaLimites.getLayers().filter((l) => codigos.has(l.feature.properties.codigo));
+    if (capas.length) mapa.flyToBounds(L.featureGroup(capas).getBounds(), encuadre(30));
+    else if (capaLimites.getLayers().length) mapa.flyToBounds(capaLimites.getBounds(), encuadre(30));
   }
 
   function enfocarAcr() {
@@ -146,8 +184,10 @@
   $('c-alertas').onchange = (e) => { e.target.checked ? mapa.addLayer(capaAlertas) : mapa.removeLayer(capaAlertas); ajustarPuntos(); };
   $('c-geob').onchange = (e) => {
     document.querySelectorAll('.ley-geob').forEach((d) => (d.hidden = !e.target.checked));
+    if ($('f-c-geob')) $('f-c-geob').checked = e.target.checked;
     if (e.target.checked) { geobosques.addTo(mapa); toast('GeoBosques 2026: magenta = última semana, azul = acumulado del año'); } else mapa.removeLayer(geobosques);
   };
+  if ($('c-geob').checked) geobosques.addTo(mapa);
   $('c-limites').onchange = (e) => (e.target.checked ? mapa.addLayer(capaLimites) : mapa.removeLayer(capaLimites));
   document.querySelectorAll('input[name=base]').forEach((r) => (r.onchange = () => {
     mapa.removeLayer(base);
@@ -188,65 +228,385 @@
   function desbloquear(n) { st.pasoMax = Math.max(st.pasoMax, n); irPaso(n); }
   document.querySelectorAll('#pasos li').forEach((li) => (li.onclick = () => irPaso(+li.dataset.paso)));
 
-  /* ---------- Paso 1: territorio ---------- */
-  function renderRegiones() {
-    const regiones = [...new Map(st.territorios.map((t) => [t.region, t.regionNombre])).entries()];
-    $('regiones').innerHTML = regiones.map(([cod, nom]) => {
-      const n = st.territorios.filter((t) => t.region === cod).reduce((s, t) => s + t.alertas, 0);
-      const acrs = st.territorios.filter((t) => t.region === cod && t.tipo === 'ACR').length;
-      return `<button class="region" data-r="${esc(cod)}"><strong>${esc(nom)}</strong><small>${acrs} ACR · ${num(n, 0)} alertas</small></button>`;
-    }).join('');
-    $('regiones').querySelectorAll('.region').forEach((b) => (b.onclick = () => elegirRegion(b.dataset.r)));
+  /* ---------- Paso 1: filtros (periodo, tamaño, región, ACR) ---------- */
+  const ym = (p) => p.anio * 12 + p.mes;
+  const etiquetaMes = (p) => `${String(p.mes).padStart(2, '0')}/${p.anio}`;
+
+  function acrsDeRegion(region) {
+    return st.territorios.filter((t) => t.region === region && t.tipo === 'ACR');
   }
 
-  async function elegirRegion(region) {
-    st.region = region; st.acr = null; st.mes = null;
-    $('regiones').querySelectorAll('.region').forEach((b) => b.classList.toggle('sel', b.dataset.r === region));
-    const acrs = st.territorios.filter((t) => t.region === region && t.tipo === 'ACR');
-    $('acrs').innerHTML = acrs.map((t) => {
-      const zi = st.territorios.find((z) => z.codigo === t.codigo.replace('ACR_', 'ZI_'));
-      const total = t.alertas + (zi ? zi.alertas : 0);
-      return `<button class="acr" data-c="${esc(t.codigo)}"><div><strong>${esc(t.nombre)}</strong><small>${esc(t.codigoOficial)} · ${num(t.areaHa, 0)} ha</small></div>
-              <div class="num">${num(total, 0)}<small><br>alertas</small></div></button>`;
+  function llenarRegiones() {
+    const regiones = [...new Map(st.territorios.map((t) => [t.region, t.regionNombre])).entries()];
+    $('f-region').innerHTML = regiones.map(([cod, nom]) => {
+      const n = st.territorios.filter((t) => t.region === cod).reduce((s, t) => s + t.alertas, 0);
+      return `<option value="${esc(cod)}">${esc(nom)} · ${num(n, 0)} alertas</option>`;
     }).join('');
-    $('acrs').querySelectorAll('.acr').forEach((b) => (b.onclick = () => elegirAcr(b.dataset.c)));
-    $('meses').innerHTML = '<p class="vacio-mini">Seleccione un ACR</p>';
-    $('ir-2').disabled = true;
-    await cargarLimitesRegion(region);
+  }
+
+  function llenarAcrs() {
+    const acrs = acrsDeRegion(st.region);
+    const opts = [`<option value="todas">Todas las ACR de la región</option>`]
+      .concat(acrs.map((t) => {
+        const zi = st.territorios.find((z) => z.codigo === t.codigo.replace('ACR_', 'ZI_'));
+        const total = t.alertas + (zi ? zi.alertas : 0);
+        return `<option value="${esc(t.codigo)}">${esc(t.nombre)} · ${num(total, 0)}</option>`;
+      }));
+    $('f-acr').innerHTML = opts.join('');
+  }
+
+  function acrsElegidos() {
+    if ($('f-acr').value === 'todas') return acrsDeRegion(st.region).map((t) => t.codigo);
+    return $('f-acr').value ? [$('f-acr').value] : [];
+  }
+
+  function mesesElegidos() {
+    if (!st.eje.length) return [];
+    let a = +$('f-desde').value;
+    let b = +$('f-hasta').value;
+    if (a > b) [a, b] = [b, a];
+    const desde = st.eje[a];
+    const hasta = st.eje[b];
+    if (!desde || !hasta) return [];
+    const wanted = new Set();
+    acrsElegidos().forEach((codigo) => {
+      (st.periodosPorAcr[codigo] || []).forEach((p) => {
+        if (ym(p) >= ym(desde) && ym(p) <= ym(hasta)) wanted.add(`${p.anio}-${p.mes}`);
+      });
+    });
+    return [...wanted].map((k) => {
+      const [anio, mes] = k.split('-').map(Number);
+      return { anio, mes };
+    }).sort((x, y) => ym(x) - ym(y));
+  }
+
+  function pintarEtiquetasPeriodo() {
+    const a = st.eje[+$('f-desde').value];
+    const b = st.eje[+$('f-hasta').value];
+    if (a) $('f-desde-lbl').textContent = etiquetaMes(a);
+    if (b) $('f-hasta-lbl').textContent = etiquetaMes(b);
+  }
+
+  function armarEje() {
+    const puntos = [];
+    acrsDeRegion(st.region).forEach((t) => (st.periodosPorAcr[t.codigo] || []).forEach((p) => puntos.push(p)));
+    if (!puntos.length) {
+      st.eje = [];
+      $('f-desde').disabled = true;
+      $('f-hasta').disabled = true;
+      return;
+    }
+    const min = puntos.reduce((m, p) => (ym(p) < ym(m) ? p : m));
+    const max = puntos.reduce((m, p) => (ym(p) > ym(m) ? p : m));
+    const eje = [];
+    for (let y = min.anio, m = min.mes; y < max.anio || (y === max.anio && m <= max.mes); ) {
+      eje.push({ anio: y, mes: m });
+      m += 1;
+      if (m > 12) { m = 1; y += 1; }
+    }
+    st.eje = eje;
+    $('f-desde').disabled = false;
+    $('f-hasta').disabled = false;
+    $('f-desde').max = String(eje.length - 1);
+    $('f-hasta').max = String(eje.length - 1);
+    const anioHoy = new Date().getFullYear();
+    let desde = eje.findIndex((p) => p.anio === anioHoy);
+    let hasta = -1;
+    eje.forEach((p, i) => { if (p.anio === anioHoy) hasta = i; });
+    if (desde < 0) { desde = 0; hasta = eje.length - 1; }
+    $('f-desde').value = String(desde);
+    $('f-hasta').value = String(hasta);
+    pintarEtiquetasPeriodo();
+    const uno = $('f-acr').value !== 'todas' ? $('f-acr').value : acrsDeRegion(st.region)[0]?.codigo;
+    st.periodos = st.periodosPorAcr[uno] || [];
+    st.anio = eje[hasta].anio;
+    st.mes = eje[hasta].mes;
+  }
+
+  async function cargarPeriodosRegion() {
+    const acrs = acrsDeRegion(st.region);
+    const listas = await Promise.all(acrs.map((t) => api(`/periodos?acr=${t.codigo}&ambito=${st.ambito}`).catch(() => [])));
+    acrs.forEach((t, i) => { st.periodosPorAcr[t.codigo] = listas[i]; });
+    armarEje();
+  }
+
+  function ordenarRango(a, b, pintar) {
+    const sync = () => {
+      if (+a.value > +b.value) {
+        if (document.activeElement === a) b.value = a.value;
+        else a.value = b.value;
+      }
+      pintar();
+    };
+    a.oninput = sync;
+    b.oninput = sync;
+  }
+
+  function pintarHa() {
+    $('f-ha-min-lbl').textContent = num(+$('f-ha-min').value, +$('f-ha-min').value % 1 ? 1 : 0);
+    const alTope = +$('f-ha-max').value >= +$('f-ha-max').max;
+    $('f-ha-max-lbl').textContent = alTope ? `${num(+$('f-ha-max').max, 0)}+` : num(+$('f-ha-max').value, +$('f-ha-max').value % 1 ? 1 : 0);
+  }
+
+  async function alCambiarRegion() {
+    st.region = $('f-region').value;
+    llenarAcrs();
+    $('f-acr').value = 'todas';
+    st.acr = null;
+    await cargarLimitesRegion(st.region);
+    await cargarPeriodosRegion();
+  }
+
+  async function alCambiarAcr() {
+    st.acr = $('f-acr').value === 'todas' ? null : $('f-acr').value;
+    if (st.acr) enfocarAcr();
+    else if (st.region) await cargarLimitesRegion(st.region);
+    const uno = st.acr || acrsDeRegion(st.region)[0]?.codigo;
+    st.periodos = st.periodosPorAcr[uno] || [];
+  }
+
+  function filtroExtra() {
+    const q = ($('f-texto').value || '').trim();
+    const porCodigo = document.querySelector('input[name="f-por"]:checked')?.value !== 'territorio';
+    if (porCodigo && q) return true;
+    if (!$('mb-det').hidden) {
+      if (+$('f-ha-min').value > 0 || +$('f-ha-max').value < +$('f-ha-max').max) return true;
+      if ($('f-resultado').value !== 'todas') return true;
+    }
+    return false;
+  }
+
+  function pasaFiltro(f) {
+    const p = f.properties;
+    const q = ($('f-texto').value || '').trim().toUpperCase();
+    const porCodigo = document.querySelector('input[name="f-por"]:checked')?.value !== 'territorio';
+    if (porCodigo && q && !String(p.codigo).toUpperCase().includes(q)) return false;
+    if (!$('mb-det').hidden) {
+      const haMin = +$('f-ha-min').value;
+      const haMax = +$('f-ha-max').value >= +$('f-ha-max').max ? Infinity : +$('f-ha-max').value;
+      const s = +p.superficie_ha || 0;
+      if (s < haMin || s > haMax) return false;
+      const res = $('f-resultado').value;
+      if (res !== 'todas' && clase(p) !== res) return false;
+    }
+    return true;
+  }
+
+  async function traerAlertas(acrs, meses) {
+    const pedidos = [];
+    acrs.forEach((acr) => {
+      const tiene = new Set((st.periodosPorAcr[acr] || []).map((p) => `${p.anio}-${p.mes}`));
+      meses.forEach((p) => {
+        if (tiene.has(`${p.anio}-${p.mes}`)) {
+          pedidos.push(api(`/alertas?acr=${acr}&ambito=${st.ambito}&anio=${p.anio}&mes=${p.mes}`).catch(() => ({ features: [] })));
+        }
+      });
+    });
+    const geos = [];
+    for (let i = 0; i < pedidos.length; i += 6) {
+      geos.push(...await Promise.all(pedidos.slice(i, i + 6)));
+    }
+    const vistos = new Set();
+    const features = [];
+    geos.forEach((g) => (g.features || []).forEach((f) => {
+      const id = f.properties?.codigo || f.id;
+      if (vistos.has(id)) return;
+      vistos.add(id);
+      features.push(f);
+    }));
+    return features;
+  }
+
+  function tituloTerritorio() {
+    if ($('f-acr').value === 'todas') {
+      const nom = $('f-region').selectedOptions[0]?.textContent?.split('·')[0]?.trim() || '';
+      return `Todas las ACR · ${nom}`;
+    }
+    const t = st.territorios.find((x) => x.codigo === $('f-acr').value);
+    return t ? t.nombre : 'Alertas';
+  }
+
+  function tituloPeriodo(meses) {
+    if (!meses.length) return '';
+    const a = meses[0];
+    const b = meses[meses.length - 1];
+    if (a.anio === b.anio && a.mes === b.mes) return `${MESES[a.mes - 1]} ${a.anio}`;
+    if (a.anio === b.anio) return `${MESES[a.mes - 1].slice(0, 3)}–${MESES[b.mes - 1].slice(0, 3)} ${a.anio}`;
+    return `${etiquetaMes(a)} – ${etiquetaMes(b)}`;
+  }
+
+  async function buscar() {
+    const btn = $('ir-2');
+    const previo = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando…';
+    try {
+      const texto = ($('f-texto').value || '').trim().toUpperCase();
+      const porCodigo = document.querySelector('input[name="f-por"]:checked')?.value !== 'territorio';
+      if (porCodigo && /^[A-Z]{3}-\d{4}-\d{4,6}$/.test(texto)) {
+        await abrirEnlace(texto);
+        return;
+      }
+      const acrs = acrsElegidos();
+      const meses = mesesElegidos();
+      if (!acrs.length || !meses.length) {
+        toast('No hay alertas de GeoBosques en ese periodo');
+        return;
+      }
+      st.ambito = $('f-ambito').value;
+      st.acr = acrs.length === 1 ? acrs[0] : acrs[0];
+      st.anio = meses[meses.length - 1].anio;
+      st.mes = meses[meses.length - 1].mes;
+      st.periodos = st.periodosPorAcr[st.acr] || [];
+      const extra = filtroExtra();
+      if (acrs.length === 1 && meses.length === 1 && !extra) {
+        await cargarResumen();
+      } else if (acrs.length === 1 && meses.length === 1) {
+        await cargarResumen();
+        const features = (st.geo.features || []).filter(pasaFiltro);
+        st.geo.features = features;
+        pintarAgregado(features, meses);
+        dibujarAlertas(features);
+        renderLista();
+      } else {
+        const features = (await traerAlertas(acrs, meses)).filter(pasaFiltro);
+        st.geo = { type: 'FeatureCollection', features };
+        st.filtro = 'todas';
+        st.resumen = null;
+        pintarAgregado(features, meses);
+        dibujarAlertas(features);
+        renderLista();
+      }
+      if (capaAlertas.getLayers().length) mapa.flyToBounds(capaAlertas.getBounds(), { ...encuadre(40), maxZoom: 12 });
+      desbloquear(2);
+    } catch (e) {
+      toast('No se pudo cargar las alertas');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = previo;
+    }
+  }
+
+  function pintarAgregado(features, meses) {
+    const cuenta = { antropica: 0, natural: 0, falsa: 0, pendiente: 0 };
+    let antr = 0;
+    let nat = 0;
+    const causas = {};
+    features.forEach((f) => {
+      const p = f.properties;
+      const c = clase(p);
+      cuenta[c] += 1;
+      const s = +p.superficie_ha || 0;
+      if (c === 'antropica') {
+        antr += s;
+        if (p.causa) causas[p.causa] = (causas[p.causa] || 0) + s;
+      } else if (c === 'natural') nat += s;
+    });
+    const validadas = cuenta.antropica + cuenta.natural + cuenta.falsa;
+    $('res-titulo').textContent = `${tituloTerritorio()} · ${tituloPeriodo(meses)}`;
+    $('k-total').textContent = num(features.length, 0);
+    $('k-total-var').textContent = `${meses.length} mes${meses.length === 1 ? '' : 'es'} del periodo`;
+    $('k-total-var').className = '';
+    $('k-valid').textContent = num(validadas, 0);
+    $('k-valid-sub').textContent = cuenta.pendiente ? `${cuenta.pendiente} pendientes de validar` : 'Todas validadas';
+    $('k-antr').textContent = ha(antr);
+    $('k-antr-var').textContent = 'Suma del periodo elegido';
+    $('k-antr-var').className = '';
+    $('k-nat').textContent = ha(nat);
+    $('k-nat-sub').textContent = `${cuenta.falsa} falsas alertas descartadas`;
+    const tot = features.length || 1;
+    $('barra-res').innerHTML = Object.keys(cuenta).map((k) => `<i style="width:${(cuenta[k] / tot) * 100}%;background:${COLOR[k]}" title="${TEXTO[k]}: ${cuenta[k]}"></i>`).join('');
+    $('leyenda-res').innerHTML = Object.keys(cuenta).map((k) => `<span style="--c:${COLOR[k]}">${TEXTO[k]} <b>${cuenta[k]}</b></span>`).join('');
+    pintarGraficoMeses();
+    const filas = Object.entries(causas).sort((a, b) => b[1] - a[1]);
+    const maxC = Math.max(0.0001, ...filas.map(([, v]) => v));
+    $('tarjeta-causas').hidden = !filas.length;
+    $('causas').innerHTML = filas.map(([causa, valor]) => `<div class="causa-fila"><span>${esc(causa)}</span>
+      <div class="bar"><i style="width:${(valor / maxC) * 100}%"></i></div><b>${num(valor)}</b></div>`).join('');
+  }
+
+  function pintarGraficoMeses() {
+    $('graf-anio').textContent = st.anio;
+    const porMes = Array(12).fill(0);
+    const codigos = $('f-acr').value === 'todas' ? acrsElegidos() : [st.acr];
+    codigos.forEach((codigo) => {
+      (st.periodosPorAcr[codigo] || []).filter((p) => p.anio === st.anio).forEach((p) => { porMes[p.mes - 1] += p.alertas; });
+    });
+    const desde = st.eje[+$('f-desde').value];
+    const hasta = st.eje[+$('f-hasta').value];
+    const max = Math.max(1, ...porMes);
+    $('graf-meses').innerHTML = porMes.map((n, i) => {
+      const cur = st.anio * 12 + (i + 1);
+      const sel = desde && hasta && cur >= ym(desde) && cur <= ym(hasta);
+      return `<div data-m="${i + 1}" class="${sel ? 'sel' : ''}" title="${MESES[i]}: ${n} alertas">
+      <b>${n || ''}</b><i style="height:${(n / max) * 80}%"></i>${MESES[i].slice(0, 1)}</div>`;
+    }).join('');
+    $('graf-meses').querySelectorAll('div').forEach((d) => (d.onclick = async () => {
+      const m = +d.dataset.m;
+      const idx = st.eje.findIndex((p) => p.anio === st.anio && p.mes === m);
+      if (idx < 0) return;
+      $('f-desde').value = String(idx);
+      $('f-hasta').value = String(idx);
+      pintarEtiquetasPeriodo();
+      await buscar();
+    }));
+  }
+
+  function resetFiltros() {
+    document.querySelector('input[name="f-por"][value="codigo"]').checked = true;
+    $('f-texto').value = '';
+    $('mb-modo').querySelector('[data-v="simple"]').click();
+    $('f-ha-min').value = '0';
+    $('f-ha-max').value = $('f-ha-max').max;
+    $('f-resultado').value = 'todas';
+    $('f-ambito').value = 'ambos';
+    st.ambito = 'ambos';
+    pintarHa();
+    if ($('f-region').options.length) {
+      $('f-region').selectedIndex = 0;
+      alCambiarRegion();
+    }
+  }
+
+  $('mb-tabs').querySelectorAll('button').forEach((b) => (b.onclick = () => {
+    $('mb-tabs').querySelectorAll('button').forEach((x) => x.classList.toggle('activo', x === b));
+    $('mb-filtros').hidden = b.dataset.tab !== 'filtros';
+    $('mb-capas').hidden = b.dataset.tab !== 'capas';
+  }));
+  $('mb-modo').querySelectorAll('button').forEach((b) => (b.onclick = () => {
+    $('mb-modo').querySelectorAll('button').forEach((x) => x.classList.toggle('activo', x === b));
+    $('mb-det').hidden = b.dataset.v !== 'detallado';
+  }));
+  ordenarRango($('f-desde'), $('f-hasta'), pintarEtiquetasPeriodo);
+  ordenarRango($('f-ha-min'), $('f-ha-max'), pintarHa);
+  pintarHa();
+  $('f-region').onchange = () => alCambiarRegion();
+  $('f-acr').onchange = () => alCambiarAcr();
+  $('f-ambito').onchange = async () => {
+    st.ambito = $('f-ambito').value;
+    await cargarPeriodosRegion();
+  };
+  $('f-lupa').onclick = () => buscar();
+  $('f-texto').addEventListener('keydown', (e) => { if (e.key === 'Enter') buscar(); });
+  $('f-reset').onclick = () => resetFiltros();
+  $('ir-2').onclick = () => buscar();
+  $('f-c-alertas').onchange = (e) => { $('c-alertas').checked = e.target.checked; $('c-alertas').onchange(e); };
+  $('f-c-geob').onchange = (e) => { $('c-geob').checked = e.target.checked; $('c-geob').onchange(e); };
+  $('f-c-limites').onchange = (e) => { $('c-limites').checked = e.target.checked; $('c-limites').onchange(e); };
+  $('f-base').onchange = () => {
+    const r = document.querySelector(`input[name=base][value="${$('f-base').value}"]`);
+    if (r) { r.checked = true; r.onchange(); }
+  };
+
+  async function elegirRegion(region) {
+    $('f-region').value = region;
+    await alCambiarRegion();
   }
 
   async function elegirAcr(codigo) {
-    st.acr = codigo;
-    $('acrs').querySelectorAll('.acr').forEach((b) => b.classList.toggle('sel', b.dataset.c === codigo));
-    enfocarAcr();
-    await cargarPeriodos();
+    $('f-acr').value = codigo;
+    await alCambiarAcr();
   }
-
-  async function cargarPeriodos() {
-    st.periodos = await api(`/periodos?acr=${st.acr}&ambito=${st.ambito}`);
-    if (!st.periodos.some((p) => p.anio === st.anio && p.mes === st.mes)) {
-      st.anio = st.periodos[0]?.anio ?? null;
-      st.mes = st.periodos[0]?.mes ?? null;
-    }
-    $('meses').innerHTML = st.periodos.length
-      ? st.periodos.map((p) => `<button class="mes" data-a="${p.anio}" data-m="${p.mes}">${MESES[p.mes - 1].slice(0, 3)} ${p.anio} <small>· ${p.alertas}</small></button>`).join('')
-      : '<p class="vacio-mini">Sin alertas en este ámbito</p>';
-    $('meses').querySelectorAll('.mes').forEach((b) => (b.onclick = () => { st.anio = +b.dataset.a; st.mes = +b.dataset.m; marcarMes(); }));
-    marcarMes();
-  }
-
-  function marcarMes() {
-    $('meses').querySelectorAll('.mes').forEach((b) => b.classList.toggle('sel', +b.dataset.a === st.anio && +b.dataset.m === st.mes));
-    $('ir-2').disabled = !(st.acr && st.mes);
-  }
-
-  $('ambito').querySelectorAll('button').forEach((b) => (b.onclick = () => {
-    st.ambito = b.dataset.v;
-    $('ambito').querySelectorAll('button').forEach((x) => x.classList.toggle('activo', x === b));
-    if (st.acr) cargarPeriodos();
-  }));
-
-  $('ir-2').onclick = async () => { await cargarResumen(); desbloquear(2); };
 
   /* ---------- Paso 2: resumen ---------- */
   function variacion(actual, anterior, unidad) {
@@ -283,17 +643,7 @@
     $('barra-res').innerHTML = Object.keys(cuenta).map((k) => `<i style="width:${(cuenta[k] / tot) * 100}%;background:${COLOR[k]}" title="${TEXTO[k]}: ${cuenta[k]}"></i>`).join('');
     $('leyenda-res').innerHTML = Object.keys(cuenta).map((k) => `<span style="--c:${COLOR[k]}">${TEXTO[k]} <b>${cuenta[k]}</b></span>`).join('');
 
-    $('graf-anio').textContent = st.anio;
-    const porMes = Array(12).fill(0);
-    st.periodos.filter((p) => p.anio === st.anio).forEach((p) => (porMes[p.mes - 1] = p.alertas));
-    const max = Math.max(1, ...porMes);
-    $('graf-meses').innerHTML = porMes.map((n, i) => `<div data-m="${i + 1}" class="${i + 1 === st.mes ? 'sel' : ''}" title="${MESES[i]}: ${n} alertas">
-      <b>${n || ''}</b><i style="height:${(n / max) * 80}%"></i>${MESES[i].slice(0, 1)}</div>`).join('');
-    $('graf-meses').querySelectorAll('div').forEach((d) => (d.onclick = async () => {
-      const m = +d.dataset.m;
-      if (!st.periodos.some((p) => p.anio === st.anio && p.mes === m)) return;
-      st.mes = m; marcarMes(); await cargarResumen();
-    }));
+    pintarGraficoMeses();
 
     const maxC = Math.max(0.0001, ...r.porCausa.map((c) => +c.ha));
     $('tarjeta-causas').hidden = !r.porCausa.length;
@@ -732,11 +1082,10 @@
     st.cl.cola = geo.features.map((f) => f.properties)
       .sort((x, y) => (y.con_imagen - x.con_imagen) || (y.estado === 'pendiente') - (x.estado === 'pendiente') || y.superficie_ha - x.superficie_ha);
     dibujarAlertas(geo.features);
-    const lim = await api(`/territorios/${acr}/limites`);
-    capaLimites.clearLayers().addData(lim);
     st.acr = acr;
+    await cargarLimitesOficiales();
     capaLimites.setStyle(capaLimites.options.style);
-    mapa.flyToBounds(capaLimites.getBounds(), encuadre(30));
+    enfocarAcr();
     $('cl-form').hidden = true;
     renderCola();
   }
@@ -887,8 +1236,13 @@
     if (!t) return;
     await elegirRegion(t.region);
     await elegirAcr(d.acr);
+    const idx = st.eje.findIndex((p) => p.anio === d.anio && p.mes === d.mes);
+    if (idx >= 0) {
+      $('f-desde').value = String(idx);
+      $('f-hasta').value = String(idx);
+      pintarEtiquetasPeriodo();
+    }
     st.anio = d.anio; st.mes = d.mes;
-    marcarMes();
     await cargarResumen();
     desbloquear(3);
     await verAlerta(codigo);
@@ -896,13 +1250,25 @@
 
   (async function iniciar() {
     sincronizacion();
+    cargarLimitesOficiales().catch(() => {});
     try {
       st.territorios = await api('/territorios');
-      renderRegiones();
+      llenarRegiones();
       const enlace = new URLSearchParams(location.search).get('alerta');
-      if (enlace) await abrirEnlace(enlace).catch(() => toast('No se encontró la alerta del enlace'));
+      if (enlace) {
+        await abrirEnlace(enlace).catch(() => toast('No se encontró la alerta del enlace'));
+      } else if ($('f-region').options.length) {
+        const mejor = [...$('f-region').options].sort((a, b) => {
+          const n = (op) => Number(String(op.textContent).replace(/[^\d]/g, '')) || 0;
+          return n(b) - n(a);
+        })[0];
+        $('f-region').value = mejor.value;
+        await alCambiarRegion();
+        await buscar();
+      }
     } catch (e) {
-      $('regiones').innerHTML = '<p class="vacio-mini">No se pudo conectar con el servicio ATD.</p>';
+      $('f-error').hidden = false;
+      $('f-error').textContent = 'No se pudo conectar con el servicio ATD.';
     }
   })();
 })();

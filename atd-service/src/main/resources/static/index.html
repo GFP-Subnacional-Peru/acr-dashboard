@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="/visor.css">
+<link rel="stylesheet" href="/visor.css?v=20261016b">
 </head>
 <body>
 
@@ -58,21 +58,75 @@
     <div class="cuerpo">
       <!-- Paso 1 -->
       <div class="paso" data-paso="1">
-        <h2>¿Qué territorio desea consultar?</h2>
-        <p class="ayuda">Elija la región, el ámbito, el Área de Conservación Regional y el periodo.</p>
-        <label class="etq">Región</label>
-        <div class="regiones" id="regiones"></div>
-        <label class="etq">Ámbito</label>
-        <div class="segmento" id="ambito">
-          <button data-v="ambos" class="activo">ACR + ZI</button>
-          <button data-v="acr">Solo ACR</button>
-          <button data-v="zi">Solo Zona de Influencia</button>
+        <div class="mb-tabs" id="mb-tabs">
+          <button type="button" data-tab="filtros" class="activo">Filtros</button>
+          <button type="button" data-tab="capas">Capas</button>
         </div>
-        <label class="etq">Área de Conservación Regional</label>
-        <div class="acrs" id="acrs"><p class="vacio-mini">Seleccione primero una región</p></div>
-        <label class="etq">Periodo <small>(mes de la imagen satelital)</small></label>
-        <div class="meses" id="meses"><p class="vacio-mini">Seleccione un ACR</p></div>
-        <button class="btn-pri" id="ir-2" disabled>Ver resumen <i class="fas fa-arrow-right"></i></button>
+        <div id="mb-filtros">
+          <div class="mb-modo" id="mb-modo">
+            <button type="button" data-v="simple" class="activo">Simples</button>
+            <button type="button" data-v="detallado">Detallado</button>
+          </div>
+          <div class="mb-radios">
+            <label><input type="radio" name="f-por" value="codigo" checked> Cód. de la alerta</label>
+            <label><input type="radio" name="f-por" value="territorio"> Territorio</label>
+          </div>
+          <div class="mb-busca">
+            <input id="f-texto" type="search" placeholder="LOR-2026-0205" autocomplete="off">
+            <button type="button" id="f-lupa" title="Buscar"><i class="fas fa-magnifying-glass"></i></button>
+          </div>
+          <label class="etq">Periodo <small>(mes de la imagen satelital)</small></label>
+          <div class="mb-rango-etiq"><span id="f-desde-lbl">01/2026</span><span id="f-hasta-lbl">10/2026</span></div>
+          <div class="mb-slider" id="f-slider-periodo">
+            <input type="range" id="f-desde" min="0" max="9" value="0" aria-label="Mes inicial">
+            <input type="range" id="f-hasta" min="0" max="9" value="9" aria-label="Mes final">
+          </div>
+          <div id="mb-det" hidden>
+            <label class="etq">Tamaño de la alerta (ha)</label>
+            <div class="mb-rango-etiq"><span id="f-ha-min-lbl">0</span><span id="f-ha-max-lbl">500</span></div>
+            <div class="mb-slider">
+              <input type="range" id="f-ha-min" min="0" max="500" value="0" step="0.5" aria-label="Hectáreas mínimas">
+              <input type="range" id="f-ha-max" min="0" max="500" value="500" step="0.5" aria-label="Hectáreas máximas">
+            </div>
+            <label class="etq">Resultado</label>
+            <select id="f-resultado" class="mb-sel">
+              <option value="todas">Todas</option>
+              <option value="antropica">Pérdida antrópica</option>
+              <option value="natural">Cambio natural</option>
+              <option value="falsa">Falsa alerta</option>
+              <option value="pendiente">Pendiente</option>
+            </select>
+          </div>
+          <label class="etq">Región</label>
+          <select id="f-region" class="mb-sel" aria-label="Región"></select>
+          <label class="etq">Ámbito</label>
+          <select id="f-ambito" class="mb-sel" aria-label="Ámbito">
+            <option value="ambos">ACR + zona de influencia</option>
+            <option value="acr">Solo ACR</option>
+            <option value="zi">Solo zona de influencia</option>
+          </select>
+          <label class="etq">Área de Conservación Regional</label>
+          <select id="f-acr" class="mb-sel" aria-label="ACR"></select>
+          <p class="vacio-mini" id="f-error" hidden></p>
+          <div class="mb-acciones">
+            <button class="btn-sec" id="f-reset" type="button">RESETAR</button>
+            <button class="btn-pri" id="ir-2" type="button">BUSCAR</button>
+          </div>
+        </div>
+        <div id="mb-capas" hidden>
+          <p class="ayuda">La capa de GeoBosques muestra el año en curso, en vivo. Las alertas del sistema son las que ya ingresaron a la bandeja y tienen evidencia y reporte.</p>
+          <label class="mb-check"><input type="checkbox" id="f-c-alertas" checked> Alertas del sistema</label>
+          <label class="mb-check"><input type="checkbox" id="f-c-geob" checked> ATD GeoBosques 2026 <small>(oficial, en vivo)</small></label>
+          <label class="mb-check"><input type="checkbox" id="f-c-limites" checked> Límites ACR / ZI</label>
+          <label class="etq">Mapa base</label>
+          <select id="f-base" class="mb-sel">
+            <option value="esri">Imagen satelital</option>
+            <option value="s2026">Sentinel-2 2026</option>
+            <option value="s2">Sentinel-2 sin nubes 2024</option>
+            <option value="topo">Topográfico</option>
+            <option value="gris">Gris</option>
+          </select>
+        </div>
       </div>
 
       <!-- Paso 2 -->
@@ -218,7 +272,7 @@
   <div class="capas-cuerpo oculto" id="capas-cuerpo">
     <h4>Capas</h4>
     <label><input type="checkbox" id="c-alertas" checked> <i class="sw sw-alerta"></i> Alertas del sistema</label>
-    <label><input type="checkbox" id="c-geob"> <i class="sw sw-geob"></i> ATD GeoBosques 2026 <small>(oficial, en vivo)</small></label>
+    <label><input type="checkbox" id="c-geob" checked> <i class="sw sw-geob"></i> ATD GeoBosques 2026 <small>(oficial, en vivo)</small></label>
     <label><input type="checkbox" id="c-limites" checked> <i class="sw sw-lim"></i> Límites ACR / ZI</label>
     <h4>Mapa base</h4>
     <label><input type="radio" name="base" value="esri" checked> Imagen satelital</label>
@@ -239,8 +293,8 @@
   <div><i class="punto" style="background:#fb8c00"></i>Centro de esa misma alerta</div>
   <div><i class="borde" style="border-color:#2ecc40"></i>ACR</div>
   <div><i class="borde" style="border-color:#b0b6ba"></i>Zona de Influencia</div>
-  <div class="ley-geob" hidden><i style="background:#ff00c5"></i>GeoBosques · última semana</div>
-  <div class="ley-geob" hidden><i style="background:#0066ff"></i>GeoBosques · acumulado 2026</div>
+  <div class="ley-geob"><i style="background:#ff00c5"></i>GeoBosques · última semana</div>
+  <div class="ley-geob"><i style="background:#0066ff"></i>GeoBosques · acumulado 2026</div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -262,6 +316,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
-<script src="/visor.js"></script>
+<script src="/visor.js?v=20261016d"></script>
 </body>
 </html>
