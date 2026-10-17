@@ -16,6 +16,10 @@ gdb_de() {
   local region=$1 dir=/gdb
   if [ "$region" = Loreto ] && ls -d /gdb_loreto/Linea_base_deforestaci*_Loreto.gdb >/dev/null 2>&1; then
     dir=/gdb_loreto
+  elif [ "$region" = San_Martin ] && ls -d /gdb_san_martin/Linea_base_deforestaci*_San_Martin.gdb >/dev/null 2>&1; then
+    dir=/gdb_san_martin
+  elif [ "$region" = Cuzco ] && ls -d /gdb_cusco/Linea_base_deforestaci*_Cuzco.gdb >/dev/null 2>&1; then
+    dir=/gdb_cusco
   fi
   ls -d "$dir"/Linea_base_deforestaci*_"${region}".gdb
 }

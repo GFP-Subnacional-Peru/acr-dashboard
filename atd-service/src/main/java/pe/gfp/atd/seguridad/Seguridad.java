@@ -52,6 +52,7 @@ public class Seguridad {
         http
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/login.html", "/login.css", "/img/**", "/docs/**", "/error", "/api/atd/salud").permitAll()
+                .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/atd/alertas/*/geometria").hasRole("EDITOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/atd/alertas/*/geometria").hasRole("EDITOR")
                 .anyRequest().authenticated())
@@ -64,11 +65,11 @@ public class Seguridad {
                 })
                 .failureHandler((req, res, e) -> {
                     intentos.fallo(req.getRemoteAddr(), req.getParameter("username"));
-                    res.sendRedirect("/login.html?error");
+                    res.sendRedirect("/?entrar=error");
                 }))
             .logout(l -> l
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login.html?salir")
+                .logoutSuccessUrl("/")
                 .deleteCookies("ATD_SESION"))
             .csrf(c -> c
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())

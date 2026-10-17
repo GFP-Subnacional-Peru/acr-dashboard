@@ -292,7 +292,9 @@ body.sin-panel #mapa { left: 72px; }
 .leaflet-tooltip { font: 600 12px Inter, sans-serif; border-radius: 8px; }
 
 .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 3000; background: var(--texto); color: #fff; padding: 11px 18px; border-radius: 12px; font-size: 13px; box-shadow: var(--sombra); }
-dialog { border: 0; border-radius: 18px; padding: 22px 24px; max-width: 460px; box-shadow: var(--sombra); font-size: 13.5px; line-height: 1.5; }
+dialog form .mb-sel { margin-bottom: 8px; }
+dialog .fila-btn { margin-top: 8px; }
+#entrar-aviso { color: #b71c1c; font-weight: 600; }
 dialog::backdrop { background: rgba(15,30,18,.45); backdrop-filter: blur(2px); }
 dialog h3 { margin-top: 0; }
 

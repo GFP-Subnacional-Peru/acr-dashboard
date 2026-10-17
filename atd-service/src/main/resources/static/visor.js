@@ -13,7 +13,13 @@
   const fecha = (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '–');
   const clase = (p) => (p.estado === 'pendiente' ? 'pendiente' : p.resultado || 'pendiente');
 
-  const irAlLogin = () => location.assign('/login.html');
+  const irAlLogin = () => {
+    const d = document.getElementById('dlg-entrar');
+    if (!d) { location.assign('/login.html'); return; }
+    const csrf = document.getElementById('entrar-csrf');
+    if (csrf) csrf.value = tokenCsrf();
+    if (!d.open) d.showModal();
+  };
   const tokenCsrf = () => decodeURIComponent((document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN=')) || '').slice(11));
 
   async function api(ruta, fresco = false) {
@@ -98,14 +104,17 @@
 
   const capaAlertas = L.featureGroup().addTo(mapa);
   const capaPuntos = L.featureGroup().addTo(mapa);
+  const capaPropuesta = L.geoJSON(null, {
+    interactive: false,
+    style: { color: '#00e5ff', weight: 2.6, fillOpacity: 0 },
+  }).addTo(mapa);
   const marcas = new Map();
 
   function estiloAlerta(p, sel) {
     return {
-      color: sel ? '#ffffff' : '#9f1d1d',
-      weight: sel ? 2.4 : 1,
-      fillColor: '#e53935',
-      fillOpacity: sel ? 0.9 : 0.78,
+      color: sel ? '#ffffff' : '#e53935',
+      weight: sel ? 3.2 : 2.2,
+      fillOpacity: 0,
     };
   }
 
@@ -152,6 +161,11 @@
     const ver = mapa.getZoom() >= 15 && $('c-alertas').checked;
     if (ver && !mapa.hasLayer(capaPuntos)) mapa.addLayer(capaPuntos);
     if (!ver && mapa.hasLayer(capaPuntos)) mapa.removeLayer(capaPuntos);
+    const prop = $('c-propuesta');
+    const verProp = mapa.getZoom() >= 13 && (!prop || prop.checked);
+    if (verProp && !mapa.hasLayer(capaPropuesta)) mapa.addLayer(capaPropuesta);
+    if (!verProp && mapa.hasLayer(capaPropuesta)) mapa.removeLayer(capaPropuesta);
+    if (verProp) capaPropuesta.bringToFront();
   }
   mapa.on('zoomend', ajustarPuntos);
 
@@ -167,6 +181,18 @@
     const loreto = new Set(['ACR_AA', 'ZI_AA', 'ACR_ANPCH', 'ZI_ANPCH', 'ACR_CTT', 'ZI_CTT', 'ACR_MK', 'ZI_MK']);
     const foco = capaLimites.getLayers().filter((l) => loreto.has(l.feature.properties.codigo));
     if (!st.region && foco.length) mapa.fitBounds(L.featureGroup(foco).getBounds(), encuadre(40));
+  }
+
+  function cargarPropuesta() {
+    return fetch('/limites/propuesta_loreto.geojson')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((gj) => {
+        if (!gj) return;
+        capaPropuesta.addData(gj);
+        capaPropuesta.eachLayer((l) => l.bindTooltip(`${l.feature.properties.codigo} · contorno automático`, { sticky: true }));
+        ajustarPuntos();
+      })
+      .catch(() => {});
   }
 
   async function cargarLimitesRegion(region) {
@@ -195,6 +221,7 @@
   };
   if ($('c-geob').checked) geobosques.addTo(mapa);
   $('c-limites').onchange = (e) => (e.target.checked ? mapa.addLayer(capaLimites) : mapa.removeLayer(capaLimites));
+  if ($('c-propuesta')) $('c-propuesta').onchange = () => ajustarPuntos();
   document.querySelectorAll('input[name=base]').forEach((r) => (r.onchange = () => {
     mapa.removeLayer(base);
     base = bases[r.value].addTo(mapa);
@@ -815,7 +842,7 @@
     $('ev-chip').style.setProperty('--c', COLOR[c]);
     comparador($('ev-comparador'), escenas, det.geometry, codigo);
     $('ev-escena').hidden = !escenas.some((e) => e.recorte);
-    verEscena('');
+    verEscena(escenas.some((e) => e.momento === 'despues' && e.recorte) ? 'despues' : '');
     $('ev-editar').hidden = !ed.habilitada;
     $('ev-ficha').innerHTML = ficha(d, escenas);
     const concl = d.conclusion || (d.estado === 'pendiente' ? 'Alerta pendiente de validación técnica: aún no tiene clasificación ni causal definitiva.' : null);
@@ -848,14 +875,24 @@
   /* ---------- Edición del polígono ---------- */
   const ed = { habilitada: false, capa: null, codigo: null, herr: 'vertices' };
   api('/sesion', true).then((s) => {
-    ed.habilitada = !!s.editor;
-    $('usr-inicial').textContent = s.usuario.charAt(0);
-    $('usr-nombre').textContent = s.usuario;
-    $('rail-usuario').title = `${s.usuario} · ${s.editor ? 'editor' : 'consulta'}`;
-    $('rail-usuario').hidden = false;
-    document.querySelector('.rail-btn[data-modo="clasificar"]').hidden = !s.editor;
+    const editor = !!s.editor && !!s.ingresado;
+    ed.habilitada = editor;
+    document.querySelector('.rail-btn[data-modo="clasificar"]').hidden = !editor;
+    $('btn-entrar').hidden = !!s.ingresado;
+    $('rail-usuario').hidden = !s.ingresado;
+    if (s.ingresado) {
+      $('usr-inicial').textContent = (s.usuario || '?').charAt(0);
+      $('usr-nombre').textContent = s.usuario;
+      $('rail-usuario').title = `${s.usuario} · ${editor ? 'editor' : 'consulta'}`;
+    }
     if (st.alerta && $('ed-panel').hidden) $('ev-editar').hidden = !ed.habilitada;
   }).catch(() => {});
+  $('btn-entrar').onclick = () => irAlLogin();
+  $('entrar-cancelar').onclick = () => $('dlg-entrar').close();
+  if (new URLSearchParams(location.search).has('entrar')) {
+    $('entrar-aviso').hidden = false;
+    irAlLogin();
+  }
   $('form-salir').onsubmit = () => { $('salir-csrf').value = tokenCsrf(); };
 
   function anilloHa(anillo) {
@@ -948,8 +985,7 @@
       headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': tokenCsrf() },
       body: geometria ? JSON.stringify(geometria) : undefined,
     });
-    if (r.status === 401) { irAlLogin(); throw new Error('Sesión vencida'); }
-    if (r.status === 403) throw new Error('Su usuario no tiene permiso para editar polígonos');
+    if (r.status === 401 || r.status === 403) { irAlLogin(); throw new Error('Ingresa para editar'); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || 'No se pudo guardar el polígono');
     return j;
@@ -1257,6 +1293,7 @@
   (async function iniciar() {
     sincronizacion();
     cargarLimitesOficiales().catch(() => {});
+    cargarPropuesta();
     try {
       st.territorios = await api('/territorios');
       llenarRegiones();

@@ -15,6 +15,19 @@ if (Test-Path $GdbLoretoDir) {
     $env:ATD_GDB_LORETO_DIR = (Resolve-Path $GdbLoretoDir).Path
     Write-Host "Loreto desde: $env:ATD_GDB_LORETO_DIR" -ForegroundColor DarkCyan
 }
+# San Martín y Cusco salen de la GDB completa de cada región, no del informe preliminar.
+$salidas = Split-Path (Split-Path $GdbLoretoDir -Parent) -Parent
+$GdbSanMartinDir = Join-Path $salidas 'ATD_San_Martin\GDB'
+$GdbCuscoDir = Join-Path $salidas 'ATD_Cuzco\GDB'
+$montajes = @()
+function Add-Montaje([string]$hostDir, [string]$destino) {
+    if (-not (Test-Path $hostDir)) { return }
+    $h = ((Resolve-Path $hostDir).Path -replace '\\', '/')
+    $script:montajes += "${h}:${destino}:ro"
+    Write-Host "$destino desde: $h" -ForegroundColor DarkCyan
+}
+Add-Montaje $GdbSanMartinDir '/gdb_san_martin'
+Add-Montaje $GdbCuscoDir '/gdb_cusco'
 
 Write-Host "1/4 Levantando base y API (Flyway crea las tablas)..." -ForegroundColor Cyan
 docker compose up -d --build db api
@@ -28,7 +41,10 @@ for ($i = 0; $i -lt 60; $i++) {
 if (-not $ok) { docker compose logs --tail 40 api; throw "La API no respondió" }
 
 Write-Host "3/4 Copiando capas de las GDB a staging (GDAL)..." -ForegroundColor Cyan
-docker compose run --rm gdal sh -c "tr -d '\r' < /carga/cargar_staging.sh > /tmp/c.sh && bash /tmp/c.sh"
+$run = @('compose', 'run', '--rm')
+foreach ($m in $montajes) { $run += @('-v', $m) }
+$run += @('gdal', 'sh', '-c', "tr -d '\r' < /carga/cargar_staging.sh > /tmp/c.sh && bash /tmp/c.sh")
+& docker @run
 if ($LASTEXITCODE -ne 0) { throw "La copia a staging falló" }
 
 Write-Host "4/4 Normalizando hacia las tablas ATD..." -ForegroundColor Cyan
