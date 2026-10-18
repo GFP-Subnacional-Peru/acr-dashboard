@@ -3,6 +3,7 @@ package pe.gfp.atd.evidencia;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -66,5 +67,62 @@ public class EvidenciaRepository {
                  WHERE a.codigo = ? AND v.tipo = ? AND v.contenido IS NOT NULL
                 """, (rs, i) -> new Imagen(rs.getBytes(1), rs.getString(2)), codigoAlerta, "chip_" + momento);
         return filas.stream().findFirst();
+    }
+
+    public record Foto(long id, String nota, String tomada) {}
+
+    public List<Foto> fotos(String codigoAlerta) {
+        return jdbc.query("""
+                SELECT v.id, v.descripcion, to_char(v.creado_en, 'DD/MM/YYYY HH24:MI') AS tomada
+                  FROM evidencia v
+                  JOIN alerta a ON a.id = v.alerta_id
+                 WHERE a.codigo = ? AND v.tipo = 'foto_campo'
+                 ORDER BY v.creado_en
+                """, (rs, i) -> new Foto(rs.getLong("id"), rs.getString("descripcion"), rs.getString("tomada")),
+                codigoAlerta);
+    }
+
+    public int contarFotos(String codigoAlerta) {
+        Integer n = jdbc.queryForObject("""
+                SELECT count(*) FROM evidencia v
+                  JOIN alerta a ON a.id = v.alerta_id
+                 WHERE a.codigo = ? AND v.tipo = 'foto_campo'
+                """, Integer.class, codigoAlerta);
+        return n == null ? 0 : n;
+    }
+
+    public long guardarFoto(String codigoAlerta, byte[] datos, String mime, String nota) {
+        final Long alertaId;
+        try {
+            alertaId = jdbc.queryForObject("SELECT id FROM alerta WHERE codigo = ?", Long.class, codigoAlerta);
+        } catch (EmptyResultDataAccessException e) {
+            throw new pe.gfp.atd.config.NoEncontradoException("Alerta no encontrada");
+        }
+        Long id = jdbc.queryForObject("""
+                INSERT INTO evidencia (alerta_id, tipo, ruta, descripcion, contenido, mime)
+                VALUES (?, 'foto_campo', NULL, ?, ?, ?)
+                RETURNING id
+                """, Long.class, alertaId, nota, datos, mime);
+        if (id == null) {
+            throw new pe.gfp.atd.config.NoEncontradoException("Alerta no encontrada");
+        }
+        return id;
+    }
+
+    public Optional<Imagen> foto(String codigoAlerta, long id) {
+        List<Imagen> filas = jdbc.query("""
+                SELECT v.contenido, v.mime
+                  FROM evidencia v
+                  JOIN alerta a ON a.id = v.alerta_id
+                 WHERE a.codigo = ? AND v.id = ? AND v.tipo = 'foto_campo' AND v.contenido IS NOT NULL
+                """, (rs, i) -> new Imagen(rs.getBytes(1), rs.getString(2)), codigoAlerta, id);
+        return filas.stream().findFirst();
+    }
+
+    public boolean borrarFoto(String codigoAlerta, long id) {
+        return jdbc.update("""
+                DELETE FROM evidencia v USING alerta a
+                 WHERE v.alerta_id = a.id AND a.codigo = ? AND v.id = ? AND v.tipo = 'foto_campo'
+                """, codigoAlerta, id) > 0;
     }
 }

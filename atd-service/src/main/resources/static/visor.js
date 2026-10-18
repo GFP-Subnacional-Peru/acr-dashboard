@@ -703,7 +703,7 @@
       const mini = p.con_imagen ? `style="background-image:url('${API}/alertas/${p.codigo}/imagen/despues.png')"` : '';
       return `<button class="item ${st.alerta === p.codigo ? 'sel' : ''}" data-c="${esc(p.codigo)}">
         <span class="miniatura" ${mini}>${p.con_imagen ? '' : '<i class="fas fa-satellite"></i>'}</span>
-        <span><strong>${esc(p.codigo)}</strong><small>${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'ACR'}${p.causa ? ' · ' + esc(p.causa) : ''}</small>
+        <span><strong>${esc(p.codigo)}</strong><small>${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'ACR'}${p.causa ? ' · ' + esc(p.causa) : ''}${p.con_foto ? ' · foto de campo' : ''}</small>
         <span class="chip" style="--c:${COLOR[c]};margin-top:5px">${TEXTO[c]}</span></span>
         <span class="ha">${num(p.superficie_ha)}<small>ha</small></span></button>`;
     }).join('') : '<div class="vacio"><i class="fas fa-leaf"></i>Sin alertas con este filtro</div>';
@@ -845,6 +845,7 @@
     verEscena(escenas.some((e) => e.momento === 'despues' && e.recorte) ? 'despues' : '');
     $('ev-editar').hidden = !ed.habilitada;
     $('ev-ficha').innerHTML = ficha(d, escenas);
+    cargarFotos(codigo);
     const concl = d.conclusion || (d.estado === 'pendiente' ? 'Alerta pendiente de validación técnica: aún no tiene clasificación ni causal definitiva.' : null);
     $('ev-conclusion').hidden = !concl;
     $('ev-conclusion').textContent = concl || '';
@@ -886,7 +887,71 @@
       $('rail-usuario').title = `${s.usuario} · ${editor ? 'editor' : 'consulta'}`;
     }
     if (st.alerta && $('ed-panel').hidden) $('ev-editar').hidden = !ed.habilitada;
+    if (st.alerta) cargarFotos(st.alerta);
   }).catch(() => {});
+
+  async function cargarFotos(codigo) {
+    let fotos = [];
+    try { fotos = await api(`/alertas/${codigo}/foto`, true); } catch { fotos = []; }
+    const box = $('ev-fotos');
+    box.innerHTML = fotos.length ? fotos.map((f) => `
+      <figure>
+        <img src="${f.url}" alt="Foto de campo de ${esc(codigo)}">
+        <figcaption>${esc(f.nota || 'Foto de patrulla')}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption>
+        ${ed.habilitada ? `<button type="button" class="btn-sec foto-borrar" data-id="${f.id}">Quitar</button>` : ''}
+      </figure>`).join('') : '<p class="ayuda">Todavía no hay foto de campo en esta alerta.</p>';
+    box.querySelectorAll('.foto-borrar').forEach((b) => {
+      b.onclick = async () => {
+        const r = await fetch(`${API}/alertas/${codigo}/foto/${b.dataset.id}`, {
+          method: 'DELETE',
+          headers: { 'X-XSRF-TOKEN': tokenCsrf() },
+        });
+        if (r.status === 401 || r.status === 403) { irAlLogin(); return; }
+        if (!r.ok) { toast('No se pudo quitar la foto'); return; }
+        cargarFotos(codigo);
+      };
+    });
+    $('form-foto').hidden = !ed.habilitada || fotos.length >= 6;
+    $('foto-entrar').hidden = ed.habilitada;
+    let celda = document.getElementById('ev-ficha-foto');
+    if (!celda && $('ev-ficha').children.length) {
+      $('ev-ficha').insertAdjacentHTML('beforeend', '<div id="ev-ficha-foto"><span>Validación de campo</span><b></b></div>');
+      celda = document.getElementById('ev-ficha-foto');
+    }
+    if (celda) celda.querySelector('b').textContent = fotos.length
+      ? `${fotos.length} foto${fotos.length === 1 ? '' : 's'} de patrulla`
+      : 'Sin foto de patrulla';
+    marcarFoto(codigo, fotos.length > 0);
+  }
+
+  function marcarFoto(codigo, tiene) {
+    const f = (st.geo?.features || []).find((x) => x.properties.codigo === codigo);
+    if (!f || !!f.properties.con_foto === tiene) return;
+    f.properties.con_foto = tiene;
+    renderLista();
+  }
+
+  $('form-foto').onsubmit = async (e) => {
+    e.preventDefault();
+    const archivo = $('foto-archivo').files[0];
+    if (!archivo || !st.alerta) return;
+    const fd = new FormData();
+    fd.append('foto', archivo);
+    fd.append('nota', $('foto-nota').value.trim());
+    const r = await fetch(`${API}/alertas/${st.alerta}/foto`, {
+      method: 'POST',
+      headers: { 'X-XSRF-TOKEN': tokenCsrf() },
+      body: fd,
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401 || r.status === 403) { irAlLogin(); return; }
+    if (!r.ok) { toast(j.error || 'No se pudo subir la foto'); return; }
+    $('foto-archivo').value = '';
+    $('foto-nota').value = '';
+    toast('Foto de campo guardada en la alerta');
+    marcarFoto(st.alerta, true);
+    cargarFotos(st.alerta);
+  };
   $('btn-entrar').onclick = () => irAlLogin();
   $('entrar-cancelar').onclick = () => $('dlg-entrar').close();
   if (new URLSearchParams(location.search).has('entrar')) {

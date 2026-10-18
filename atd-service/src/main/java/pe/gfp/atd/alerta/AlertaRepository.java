@@ -67,6 +67,8 @@ public class AlertaRepository {
                 'sector', a.sector,
                 'con_imagen', EXISTS (SELECT 1 FROM evidencia v
                                        WHERE v.alerta_id = a.id AND v.tipo = 'chip_despues'),
+                'con_foto', EXISTS (SELECT 1 FROM evidencia vf
+                                     WHERE vf.alerta_id = a.id AND vf.tipo = 'foto_campo'),
                 'lon', round(ST_X(a.centroide)::numeric, 6),
                 'lat', round(ST_Y(a.centroide)::numeric, 6))
             """;
