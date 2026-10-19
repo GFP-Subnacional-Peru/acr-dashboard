@@ -545,6 +545,24 @@ html[data-boot-tab="tendencias"] .nav-tabs button[data-tab="tendencias"] {
   flex: 0 0 auto;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
 }
+.map-legend-dot--acuerdo { background: #f59e0b; box-shadow: inset 0 0 0 2px #9a3412; }
+.map-acuerdo-pin { background: none; border: 0; }
+.map-acuerdo-pin span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 108px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #9a3412;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 8px rgba(60, 20, 0, 0.35);
+  white-space: nowrap;
+}
 .map-legend-dot--acr { background: #2E7D32; }
 .map-legend-dot--zi { background: #616161; }
 .map-legend-dot--limites { background: #E30613; }
@@ -3286,7 +3304,23 @@ body.kpi-modal-open { overflow: hidden; }
 }
 .map-feature-badge--ant { background: #fef2f2; color: #9a3412; }
 .map-feature-badge--nat { background: #ecfdf5; color: #0f766e; }
+.map-feature-badge--acuerdo { background: #fff7ed; color: #9a3412; }
 .map-feature-badge--acr { background: #ecfdf5; color: #166534; }
+.map-feature-metric--acuerdo strong { color: #9a3412; }
+.map-feature-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0.15rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: #9a3412;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.map-feature-pdf:hover { background: #7c2d12; color: #fff; }
 .map-feature-badge--zi { background: #f1f5f9; color: #475569; }
 .map-feature-note {
   margin: 0.35rem 0 0;

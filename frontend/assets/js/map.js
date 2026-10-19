@@ -4,7 +4,8 @@ const AcrMap = (() => {
   let defoAnt = null;
   let defoNat = null;
   let clusterGroup = null;
-  const layerRefs = { acr: null, zi: null, limites: null };
+  const layerRefs = { acr: null, zi: null, limites: null, acuerdos: null };
+  let acuerdosGeo = null;
 
   const TIPO_COLORS = {
     Antropogenico: "#9a3412",
@@ -64,6 +65,10 @@ const AcrMap = (() => {
     if (!map.getPane("centroidsPane")) {
       map.createPane("centroidsPane");
       map.getPane("centroidsPane").style.zIndex = 470;
+    }
+    if (!map.getPane("acuerdoPane")) {
+      map.createPane("acuerdoPane");
+      map.getPane("acuerdoPane").style.zIndex = 490;
     }
 
     const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -375,6 +380,83 @@ const AcrMap = (() => {
     });
   }
 
+  const ACUERDO_STYLE = {
+    color: "#b45309",
+    weight: 2.6,
+    opacity: 1,
+    fillColor: "#f59e0b",
+    fillOpacity: 0.34,
+  };
+
+  function showAcuerdoPanel(p, layer) {
+    selectLayer(layer, { ...ACUERDO_STYLE, color: "#ffffff", weight: 3.2, fillOpacity: 0.48 });
+    const pdf = p.pdf
+      ? `<a class="map-feature-pdf" href="${escHtml(p.pdf)}" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Ver el acuerdo</a>`
+      : "";
+    openFeaturePanel({
+      eyebrow: "Acuerdo de conservación",
+      title: p.nombre || p.numero || "Acuerdo",
+      badgeHtml: `<span class="map-feature-badge map-feature-badge--acuerdo">Acuerdo</span>`,
+      bodyHtml: `
+        <div class="map-feature-section">
+          <div class="map-feature-section-title">Ámbito</div>
+          <div class="map-feature-metrics">
+            <div class="map-feature-metric map-feature-metric--acuerdo">
+              <strong>${fmtHa(p.area_ha, 0)} ha</strong>
+              <span>En el mapa</span>
+            </div>
+            <div class="map-feature-metric">
+              <strong>${fmtHa(p.ambito_ha, 0)} ha</strong>
+              <span>En el acuerdo</span>
+            </div>
+          </div>
+        </div>
+        <div class="map-feature-section">
+          <div class="map-feature-section-title">Identificación</div>
+          <div class="map-feature-grid">
+            ${fieldHtml("file-signature", "Número", escHtml(p.numero), true)}
+            ${fieldHtml("tree", "ACR", escHtml(p.acr))}
+            ${fieldHtml("users", "Suscriptor", escHtml(p.suscriptor), true)}
+            ${fieldHtml("home", "Centro poblado", escHtml(p.centro_poblado))}
+            ${fieldHtml("map-pin", "Sector", escHtml(p.sector))}
+            ${fieldHtml("map-marker-alt", "Distrito", escHtml(p.distrito))}
+            ${fieldHtml("location-arrow", "Provincia", escHtml(p.provincia))}
+            ${fieldHtml("flag", "Región", escHtml(p.region))}
+          </div>
+        </div>
+        <p class="map-feature-note">${escHtml(p.objeto || "")}</p>
+        ${pdf}
+        <p class="map-feature-foot">El polígono es el ámbito del acuerdo. No es una alerta de deforestación.</p>`,
+    });
+  }
+
+  function enfocarAcuerdo() {
+    if (!map || !layerRefs.acuerdos) return;
+    const acrs = window.state?.acrs || [];
+    if (acrs.length !== 1 || String(acrs[0]).toUpperCase() !== "ACR_CHU") return;
+    try {
+      const b = layerRefs.acuerdos.getBounds();
+      if (!b || !b.isValid()) return;
+      map.fitBounds(b, { padding: [72, 72], maxZoom: 14, animate: false });
+    } catch (_) {}
+  }
+
+  function acuerdoVisible(state) {
+    if (!state) return true;
+    if (state.departamento && state.departamento !== "todos" && state.departamento !== "cusco") return false;
+    if (state.ambito === "zi") return false;
+    if (state.acrs && state.acrs.length && !state.acrs.includes("ACR_CHU")) return false;
+    return true;
+  }
+
+  async function cargarAcuerdos() {
+    if (acuerdosGeo) return acuerdosGeo;
+    const r = await fetch("/assets/data/acuerdos_conservacion.geojson");
+    if (!r.ok) return null;
+    acuerdosGeo = await r.json();
+    return acuerdosGeo;
+  }
+
   function showCentroidPanel(p, layer) {
     const zona = String(p.codigo || "").replace(/^(ACR_|ZI_)/, "") || "—";
     const ambitoLabel = p.tipo === "acr" ? "ACR" : "ZI";
@@ -437,7 +519,7 @@ const AcrMap = (() => {
     Object.values(layerRefs).forEach((l) => {
       if (l) map.removeLayer(l);
     });
-    layerRefs.acr = layerRefs.zi = layerRefs.limites = null;
+    layerRefs.acr = layerRefs.zi = layerRefs.limites = layerRefs.acuerdos = null;
     [defoAnt, defoNat].forEach((l) => {
       if (!l) return;
       l.clearLayers();
@@ -478,6 +560,14 @@ const AcrMap = (() => {
         label: "Límites departamentales",
         layer: layerRefs.limites,
         swatch: "map-legend-dot--limites",
+        defaultOn: true,
+      });
+    }
+    if (layerRefs.acuerdos) {
+      items.push({
+        label: "Acuerdo de conservación",
+        layer: layerRefs.acuerdos,
+        swatch: "map-legend-dot--acuerdo",
         defaultOn: true,
       });
     }
@@ -883,6 +973,56 @@ const AcrMap = (() => {
         try {
           map.fitBounds(layerRefs.acr.getBounds(), { padding: [30, 30], maxZoom: 9 });
         } catch (_) {}
+      }
+    }
+
+    if (acuerdoVisible(state)) {
+      try {
+        const geo = await cargarAcuerdos();
+        if (token === map._refreshToken && geo) {
+          layerRefs.acuerdos = L.geoJSON(geo, {
+            pane: "acuerdoPane",
+            style: () => ACUERDO_STYLE,
+            onEachFeature: (feature, layer) => {
+              const p = feature.properties || {};
+              layer.bindTooltip(p.nombre || "Acuerdo de conservación", { sticky: true, className: "map-tip-acuerdo" });
+              layer.on("click", (e) => {
+                L.DomEvent.stopPropagation(e);
+                showAcuerdoPanel(p, layer);
+              });
+            },
+          });
+          layerRefs.acuerdos.addTo(map);
+          layerRefs.acuerdos.eachLayer((layer) => {
+            const p = layer.feature?.properties || {};
+            if (!layer.getBounds) return;
+            const center = layer.getBounds().getCenter();
+            const pin = L.marker(center, {
+              keyboard: false,
+              zIndexOffset: 600,
+              icon: L.divIcon({
+                className: "map-acuerdo-pin",
+                html: `<span>${escHtml(p.nombre || "Acuerdo")}</span>`,
+                iconSize: [118, 28],
+                iconAnchor: [59, 14],
+              }),
+            });
+            pin.on("click", (e) => {
+              L.DomEvent.stopPropagation(e);
+              showAcuerdoPanel(p, layer);
+            });
+            pin.addTo(map);
+            layer._acuerdoPin = pin;
+            layer.on("remove", () => {
+              try { map.removeLayer(pin); } catch (_) {}
+            });
+          });
+          enfocarAcuerdo();
+          window.setTimeout(enfocarAcuerdo, 350);
+          window.setTimeout(enfocarAcuerdo, 900);
+        }
+      } catch (err) {
+        console.warn("Acuerdos de conservación:", err);
       }
     }
 
