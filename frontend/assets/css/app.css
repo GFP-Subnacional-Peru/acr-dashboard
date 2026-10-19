@@ -3415,6 +3415,30 @@ body.kpi-modal-open { overflow: hidden; }
   .acuerdos-map { height: 420px; }
 }
 
+.acuerdos-contexto {
+  max-width: 1208px;
+  width: calc(100% - 2rem);
+  margin: 0 auto 1rem;
+  padding: 1.15rem 1.35rem 1.2rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #b45309;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+.acuerdos-contexto-lead {
+  margin: 0 0 0.55rem;
+  color: #0a1f4d;
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+.acuerdos-contexto p:last-child {
+  margin: 0;
+  color: #334155;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
 .acuerdos-wrap {
   max-width: 1240px;
   margin: 0 auto 2rem;
