@@ -59,6 +59,11 @@ atd:
     editor:
       usuario: ${ATD_USUARIO_EDITOR:editor1}
       clave: ${ATD_CLAVE_EDITOR:}
+  # Drive empresarial (unidad compartida). Vacío = las fotos siguen en la base.
+  drive:
+    carpeta: ${ATD_DRIVE_CARPETA:}
+    credenciales: ${ATD_DRIVE_CREDENCIALES:}
+    refresh: ${ATD_DRIVE_REFRESH_TOKEN:}
 
 logging:
   level:

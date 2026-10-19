@@ -47,9 +47,12 @@ defor_acr_zi/
 rsconnect/
 deploy.R
 
-# Entorno
+# Entorno y clave de Google Drive (nunca al repositorio)
 .env
 .env.*
+atd-service/drive-sa.json
+atd-service/drive-oauth.json
+client_secret*.json
 
 # Mantener obligatorio para la web
 !data/cache/

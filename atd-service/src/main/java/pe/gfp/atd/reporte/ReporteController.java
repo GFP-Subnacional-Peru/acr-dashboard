@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import pe.gfp.atd.drive.DriveAlmacen;
 
 @RestController
 @RequestMapping("/api/atd/alertas/{codigo}")
@@ -18,9 +19,11 @@ public class ReporteController {
     private static final Pattern PATRON_CODIGO = Pattern.compile("[A-Z]{3}-\\d{4}-\\d{4,6}");
 
     private final ReportePdf reporte;
+    private final DriveAlmacen drive;
 
-    public ReporteController(ReportePdf reporte) {
+    public ReporteController(ReportePdf reporte, DriveAlmacen drive) {
         this.reporte = reporte;
+        this.drive = drive;
     }
 
     @GetMapping("/reporte.pdf")
@@ -30,11 +33,14 @@ public class ReporteController {
         }
         String base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         return reporte.generar(codigo, base)
-                .map(a -> ResponseEntity.ok()
+                .map(a -> {
+                    drive.archivarReporte(a.nombre(), a.contenido());
+                    return ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_PDF)
                         .header(HttpHeaders.CONTENT_DISPOSITION,
                                 ContentDisposition.inline().filename(a.nombre()).build().toString())
-                        .body(a.contenido()))
+                        .body(a.contenido());
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

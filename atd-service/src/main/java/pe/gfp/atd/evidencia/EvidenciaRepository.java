@@ -91,7 +91,9 @@ public class EvidenciaRepository {
         return n == null ? 0 : n;
     }
 
-    public long guardarFoto(String codigoAlerta, byte[] datos, String mime, String nota) {
+    public record FotoGuardada(byte[] datos, String mime, String ruta) {}
+
+    public long guardarFoto(String codigoAlerta, byte[] datos, String mime, String nota, String ruta) {
         final Long alertaId;
         try {
             alertaId = jdbc.queryForObject("SELECT id FROM alerta WHERE codigo = ?", Long.class, codigoAlerta);
@@ -100,29 +102,41 @@ public class EvidenciaRepository {
         }
         Long id = jdbc.queryForObject("""
                 INSERT INTO evidencia (alerta_id, tipo, ruta, descripcion, contenido, mime)
-                VALUES (?, 'foto_campo', NULL, ?, ?, ?)
+                VALUES (?, 'foto_campo', ?, ?, ?, ?)
                 RETURNING id
-                """, Long.class, alertaId, nota, datos, mime);
+                """, Long.class, alertaId, ruta, nota, datos, mime);
         if (id == null) {
             throw new pe.gfp.atd.config.NoEncontradoException("Alerta no encontrada");
         }
         return id;
     }
 
-    public Optional<Imagen> foto(String codigoAlerta, long id) {
-        List<Imagen> filas = jdbc.query("""
-                SELECT v.contenido, v.mime
+    public Optional<FotoGuardada> foto(String codigoAlerta, long id) {
+        List<FotoGuardada> filas = jdbc.query("""
+                SELECT v.contenido, v.mime, v.ruta
                   FROM evidencia v
                   JOIN alerta a ON a.id = v.alerta_id
-                 WHERE a.codigo = ? AND v.id = ? AND v.tipo = 'foto_campo' AND v.contenido IS NOT NULL
-                """, (rs, i) -> new Imagen(rs.getBytes(1), rs.getString(2)), codigoAlerta, id);
+                 WHERE a.codigo = ? AND v.id = ? AND v.tipo = 'foto_campo'
+                """, (rs, i) -> new FotoGuardada(rs.getBytes(1), rs.getString(2), rs.getString(3)),
+                codigoAlerta, id);
         return filas.stream().findFirst();
     }
 
-    public boolean borrarFoto(String codigoAlerta, long id) {
-        return jdbc.update("""
+    /** Borra la fila y devuelve la ruta de Drive, si la tenía. Vacío si la foto no existe. */
+    public Optional<String> borrarFoto(String codigoAlerta, long id) {
+        List<String> rutas = jdbc.query("""
+                SELECT COALESCE(v.ruta, '')
+                  FROM evidencia v
+                  JOIN alerta a ON a.id = v.alerta_id
+                 WHERE a.codigo = ? AND v.id = ? AND v.tipo = 'foto_campo'
+                """, (rs, i) -> rs.getString(1), codigoAlerta, id);
+        if (rutas.isEmpty()) {
+            return Optional.empty();
+        }
+        jdbc.update("""
                 DELETE FROM evidencia v USING alerta a
                  WHERE v.alerta_id = a.id AND a.codigo = ? AND v.id = ? AND v.tipo = 'foto_campo'
-                """, codigoAlerta, id) > 0;
+                """, codigoAlerta, id);
+        return Optional.of(rutas.get(0));
     }
 }
