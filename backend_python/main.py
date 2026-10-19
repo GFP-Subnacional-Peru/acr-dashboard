@@ -807,6 +807,10 @@ if _FRONTEND_DIR.exists():
     def portal_datos():
         return _html("datos.html")
 
+    @app.get("/acuerdos")
+    def portal_acuerdos():
+        return _html("acuerdos.html")
+
     @app.get("/alertas-tempranas", include_in_schema=False)
     def portal_alertas_tempranas():
         # El visor ATD es un servicio aparte (Java + PostGIS) con su propio inicio de sesión.

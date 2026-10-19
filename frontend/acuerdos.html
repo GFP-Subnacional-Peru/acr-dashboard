@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Acuerdos de conservación — Dashboard ACR</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20261019g" />
+</head>
+<body class="page-mapa">
+  <header class="site-header site-header--compact">
+    <div class="site-header-inner">
+      <nav class="navbar" aria-label="Secciones del dashboard">
+        <ul class="nav-tabs">
+          <li><a class="nav-link-ext" href="/"><i class="fas fa-home"></i> Inicio</a></li>
+          <li><a class="nav-link-ext" href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
+          <li><a class="nav-link-ext" href="/datos"><i class="fas fa-database"></i> Datos</a></li>
+          <li><a class="nav-link-ext" href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
+          <li><a class="nav-link-ext" href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Tendencias</a></li>
+          <li><a class="nav-link-ext active" href="/acuerdos"><i class="fas fa-handshake"></i> Acuerdos de conservación</a></li>
+          <li><a class="nav-link-ext" href="/alertas-tempranas" target="_blank" rel="noopener" title="Alertas Tempranas de Deforestación (acceso con usuario)"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section>
+    <div class="dash-hero">
+      <div class="dash-hero-inner">
+        <div class="dash-hero-copy">
+          <h1>Acuerdos de conservación</h1>
+          <p class="dash-hero-sub">Piloto. Ámbitos acordados con comunidades, separados del mapa de deforestación.</p>
+        </div>
+        <div class="dash-hero-accent" aria-hidden="true">
+          <span class="dash-hero-accent-bar"></span>
+          <p>Territorios que conservan oportunidades</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="acuerdos-wrap">
+      <div id="acuerdo-mapa" class="acuerdos-map" role="application" aria-label="Mapa del acuerdo"></div>
+      <aside id="acuerdo-ficha" class="acuerdos-ficha" aria-live="polite">
+        <p class="acuerdos-kicker">Cargando el acuerdo…</p>
+      </aside>
+    </div>
+    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p></footer>
+  </section>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/assets/js/acuerdos.js?v=20261019a"></script>
+</body>
+</html>

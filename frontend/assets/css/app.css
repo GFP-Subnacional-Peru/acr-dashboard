@@ -3411,4 +3411,125 @@ body.kpi-modal-open { overflow: hidden; }
   .dash-main-grid { padding: 0 0.75rem 1rem; }
   .region-insights-section { padding: 0 0.75rem 0.5rem; }
   .dash-filter-actions { flex-direction: column; }
+  .acuerdos-wrap { grid-template-columns: 1fr; }
+  .acuerdos-map { height: 420px; }
+}
+
+.acuerdos-wrap {
+  max-width: 1240px;
+  margin: 0 auto 2rem;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.72fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+.acuerdos-map {
+  height: 680px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  background: #0f172a;
+}
+.acuerdos-ficha {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  padding: 1.15rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.acuerdos-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9a3412;
+}
+.acuerdos-ficha h2 {
+  margin: 0.15rem 0 0;
+  font-size: 1.35rem;
+  color: #0a1f4d;
+}
+.acuerdos-piloto {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.acuerdos-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+.acuerdos-metric {
+  border: 1px solid #fed7aa;
+  border-left: 4px solid #b45309;
+  border-radius: 12px;
+  padding: 0.7rem 0.75rem;
+  background: #fffbeb;
+}
+.acuerdos-metric strong {
+  display: block;
+  font-size: 1.25rem;
+  color: #9a3412;
+}
+.acuerdos-metric span {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.acuerdos-dato {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 0.15rem 0.55rem;
+  align-items: start;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+.acuerdos-dato i { color: #9a3412; margin-top: 0.2rem; }
+.acuerdos-dato small {
+  display: block;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.acuerdos-objeto {
+  margin: 0;
+  color: #334155;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.acuerdos-pdf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: auto;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: #9a3412;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.acuerdos-pdf:hover { background: #7c2d12; color: #fff; }
+@media (max-width: 900px) {
+  .acuerdos-wrap { grid-template-columns: 1fr; }
+  .acuerdos-map { height: 440px; }
 }
