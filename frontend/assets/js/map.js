@@ -430,17 +430,6 @@ const AcrMap = (() => {
     });
   }
 
-  function enfocarAcuerdo() {
-    if (!map || !layerRefs.acuerdos) return;
-    const acrs = window.state?.acrs || [];
-    if (acrs.length !== 1 || String(acrs[0]).toUpperCase() !== "ACR_CHU") return;
-    try {
-      const b = layerRefs.acuerdos.getBounds();
-      if (!b || !b.isValid()) return;
-      map.fitBounds(b, { padding: [72, 72], maxZoom: 14, animate: false });
-    } catch (_) {}
-  }
-
   function acuerdoVisible(state) {
     if (!state) return true;
     if (state.departamento && state.departamento !== "todos" && state.departamento !== "cusco") return false;
@@ -1017,9 +1006,17 @@ const AcrMap = (() => {
               try { map.removeLayer(pin); } catch (_) {}
             });
           });
-          enfocarAcuerdo();
-          window.setTimeout(enfocarAcuerdo, 350);
-          window.setTimeout(enfocarAcuerdo, 900);
+          const syncAcuerdoPin = () => {
+            const visible = map.getZoom() >= 9;
+            document.querySelectorAll(".map-acuerdo-pin").forEach((el) => {
+              el.style.display = visible ? "" : "none";
+            });
+          };
+          if (!map._acuerdoPinZoom) {
+            map._acuerdoPinZoom = true;
+            map.on("zoomend", syncAcuerdoPin);
+          }
+          syncAcuerdoPin();
         }
       } catch (err) {
         console.warn("Acuerdos de conservación:", err);
