@@ -6,7 +6,7 @@
   <title>Portal ACR — Monitoreo de Deforestación | GFP Subnacional</title>
   <!-- GFP WordPress iframe (/dashboard/): embebe "/" = Inicio. Desde aquí se entra a Mapa. -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="/assets/css/portal.css?v=20260922n" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20261020a" />
   <link rel="prefetch" href="/mapa" />
   <link rel="prefetch" href="/datos" />
   <!-- Librerías del Mapa: se descargan mientras el visitante lee Inicio -->
@@ -32,10 +32,17 @@
         <a class="site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
           <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="48" loading="eager"/>
         </a>
-        <img class="site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" loading="eager"/>
-        <img class="site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" loading="eager"/>
+        <div class="site-logos-partners">
+          <img class="site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" loading="eager"/>
+          <img class="site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" loading="eager"/>
+        </div>
       </div>
-      <nav class="navbar" aria-label="Navegación del portal">
+    </div>
+  </header>
+
+  <main class="portal-main">
+    <section class="portal-hero" aria-label="Portada">
+      <nav class="portal-hero-nav navbar" aria-label="Navegación del portal">
         <ul class="nav-tabs">
           <li><a class="active" href="/"><i class="fas fa-home"></i> Inicio</a></li>
           <li><a href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
@@ -46,11 +53,6 @@
           <li><a href="/alertas-tempranas" target="_blank" rel="noopener" title="Alertas Tempranas de Deforestación (acceso con usuario)"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
         </ul>
       </nav>
-    </div>
-  </header>
-
-  <main class="portal-main">
-    <section class="portal-hero" aria-label="Portada">
       <div class="portal-hero-inner">
         <span class="portal-hero-eyebrow">Programa GFP Subnacional</span>
         <h1>Áreas de Conservación Regional</h1>

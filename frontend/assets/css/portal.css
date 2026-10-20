@@ -61,10 +61,17 @@ body.portal-body {
 .site-logos {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1.25rem;
   flex-wrap: nowrap;
+  width: 100%;
   min-width: 0;
-  flex: 1 1 auto;
+}
+.site-logos-partners {
+  display: flex;
+  align-items: center;
+  gap: 1.35rem;
+  margin-left: auto;
 }
 .site-logo-gfp {
   display: inline-flex;
@@ -130,16 +137,47 @@ body.portal-body {
 /* Hero home */
 .portal-hero {
   position: relative;
-  min-height: clamp(320px, 52vh, 520px);
+  min-height: clamp(380px, 48vh, 520px);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   background-image:
-    linear-gradient(105deg, rgba(0, 18, 45, 0.78) 0%, rgba(0, 22, 55, 0.48) 50%, rgba(0, 18, 40, 0.28) 100%),
+    linear-gradient(105deg, rgba(0, 18, 45, 0.72) 0%, rgba(0, 22, 55, 0.28) 46%, rgba(0, 18, 40, 0.12) 100%),
     url(/assets/img/hero_amazonia.jpg?v=20260922d);
   background-size: cover;
-  background-position: center 40%;
+  background-position: center 42%;
   color: #fff;
-  padding: 3rem 1.5rem;
+  padding: 5.6rem 1.75rem 2.6rem;
+}
+.portal-hero-nav {
+  position: absolute;
+  top: 0.95rem;
+  right: 1.15rem;
+  left: auto;
+  z-index: 2;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  max-width: calc(100% - 2rem);
+}
+.portal-hero-nav .nav-tabs {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.portal-hero-nav .nav-tabs a {
+  background: #fff;
+  color: var(--portal-navy);
+  box-shadow: 0 2px 8px rgba(0, 20, 50, 0.18);
+  padding: 0.42rem 0.8rem;
+  font-size: 0.8rem;
+}
+.portal-hero-nav .nav-tabs a:hover {
+  background: #eef3fb;
+}
+.portal-hero-nav .nav-tabs a.active {
+  background: var(--portal-navy);
+  color: #fff;
 }
 .portal-hero-inner {
   max-width: var(--portal-max);
@@ -954,6 +992,16 @@ body.portal-body {
     width: 100%;
     border-radius: 12px;
   }
+  .portal-hero-nav {
+    position: static;
+    max-width: none;
+    margin-bottom: 1.25rem;
+  }
+  .portal-hero {
+    align-items: flex-start;
+    padding-top: 1rem;
+  }
+  .portal-hero-nav .nav-tabs { justify-content: flex-start; }
   .nav-tabs {
     justify-content: center;
     flex-wrap: wrap;
@@ -966,9 +1014,12 @@ body.portal-body {
 html.is-embed body.portal-body {
   min-height: 100%;
 }
+html.is-embed .site-header {
+  display: none;
+}
 html.is-embed .portal-hero {
-  min-height: clamp(220px, 36vh, 360px);
-  padding: 2rem 1.25rem;
+  min-height: clamp(300px, 42vh, 440px);
+  padding: 5.2rem 1.35rem 2.2rem;
 }
 html.is-embed .portal-hero h1 {
   font-size: clamp(1.45rem, 3.2vw, 2.1rem);
