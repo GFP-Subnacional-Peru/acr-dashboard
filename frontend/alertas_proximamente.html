@@ -6,8 +6,17 @@
   <meta name="robots" content="noindex" />
   <title>Alertas Tempranas — Portal ACR | GFP Subnacional</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="/assets/css/portal.css?v=20260922j" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20260922j" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20261021d" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20261021b" />
+  <script>
+    (function () {
+      try {
+        if (window.self !== window.top) document.documentElement.classList.add("is-embed");
+      } catch (e) {
+        document.documentElement.classList.add("is-embed");
+      }
+    })();
+  </script>
   <style>
     .atd-pronto { min-height: calc(100vh - 66px); display: grid; place-items: center; padding: 40px 20px;
       background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 60%, #0f3d14 100%); }
@@ -31,19 +40,21 @@
         <img class="site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" loading="eager" decoding="async"/>
         <img class="site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" loading="eager" decoding="async"/>
       </div>
-      <nav class="navbar" aria-label="Navegación del portal">
-        <ul class="nav-tabs">
-          <li><a href="/"><i class="fas fa-home"></i> Inicio</a></li>
-          <li><a href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
-          <li><a href="/datos"><i class="fas fa-database"></i> Datos</a></li>
-          <li><a href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
-          <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Tendencias</a></li>
-          <li><a href="/acuerdos"><i class="fas fa-handshake"></i> Acuerdos de conservación</a></li>
-          <li><a class="active" href="/alertas-tempranas"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
-        </ul>
-      </nav>
     </div>
   </header>
+  <div class="portal-menu-band">
+    <nav class="portal-hero-nav navbar" aria-label="Navegación del portal">
+      <ul class="nav-tabs">
+        <li><a href="/"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
+        <li><a href="/datos"><i class="fas fa-database"></i> Datos</a></li>
+        <li><a href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
+        <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Tendencias</a></li>
+        <li><a href="/acuerdos"><i class="fas fa-handshake"></i> Acuerdos de conservación</a></li>
+        <li><a class="active" href="/alertas-tempranas"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
+      </ul>
+    </nav>
+  </div>
 
   <main class="atd-pronto">
     <section class="atd-pronto-card">

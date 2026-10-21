@@ -121,17 +121,60 @@ body {
   z-index: 1000;
   box-shadow: 0 1px 0 rgba(0, 40, 80, 0.06);
 }
-/* Página mapa: barra no fija y sin logos → más espacio para el mapa */
+/* Menú sobre la foto, el mismo modelo de la portada */
 body.page-mapa .site-header,
 .site-header--compact {
-  position: relative;
-  top: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: transparent;
+  box-shadow: none;
+}
+body.page-mapa .site-header::after,
+.site-header--compact::after {
+  display: none;
 }
 body.page-mapa .site-header-inner,
 .site-header--compact .site-header-inner {
   justify-content: flex-end;
-  min-height: 52px;
-  padding: 0.4rem 1rem;
+  max-width: none;
+  min-height: 0;
+  padding: 0.85rem 1.15rem 0;
+}
+body.page-mapa .navbar {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+body.page-mapa .nav-tabs {
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+body.page-mapa .nav-tabs button,
+body.page-mapa .nav-tabs a.nav-link-ext {
+  background: #fff;
+  color: #003DA5;
+  box-shadow: 0 2px 8px rgba(0, 20, 50, 0.18);
+  padding: 0.42rem 0.8rem;
+  font-size: 0.8rem;
+}
+body.page-mapa .nav-tabs button:hover,
+body.page-mapa .nav-tabs a.nav-link-ext:hover {
+  background: #eef3fb;
+  color: #003DA5;
+}
+body.page-mapa .nav-tabs button.active,
+body.page-mapa .nav-tabs a.nav-link-ext.active {
+  background: #003DA5;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(0, 61, 165, 0.28);
+}
+body.page-mapa .dash-hero {
+  padding-top: 5.1rem;
 }
 body.page-mapa .site-logos {
   display: none !important;
@@ -268,6 +311,23 @@ body.page-mapa .site-logos {
   .nav-tabs { justify-content: center; flex-wrap: wrap; }
   .nav-tabs button,
   .nav-tabs a.nav-link-ext { font-size: 0.78rem; padding: 0.4rem 0.65rem; }
+  body.page-mapa .site-header-inner,
+  .site-header--compact .site-header-inner {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 0.55rem 0.7rem 0;
+  }
+  body.page-mapa .navbar {
+    width: auto;
+    margin-left: auto;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+  body.page-mapa .dash-hero {
+    padding-top: 7.4rem;
+  }
 }
 
 .tab-panel { display: none !important; padding: 0 0 2rem; }
@@ -284,17 +344,17 @@ html[data-boot-tab="reportes"] #tab-reportes.tab-panel,
 html[data-boot-tab="tendencias"] #tab-tendencias.tab-panel {
   display: block !important;
 }
-html[data-boot-tab] .nav-tabs button[data-tab].active {
-  background: transparent;
+html[data-boot-tab] body.page-mapa .nav-tabs button[data-tab].active {
+  background: #fff;
   color: #003DA5;
-  box-shadow: none;
+  box-shadow: 0 2px 8px rgba(0, 20, 50, 0.18);
 }
-html[data-boot-tab="metodologia"] .nav-tabs button[data-tab="metodologia"],
-html[data-boot-tab="reportes"] .nav-tabs button[data-tab="reportes"],
-html[data-boot-tab="tendencias"] .nav-tabs button[data-tab="tendencias"] {
+html[data-boot-tab="metodologia"] body.page-mapa .nav-tabs button[data-tab="metodologia"],
+html[data-boot-tab="reportes"] body.page-mapa .nav-tabs button[data-tab="reportes"],
+html[data-boot-tab="tendencias"] body.page-mapa .nav-tabs button[data-tab="tendencias"] {
   background: #003DA5;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 61, 165, 0.25);
+  box-shadow: 0 3px 10px rgba(0, 61, 165, 0.28);
 }
 
 .hero-red {
