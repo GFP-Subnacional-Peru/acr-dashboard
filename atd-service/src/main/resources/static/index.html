@@ -9,7 +9,10 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="/visor.css?v=20261017a">
+<link rel="stylesheet" href="/visor.css?v=20261022a">
+<script>
+  try { if (localStorage.getItem('atd-tema') === 'oscuro') document.documentElement.dataset.tema = 'oscuro'; } catch (e) {}
+</script>
 </head>
 <body>
 
@@ -18,6 +21,7 @@
   <button class="rail-btn activo" data-modo="consulta" title="Consulta de alertas"><i class="fas fa-map-location-dot"></i><span>Consulta</span></button>
   <button class="rail-btn" data-modo="clasificar" title="Clasificación de alertas (validadores)" hidden><i class="fas fa-satellite"></i><span>Clasificar</span><b id="badge-pend" class="rail-badge" hidden></b></button>
   <button class="rail-btn" id="btn-entrar" title="Ingresar para editar"><i class="fas fa-user-lock"></i><span>Entrar</span></button>
+  <button class="rail-btn" id="btn-tema" title="Tema claro u oscuro"><i class="fas fa-circle-half-stroke"></i><span>Tema</span></button>
   <button class="rail-btn" id="btn-acerca" title="Acerca del sistema"><i class="fas fa-circle-info"></i><span>Acerca</span></button>
   <div class="rail-usuario rail-abajo" id="rail-usuario" hidden>
     <span class="rail-avatar" id="usr-inicial"></span>
@@ -229,7 +233,21 @@
   <!-- ===================== MODO CLASIFICAR ===================== -->
   <section id="modo-clasificar" hidden>
     <div class="cuerpo">
-      <div class="aviso"><i class="fas fa-flask"></i> <b>Modo demostración.</b> La clasificación se guardará en la base cuando se active el inicio de sesión de validadores.</div>
+      <details class="guia" id="cl-guia" open>
+        <summary>Qué hace cada cosa</summary>
+        <p>Esta bandeja revisa, una por una, las alertas que ya publicó GeoBosques. El sistema no dibuja el polígono: lo trae el MINAM. La persona mira las imágenes y decide.</p>
+        <ul>
+          <li><b>Antes.</b> El bosque de referencia, en la fecha anterior.</li>
+          <li><b>Después.</b> La imagen reciente, en color real. Este par es el que sale en el PDF.</li>
+          <li><b>SWIR.</b> La misma fecha reciente. El suelo sin bosque se ve magenta. Sirve para no confundir un río, una sombra o un derrumbe con una tala.</li>
+          <li><b>Contorno naranja.</b> El polígono de la alerta, en hectáreas, con la fecha de la imagen.</li>
+          <li><b>Pérdida antrópica (A).</b> Alguien tumbó bosque. Hay que elegir la causa.</li>
+          <li><b>Cambio natural (N).</b> Río, derrumbe o muerte de árboles.</li>
+          <li><b>Falsa alerta (F).</b> Nube, sombra o un cambio que no es pérdida.</li>
+          <li><b>En duda (U).</b> Se deja pendiente y pasa a la siguiente.</li>
+          <li><b>Guardar.</b> La decisión queda en la base. Si cierra el navegador, sigue clasificada.</li>
+        </ul>
+      </details>
       <div class="sel-compacta">
         <select id="cl-region" aria-label="Región"></select>
         <select id="cl-ambito" aria-label="Ámbito">
@@ -269,7 +287,7 @@
         <label class="etq">Conclusión técnica <small>se imprime en el reporte PDF, en la sección Conclusión técnica</small></label>
         <textarea id="cl-conclusion" rows="3" placeholder="Ej.: Se observa remoción de cobertura boscosa entre ambas fechas, con patrón de chacra…"></textarea>
         <div class="fila-btn">
-          <button class="btn-sec" id="cl-saltar">Saltar <kbd>S</kbd></button>
+          <button class="btn-sec" id="cl-saltar">En duda <kbd>U</kbd></button>
           <button class="btn-pri" id="cl-guardar" disabled><i class="fas fa-check"></i> Guardar y siguiente <kbd>Enter</kbd></button>
         </div>
       </div>
@@ -335,8 +353,8 @@
   <p>Monitoreo de las Áreas de Conservación Regional de Loreto, San Martín y Cusco.</p>
   <ul>
     <li><b>Consulta:</b> mira alertas, evidencias y el reporte. No clasifica.</li>
-    <li><b>Clasificador:</b> el especialista de la región revisa Sentinel-2 y asigna pérdida antrópica, cambio natural o falsa alerta, más la causal y la conclusión.</li>
-    <li><b>Validador:</b> confirma esa clasificación para dejar la alerta como validada. Hoy la bandeja guarda la revisión en la sesión; el cierre de validador se activa con el inicio de sesión de validadores.</li>
+    <li><b>Clasificador:</b> el especialista revisa el antes, el después y el SWIR, y guarda pérdida antrópica, cambio natural o falsa alerta. La decisión queda en la base.</li>
+    <li><b>En duda:</b> la alerta sigue pendiente para volver a verla.</li>
     <li><b>Alertas:</b> GeoBosques (MINAM) · semana vigente <span id="acerca-semana">–</span>.</li>
     <li><b>Código de trabajo</b> (LOR-2026-0570): prefijo de región, año de la imagen e identificador de origen. Vale para pendientes y para ya clasificadas. El código del PDF es el de la GDB (por ejemplo ACR10-2026-084).</li>
     <li><b>Evidencia:</b> Sentinel-2 L2A (Copernicus / Element84). El par del reporte es el guardado. En la alerta se puede buscar otro día en el catálogo.</li>
@@ -347,6 +365,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
-<script src="/visor.js?v=20261017a"></script>
+<script src="/visor.js?v=20261022a"></script>
 </body>
 </html>

@@ -61,6 +61,7 @@ public class AlertaRepository {
                 'superficie_ha', round(a.superficie_ha, 2),
                 'estado', a.estado,
                 'resultado', CASE WHEN a.estado = 'validada' THEN c.resultado END,
+                'causa_id', CASE WHEN a.estado = 'validada' THEN a.causa_id END,
                 'causa', CASE WHEN a.estado = 'validada' AND c.resultado = 'antropica' THEN c.nombre END,
                 'confiabilidad', cf.nombre,
                 'zonificacion', z.nombre,

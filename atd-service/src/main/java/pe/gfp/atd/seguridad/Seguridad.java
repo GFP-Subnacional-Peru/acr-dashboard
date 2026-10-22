@@ -54,6 +54,7 @@ public class Seguridad {
                 .requestMatchers("/login.html", "/login.css", "/img/**", "/docs/**", "/error", "/api/atd/salud").permitAll()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/atd/alertas/*/geometria").hasRole("EDITOR")
+                .requestMatchers(HttpMethod.PUT, "/api/atd/alertas/*/clasificacion").hasRole("EDITOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/atd/alertas/*/geometria").hasRole("EDITOR")
                 .requestMatchers(HttpMethod.POST, "/api/atd/alertas/*/foto").hasRole("EDITOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/atd/alertas/*/foto/*").hasRole("EDITOR")

@@ -41,7 +41,7 @@
     territorios: [], region: null, acr: null, ambito: 'ambos', anio: null, mes: null,
     periodos: [], periodosPorAcr: {}, eje: [], resumen: null, geo: null, filtro: 'todas', alerta: null, escenas: [],
     pasoMax: 1, modo: 'consulta', catalogos: null,
-    cl: { cola: [], idx: -1, hechas: {}, resultado: null, causa: null, conf: 1, bosque: 1 },
+    cl: { cola: [], idx: -1, hechas: {}, duda: {}, resultado: null, causa: null, conf: 1, bosque: 1, guardando: false },
   };
 
   /* ====================================================== MAPA */
@@ -785,20 +785,52 @@
     };
   }
 
+  function diaSiguiente(iso) {
+    const d = new Date(`${(iso || '').slice(0, 10)}T00:00:00Z`);
+    if (Number.isNaN(d.getTime())) return '';
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+
+  /** Misma fecha reciente, combinación infrarrojo de onda corta. El suelo desnudo sale en magenta. */
+  function urlSwir(recorte, fechaIso) {
+    if (!recorte || recorte.length !== 4) return '';
+    const [x0, y0, x1, y1] = recorte;
+    const dia = (fechaIso || '').slice(0, 10);
+    const hasta = diaSiguiente(dia);
+    const where = dia && hasta
+      ? `acquisitiondate >= timestamp '${dia} 00:00:00' AND acquisitiondate < timestamp '${hasta} 00:00:00'`
+      : "cloudcover <= 0.3";
+    const mosaic = encodeURIComponent(JSON.stringify({
+      mosaicMethod: 'esriMosaicAttribute', sortField: 'acquisitiondate', sortValue: '2099/12/31',
+      ascending: true, where,
+    }));
+    const render = encodeURIComponent(JSON.stringify({ rasterFunction: 'Short-wave Infrared' }));
+    return 'https://sentinel.arcgis.com/arcgis/rest/services/Sentinel2/ImageServer/exportImage'
+      + `?bbox=${x0},${y0},${x1},${y1}&bboxSR=3857&imageSR=3857&size=480,480`
+      + `&format=jpgpng&f=image&mosaicRule=${mosaic}&renderingRule=${render}`;
+  }
+
+  function marcoImagen(rotulo, src, alt, geom, recorte) {
+    return `<figure class="marco">
+        <img src="${src}" alt="${esc(alt)}" loading="lazy">
+        ${contornoSvg(geom, recorte)}
+        <figcaption>${rotulo}</figcaption>
+      </figure>`;
+  }
+
   function comparador(cont, escenas, geom, codigo) {
     const antes = escenas.find((e) => e.momento === 'antes');
     const despues = escenas.find((e) => e.momento === 'despues');
     const sugerida = despues?.fecha || antes?.fecha || '';
-    const par = (antes && despues) ? `<div class="comparador" style="--pos:50%">
-        <img src="${despues.imagen}" alt="Imagen después">
-        <img class="antes" src="${antes.imagen}" alt="Imagen antes">
-        ${contornoSvg(geom, despues.recorte || antes.recorte)}
-        <div class="divisor"></div>
-        <span class="rot izq">ANTES<small>${fecha(antes.fecha)}</small></span>
-        <span class="rot der">DESPUÉS<small>${fecha(despues.fecha)}</small></span>
-        <input type="range" min="0" max="100" value="50" aria-label="Deslizar para comparar">
+    const recorte = despues?.recorte || antes?.recorte;
+    const swir = urlSwir(recorte, despues?.fecha);
+    const par = (antes && despues) ? `<div class="trio">
+        ${marcoImagen(`ANTES<small>${fecha(antes.fecha)}</small>`, antes.imagen, 'Imagen antes', geom, antes.recorte || recorte)}
+        ${marcoImagen(`DESPUÉS<small>${fecha(despues.fecha)}</small>`, despues.imagen, 'Imagen después', geom, despues.recorte || recorte)}
+        ${swir ? marcoImagen('SWIR<small>suelo desnudo</small>', swir, 'Infrarrojo de onda corta', geom, recorte) : ''}
       </div>
-      <p class="sensor-nota">Par del reporte: Sentinel-2 L2A, ${fecha(antes.fecha)} y ${fecha(despues.fecha)}. El contorno es el polígono de la alerta.</p>`
+      <p class="sensor-nota">El contorno naranja es la alerta de GeoBosques. Antes y después son el par oficial del reporte. SWIR es la misma fecha reciente: el suelo sin bosque se ve magenta y ayuda a no confundir un río, una sombra o un derrumbe con una tala.</p>`
       : `<div class="sin-imagen"><i class="fas fa-cloud-sun"></i>Aún no hay un par guardado para el reporte. Puede buscar otra fecha abajo.</div>`;
     cont.innerHTML = `${par}
       <div class="busqueda-s2">
@@ -811,8 +843,13 @@
         <div class="s2-lista"></div>
         <div class="s2-vista" hidden></div>
       </div>`;
-    const c = cont.querySelector('.comparador');
-    if (c) c.querySelector('input').oninput = (e) => c.style.setProperty('--pos', `${e.target.value}%`);
+    cont.querySelectorAll('.marco img').forEach((img) => {
+      if (!img.alt.includes('onda corta')) return;
+      img.onerror = () => {
+        const fig = img.closest('.marco');
+        if (fig) fig.innerHTML = '<p class="marco-fallo">SWIR no disponible para esta fecha.</p>';
+      };
+    });
     if (codigo) buscarSentinel(cont, codigo, sugerida);
   }
 
@@ -1199,9 +1236,10 @@
 
   function renderCola() {
     const cola = st.cl.cola;
-    const pend = cola.filter((p) => p.estado === 'pendiente' && !st.cl.hechas[p.codigo]).length;
-    const hechas = cola.filter((p) => st.cl.hechas[p.codigo]).length;
-    $('cl-cola-cab').innerHTML = `<span><b>${pend}</b> por clasificar · ${hechas} clasificadas en esta sesión</span><span>${cola.filter((p) => p.con_imagen).length} con Sentinel-2</span>`;
+    const pend = cola.filter((p) => p.estado === 'pendiente' && !st.cl.duda[p.codigo]).length;
+    const hechas = cola.filter((p) => p.estado === 'validada').length;
+    const duda = cola.filter((p) => p.estado === 'pendiente' && st.cl.duda[p.codigo]).length;
+    $('cl-cola-cab').innerHTML = `<span><b>${pend}</b> por clasificar · ${hechas} guardadas · ${duda} en duda</span><span>${cola.filter((p) => p.con_imagen).length} con Sentinel-2</span>`;
     $('cl-cola').innerHTML = `<div class="progreso"><i style="width:${cola.length ? ((cola.length - pend) / cola.length) * 100 : 0}%"></i></div>` + cola.map((p) => {
       const hecha = st.cl.hechas[p.codigo];
       const c = hecha ? hecha.resultado : clase(p);
@@ -1224,7 +1262,7 @@
       const lineas = [header.join(',')].concat(cola.map((p) => {
         const hecha = st.cl.hechas[p.codigo];
         const causa = hecha?.causaNombre || p.causa || '';
-        const estado = hecha ? 'clasificada_sesion' : p.estado;
+        const estado = p.estado === 'pendiente' && st.cl.duda[p.codigo] ? 'en_duda' : p.estado;
         return [p.codigo, p.ambito === 'ZI' ? 'ZI' : 'ACR', p.lon, p.lat, `"${String(causa).replaceAll('"', '""')}"`, estado].join(',');
       }));
       const blob = new Blob(['\ufeff' + lineas.join('\n')], { type: 'text/csv;charset=utf-8' });
@@ -1239,7 +1277,13 @@
     const p = st.cl.cola[st.cl.idx];
     if (!p) return;
     const previa = st.cl.hechas[codigo];
-    Object.assign(st.cl, { resultado: previa?.resultado || null, causa: previa?.causa || null, conf: previa?.conf || 1, bosque: previa?.bosque || 1 });
+    const ya = p.estado === 'validada';
+    Object.assign(st.cl, {
+      resultado: previa?.resultado || (ya ? p.resultado : null),
+      causa: previa?.causa || (ya ? p.causa_id : null) || null,
+      conf: previa?.conf || 1,
+      bosque: previa?.bosque || 1,
+    });
     $('cl-conclusion').value = previa?.conclusion || '';
     $('cl-codigo').textContent = p.codigo;
     $('cl-codigo-nota').textContent = notaCodigo(p.codigo);
@@ -1278,50 +1322,91 @@
     const cola = st.cl.cola;
     for (let k = 1; k <= cola.length; k++) {
       const p = cola[(st.cl.idx + k) % cola.length];
-      if (p.estado === 'pendiente' && !st.cl.hechas[p.codigo]) return abrirClasificacion(p.codigo);
+      if (p.estado === 'pendiente' && !st.cl.duda[p.codigo]) return abrirClasificacion(p.codigo);
     }
-    toast('¡Bandeja completa! No quedan alertas pendientes en este periodo.');
+    const duda = cola.filter((p) => p.estado === 'pendiente' && st.cl.duda[p.codigo]).length;
+    toast(duda ? `No quedan pendientes nuevas. ${duda} siguen en duda.` : 'Bandeja completa. No quedan alertas pendientes en este periodo.');
     cerrarForm();
   }
 
-  function guardar() {
-    if ($('cl-guardar').disabled) return;
+  function saltar() {
+    const p = st.cl.cola[st.cl.idx];
+    if (p && p.estado === 'pendiente') st.cl.duda[p.codigo] = true;
+    siguiente();
+  }
+
+  async function guardar() {
+    if ($('cl-guardar').disabled || st.cl.guardando) return;
     const p = st.cl.cola[st.cl.idx];
     const especialista = ($('cl-especialista').value || '').trim() || 'Sin nombre';
     localStorage.setItem('atd-especialista', $('cl-especialista').value.trim());
-    const causaNombre = st.catalogos?.causas?.find((c) => c.id === st.cl.causa)?.nombre || '';
+    const causaNombre = st.catalogos?.causas?.find((c) => c.id === st.cl.causa)?.nombre
+      || (st.cl.resultado === 'natural' ? 'Natural' : st.cl.resultado === 'falsa' ? 'Falsa alerta' : '');
     const conclusion = $('cl-conclusion').value.trim();
-    st.cl.hechas[p.codigo] = {
-      resultado: st.cl.resultado, causa: st.cl.causa, causaNombre, conf: st.cl.conf,
-      bosque: st.cl.bosque, conclusion, especialista,
-    };
-    const caja = $('cl-ultimo');
-    caja.hidden = false;
-    caja.innerHTML = `<b>Última clasificación guardada en esta sesión</b><br>
-      ${esc(p.codigo)} · ${esc(TEXTO[st.cl.resultado])}${causaNombre ? ' · ' + esc(causaNombre) : ''}<br>
-      Especialista: ${esc(especialista)}<br>
-      ${conclusion ? 'Conclusión: ' + esc(conclusion) + '<br>' : ''}
-      Ese texto de conclusión es el que va al reporte PDF, sección Conclusión técnica.`;
-    const m = marcas.get(p.codigo);
-    if (m) {
-      const fake = { estado: 'validada', resultado: st.cl.resultado };
-      m.p = { ...m.p, ...fake };
-      m.poli.setStyle(estiloAlerta(m.p, false));
-      m.punto.setStyle({ fillColor: COLOR[st.cl.resultado] });
+    st.cl.guardando = true;
+    $('cl-guardar').disabled = true;
+    try {
+      const r = await fetch(`${API}/alertas/${p.codigo}/clasificacion`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': tokenCsrf() },
+        body: JSON.stringify({
+          resultado: st.cl.resultado,
+          causaId: st.cl.causa,
+          confiabilidadId: st.cl.conf,
+          tipoBosqueId: st.cl.bosque,
+          conclusion,
+          especialista,
+        }),
+      });
+      if (r.status === 401 || r.status === 403) {
+        $('cl-guardar').disabled = false;
+        irAlLogin();
+        return;
+      }
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || 'No se pudo guardar');
+      p.estado = 'validada';
+      p.resultado = j.resultado || st.cl.resultado;
+      p.causa = j.causa || causaNombre;
+      p.causa_id = j.causaId || st.cl.causa;
+      delete st.cl.duda[p.codigo];
+      st.cl.hechas[p.codigo] = {
+        resultado: st.cl.resultado, causa: p.causa_id, causaNombre: p.causa, conf: st.cl.conf,
+        bosque: st.cl.bosque, conclusion, especialista,
+      };
+      const caja = $('cl-ultimo');
+      caja.hidden = false;
+      caja.innerHTML = `<b>Guardada en la base</b><br>
+        ${esc(p.codigo)} · ${esc(TEXTO[st.cl.resultado])}${p.causa && st.cl.resultado === 'antropica' ? ' · ' + esc(p.causa) : ''}<br>
+        Especialista: ${esc(especialista)}<br>
+        ${conclusion ? 'Conclusión: ' + esc(conclusion) + '<br>' : ''}
+        Si cierra el navegador, esta decisión sigue en la alerta. La conclusión sale en el PDF.`;
+      const m = marcas.get(p.codigo);
+      if (m) {
+        m.p = { ...m.p, estado: 'validada', resultado: st.cl.resultado, causa: p.causa };
+        m.poli.setStyle(estiloAlerta(m.p, false));
+        m.punto.setStyle({ fillColor: COLOR[st.cl.resultado] });
+      }
+      toast(`${p.codigo} quedó guardada como "${TEXTO[st.cl.resultado]}"`);
+      siguiente();
+    } catch (e) {
+      toast(e.message);
+      pintarForm();
+    } finally {
+      st.cl.guardando = false;
     }
-    toast(`${p.codigo} clasificada como "${TEXTO[st.cl.resultado]}" (demostración, no se guarda aún)`);
-    siguiente();
   }
+
   $('cl-guardar').onclick = guardar;
-  $('cl-saltar').onclick = siguiente;
+  $('cl-saltar').onclick = saltar;
 
   document.addEventListener('keydown', (e) => {
-    if (st.modo !== 'clasificar' || $('cl-form').hidden || e.target.tagName === 'TEXTAREA') return;
+    if (st.modo !== 'clasificar' || $('cl-form').hidden || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
     const k = e.key.toLowerCase();
     if (k === 'a') elegirResultado('antropica');
     else if (k === 'n') elegirResultado('natural');
     else if (k === 'f') elegirResultado('falsa');
-    else if (k === 's') siguiente();
+    else if (k === 'u' || k === 's') saltar();
     else if (k === 'enter') guardar();
     else if (k === 'escape') cerrarForm();
   });
@@ -1334,6 +1419,19 @@
     setTimeout(() => mapa.invalidateSize(), 320);
   };
   $('btn-acerca').onclick = () => $('dlg-acerca').showModal();
+  $('btn-tema').onclick = () => {
+    const oscuro = document.documentElement.dataset.tema === 'oscuro';
+    if (oscuro) delete document.documentElement.dataset.tema;
+    else document.documentElement.dataset.tema = 'oscuro';
+    try { localStorage.setItem('atd-tema', oscuro ? 'claro' : 'oscuro'); } catch (e) {}
+  };
+  const guia = $('cl-guia');
+  if (guia) {
+    try { if (localStorage.getItem('atd-guia') === 'cerrada') guia.open = false; } catch (e) {}
+    guia.addEventListener('toggle', () => {
+      try { localStorage.setItem('atd-guia', guia.open ? 'abierta' : 'cerrada'); } catch (e) {}
+    });
+  }
 
   // Enlace directo desde el reporte PDF: /?alerta=LOR-2026-0205
   async function abrirEnlace(codigo) {

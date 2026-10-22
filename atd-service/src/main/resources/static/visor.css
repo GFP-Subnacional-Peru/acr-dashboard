@@ -12,6 +12,7 @@
   --naranja: #fb8c00;
   --gris-alerta: #9e9e9e;
   --sombra: 0 6px 24px rgba(20, 45, 25, .12);
+  --papel: #fff;
   --radio: 14px;
   --panel: 420px;
 }
@@ -22,7 +23,7 @@ button { font-family: inherit; cursor: pointer; }
 kbd { font: 600 10px Inter, sans-serif; background: rgba(0,0,0,.08); border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
 
 /* ---------- Barra de íconos ---------- */
-.rail { position: fixed; inset: 0 auto 0 0; width: 72px; background: #fff; border-right: 1px solid var(--linea); display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 6px; z-index: 1001; }
+.rail { position: fixed; inset: 0 auto 0 0; width: 72px; background: var(--papel); border-right: 1px solid var(--linea); display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 6px; z-index: 1001; }
 .rail-logo { width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, var(--verde-cla), var(--verde-osc)); color: #fff; font-weight: 800; font-size: 14px; display: grid; place-items: center; letter-spacing: .5px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(46,125,50,.35); }
 .rail-btn { position: relative; width: 60px; border: 0; background: none; color: var(--gris); padding: 9px 0 7px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; transition: .18s; }
 .rail-btn i { font-size: 18px; }
@@ -36,7 +37,7 @@ kbd { font: 600 10px Inter, sans-serif; background: rgba(0,0,0,.08); border-radi
 .rail-badge { position: absolute; top: 3px; right: 6px; background: var(--naranja); color: #fff; font-size: 10px; border-radius: 10px; padding: 1px 6px; }
 
 /* ---------- Panel lateral ---------- */
-.panel { position: fixed; top: 0; bottom: 0; left: 72px; width: var(--panel); background: #fff; z-index: 1000; display: flex; flex-direction: column; box-shadow: var(--sombra); transition: transform .3s ease; }
+.panel { position: fixed; top: 0; bottom: 0; left: 72px; width: var(--panel); background: var(--papel); z-index: 1000; display: flex; flex-direction: column; box-shadow: var(--sombra); transition: transform .3s ease; }
 .panel.oculto { transform: translateX(calc(-1 * var(--panel) - 10px)); }
 .panel-cab { background: linear-gradient(120deg, #7cb342 0%, #388e3c 55%, #1b5e20 100%); color: #fff; padding: 20px 22px 18px; }
 .panel-cab h1 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -.2px; }
@@ -316,3 +317,60 @@ dialog h3 { margin-top: 0; }
   #mapa { left: 72px; }
   .leyenda { display: none; }
 }
+
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.marco { position: relative; margin: 0; border-radius: 10px; overflow: hidden; background: #10140f; aspect-ratio: 1; }
+.marco img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.marco .contorno { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.marco .contorno path { fill: none; stroke: #ffb300; stroke-width: 3px; vector-effect: non-scaling-stroke; stroke-linejoin: round; filter: drop-shadow(0 0 1px #000); }
+.marco figcaption { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 4px 6px; background: rgba(0,0,0,.66); color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .03em; line-height: 1.25; }
+.marco figcaption small { display: block; font-weight: 600; opacity: .9; }
+.marco-fallo { margin: 0; padding: 10px 8px; color: #d7e0d8; font-size: 11px; line-height: 1.35; }
+
+.guia { margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--linea); border-radius: 12px; background: var(--verde-fondo); }
+.guia summary { cursor: pointer; font-weight: 800; color: var(--verde-osc); }
+.guia p, .guia li { font-size: 12.5px; line-height: 1.45; color: var(--texto); }
+.guia ul { margin: 6px 0 0; padding-left: 1.1rem; }
+.guia li { margin: 3px 0; }
+
+html[data-tema="oscuro"] {
+  color-scheme: dark;
+  --texto: #e7f2e9;
+  --gris: #b7c6bb;
+  --linea: #314438;
+  --fondo: #0e1410;
+  --papel: #17211a;
+  --verde-fondo: #1c3322;
+  --verde-osc: #c8e6c9;
+  --sombra: 0 8px 28px rgba(0,0,0,.45);
+}
+html[data-tema="oscuro"] .rail,
+html[data-tema="oscuro"] .panel,
+html[data-tema="oscuro"] .region,
+html[data-tema="oscuro"] .acr,
+html[data-tema="oscuro"] .kpi,
+html[data-tema="oscuro"] .tarjeta,
+html[data-tema="oscuro"] .item,
+html[data-tema="oscuro"] .op,
+html[data-tema="oscuro"] .campo,
+html[data-tema="oscuro"] .ficha div,
+html[data-tema="oscuro"] .capas-btn,
+html[data-tema="oscuro"] .leyenda,
+html[data-tema="oscuro"] dialog,
+html[data-tema="oscuro"] .btn-sec,
+html[data-tema="oscuro"] .sel-compacta select,
+html[data-tema="oscuro"] .causas-grid button,
+html[data-tema="oscuro"] .filtro,
+html[data-tema="oscuro"] .mes,
+html[data-tema="oscuro"] .mb-busca,
+html[data-tema="oscuro"] .guia,
+html[data-tema="oscuro"] .pasos li b,
+html[data-tema="oscuro"] input,
+html[data-tema="oscuro"] textarea {
+  background: var(--papel);
+  color: var(--texto);
+}
+html[data-tema="oscuro"] .guia summary { color: #c8e6c9; }
+html[data-tema="oscuro"] .segmento button.activo { background: #243528; color: #c8e6c9; }
+html[data-tema="oscuro"] .leyenda { background: rgba(23, 33, 26, .94); }
+
