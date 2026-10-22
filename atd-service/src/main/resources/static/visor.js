@@ -131,7 +131,7 @@
       const p = f.properties;
       const poli = L.geoJSON(f, { style: () => estiloAlerta(p, false) });
       const punto = L.circleMarker([p.lat, p.lon], {
-        radius: 6, color: '#fff', weight: 1.5, fillColor: COLOR[clase(p)], fillOpacity: .95,
+        radius: radioPunto(), color: '#fff', weight: 1.5, fillColor: COLOR[clase(p)], fillOpacity: .95,
       });
       poli.bindTooltip(`${p.codigo} · ${ha(p.superficie_ha)} · un solo polígono`);
       punto.bindTooltip(`${p.codigo} · centro de esta misma alerta`);
@@ -162,10 +162,20 @@
     }
   }
 
+  function radioPunto() {
+    const z = mapa.getZoom();
+    if (z >= 15) return 6;
+    if (z >= 12) return 7;
+    if (z >= 9) return 8;
+    return 10;
+  }
+
   function ajustarPuntos() {
-    const ver = mapa.getZoom() >= 15 && $('c-alertas').checked;
+    const ver = $('c-alertas').checked;
     if (ver && !mapa.hasLayer(capaPuntos)) mapa.addLayer(capaPuntos);
     if (!ver && mapa.hasLayer(capaPuntos)) mapa.removeLayer(capaPuntos);
+    const r = radioPunto();
+    capaPuntos.eachLayer((l) => { if (l.setRadius) l.setRadius(r); });
     const prop = $('c-propuesta');
     const verProp = mapa.getZoom() >= 13 && (!prop || prop.checked);
     if (verProp && !mapa.hasLayer(capaPropuesta)) mapa.addLayer(capaPropuesta);
@@ -452,6 +462,7 @@
     st.acr = null;
     await cargarLimitesRegion(st.region);
     await cargarPeriodosRegion();
+    await buscar();
   }
 
   async function alCambiarAcr() {
@@ -460,6 +471,7 @@
     else if (st.region) await cargarLimitesRegion(st.region);
     const uno = st.acr || acrsDeRegion(st.region)[0]?.codigo;
     st.periodos = st.periodosPorAcr[uno] || [];
+    await buscar();
   }
 
   function filtroExtra() {
@@ -532,7 +544,9 @@
     return `${etiquetaMes(a)} – ${etiquetaMes(b)}`;
   }
 
+  let buscaN = 0;
   async function buscar() {
+    const yo = ++buscaN;
     const btn = $('ir-2');
     const previo = btn.innerHTML;
     btn.disabled = true;
@@ -558,8 +572,10 @@
       const extra = filtroExtra();
       if (acrs.length === 1 && meses.length === 1 && !extra) {
         await cargarResumen();
+        if (yo !== buscaN) return;
       } else if (acrs.length === 1 && meses.length === 1) {
         await cargarResumen();
+        if (yo !== buscaN) return;
         const features = (st.geo.features || []).filter(pasaFiltro);
         st.geo.features = features;
         pintarAgregado(features, meses);
@@ -567,6 +583,7 @@
         renderLista();
       } else {
         const features = (await traerAlertas(acrs, meses)).filter(pasaFiltro);
+        if (yo !== buscaN) return;
         st.geo = { type: 'FeatureCollection', features };
         st.filtro = 'todas';
         st.resumen = null;
@@ -574,6 +591,7 @@
         dibujarAlertas(features);
         renderLista();
       }
+      if (yo !== buscaN) return;
       if (capaAlertas.getLayers().length) mapa.flyToBounds(capaAlertas.getBounds(), { ...encuadre(40), maxZoom: 12 });
       desbloquear(2);
     } catch (e) {
@@ -682,6 +700,7 @@
   $('f-ambito').onchange = async () => {
     st.ambito = $('f-ambito').value;
     await cargarPeriodosRegion();
+    await buscar();
   };
   $('f-lupa').onclick = () => buscar();
   $('f-texto').addEventListener('keydown', (e) => { if (e.key === 'Enter') buscar(); });
@@ -1097,8 +1116,10 @@
   };
   $('btn-entrar').onclick = () => irAlLogin();
   $('entrar-cancelar').onclick = () => $('dlg-entrar').close();
-  if (new URLSearchParams(location.search).has('entrar')) {
+  if (new URLSearchParams(location.search).get('entrar') === 'error') {
     $('entrar-aviso').hidden = false;
+    irAlLogin();
+  } else if (new URLSearchParams(location.search).get('entrar') === '1') {
     irAlLogin();
   }
   $('form-salir').onsubmit = () => { $('salir-csrf').value = tokenCsrf(); };
@@ -1581,7 +1602,6 @@
         const loreto = [...$('f-region').options].find((op) => /loreto/i.test(op.value) || /loreto/i.test(op.textContent));
         $('f-region').value = (loreto || $('f-region').options[0]).value;
         await alCambiarRegion();
-        await buscar();
       }
     } catch (e) {
       $('f-error').hidden = false;
