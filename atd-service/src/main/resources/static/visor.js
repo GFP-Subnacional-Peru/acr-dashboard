@@ -106,7 +106,12 @@
   const capaPuntos = L.featureGroup().addTo(mapa);
   const capaPropuesta = L.geoJSON(null, {
     interactive: false,
-    style: { color: '#00e5ff', weight: 2.6, fillOpacity: 0 },
+    smoothFactor: 2.6,
+    style: {
+      color: '#e8b931', weight: 1.7, opacity: .95,
+      dashArray: '6 7', lineCap: 'round', lineJoin: 'round',
+      fillColor: '#e8b931', fillOpacity: .1,
+    },
   }).addTo(mapa);
   const marcas = new Map();
 
@@ -165,7 +170,8 @@
     const verProp = mapa.getZoom() >= 13 && (!prop || prop.checked);
     if (verProp && !mapa.hasLayer(capaPropuesta)) mapa.addLayer(capaPropuesta);
     if (!verProp && mapa.hasLayer(capaPropuesta)) mapa.removeLayer(capaPropuesta);
-    if (verProp) capaPropuesta.bringToFront();
+    capaAlertas.bringToFront();
+    if (mapa.hasLayer(capaPuntos)) capaPuntos.bringToFront();
   }
   mapa.on('zoomend', ajustarPuntos);
 
@@ -183,13 +189,71 @@
     if (!st.region && foco.length) mapa.fitBounds(L.featureGroup(foco).getBounds(), encuadre(40));
   }
 
+  function dist2Segmento(p, a, b) {
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const l2 = dx * dx + dy * dy || 1e-18;
+    let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2;
+    t = Math.max(0, Math.min(1, t));
+    const x = a[0] + t * dx - p[0], y = a[1] + t * dy - p[1];
+    return x * x + y * y;
+  }
+
+  /** Quita el zigzag de un píxel a otro. El trazo queda continuo, como un contorno dibujado. */
+  function simplificarAnillo(anillo, tol) {
+    if (!anillo || anillo.length < 6) return anillo;
+    const tol2 = tol * tol;
+    const cerrado = anillo[0][0] === anillo[anillo.length - 1][0] && anillo[0][1] === anillo[anillo.length - 1][1];
+    const pts = cerrado ? anillo.slice(0, -1) : anillo.slice();
+    if (pts.length < 4) return anillo;
+    const recortar = (lista) => {
+      const keep = new Uint8Array(lista.length);
+      keep[0] = 1;
+      keep[lista.length - 1] = 1;
+      const pila = [[0, lista.length - 1]];
+      while (pila.length) {
+        const [a, b] = pila.pop();
+        let max = 0, idx = -1;
+        for (let i = a + 1; i < b; i++) {
+          const d = dist2Segmento(lista[i], lista[a], lista[b]);
+          if (d > max) { max = d; idx = i; }
+        }
+        if (idx > 0 && max > tol2) {
+          keep[idx] = 1;
+          pila.push([a, idx], [idx, b]);
+        }
+      }
+      const out = [];
+      for (let i = 0; i < lista.length; i++) if (keep[i]) out.push(lista[i]);
+      return out;
+    };
+    let lejos = 1, mejor = 0;
+    for (let i = 1; i < pts.length; i++) {
+      const dx = pts[i][0] - pts[0][0], dy = pts[i][1] - pts[0][1];
+      const d = dx * dx + dy * dy;
+      if (d > mejor) { mejor = d; lejos = i; }
+    }
+    const ida = recortar(pts.slice(0, lejos + 1));
+    const vuelta = recortar(pts.slice(lejos).concat([pts[0]]));
+    const out = ida.slice(0, -1).concat(vuelta);
+    return out.length >= 4 ? out : anillo;
+  }
+
+  function simplificarGeom(geom) {
+    const tol = 0.00055;
+    const anillos = (lista) => lista.map((a) => simplificarAnillo(a, tol));
+    if (!geom) return geom;
+    if (geom.type === 'Polygon') return { ...geom, coordinates: anillos(geom.coordinates) };
+    if (geom.type === 'MultiPolygon') return { ...geom, coordinates: geom.coordinates.map(anillos) };
+    return geom;
+  }
+
   function cargarPropuesta() {
     return fetch('/limites/propuesta_loreto.geojson')
       .then((r) => (r.ok ? r.json() : null))
       .then((gj) => {
         if (!gj) return;
+        gj.features.forEach((f) => { f.geometry = simplificarGeom(f.geometry); });
         capaPropuesta.addData(gj);
-        capaPropuesta.eachLayer((l) => l.bindTooltip(`${l.feature.properties.codigo} · contorno automático`, { sticky: true }));
         ajustarPuntos();
       })
       .catch(() => {});
@@ -819,6 +883,43 @@
       </figure>`;
   }
 
+  function htmlDeslizador(izqSrc, derSrc, rotIzq, rotDer, geom, recorte) {
+    return `<div class="comparador" style="--pos:52%">
+        <img src="${derSrc}" alt="">
+        <img class="antes" src="${izqSrc}" alt="">
+        ${contornoSvg(geom, recorte)}
+        <span class="rot izq">${rotIzq}</span>
+        <span class="rot der">${rotDer}</span>
+        <span class="divisor"></span>
+        <input type="range" min="0" max="100" value="52" aria-label="Deslizar entre antes y después">
+      </div>`;
+  }
+
+  function abrirFotos(modoInicial, antes, despues, swir, geom, recorte) {
+    if (!antes || !despues) return;
+    const dlg = $('dlg-fotos');
+    const caja = $('fotos-lienzo');
+    let modo = modoInicial === 'swir' && swir ? 'swir' : 'rgb';
+    const pintar = () => {
+      const der = modo === 'swir' && swir ? swir : despues.imagen;
+      const rotDer = modo === 'swir' ? 'SWIR<small>suelo desnudo</small>' : `DESPUÉS<small>${fecha(despues.fecha)}</small>`;
+      caja.innerHTML = htmlDeslizador(antes.imagen, der, `ANTES<small>${fecha(antes.fecha)}</small>`, rotDer, geom, recorte);
+      const comp = caja.querySelector('.comparador');
+      const rango = caja.querySelector('input');
+      rango.oninput = () => comp.style.setProperty('--pos', `${rango.value}%`);
+      $('fotos-modo').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', b.dataset.m === modo));
+    };
+    $('fotos-swir').hidden = !swir;
+    $('fotos-modo').onclick = (e) => {
+      const b = e.target.closest('button');
+      if (!b || b.hidden) return;
+      modo = b.dataset.m;
+      pintar();
+    };
+    pintar();
+    if (!dlg.open) dlg.showModal();
+  }
+
   function comparador(cont, escenas, geom, codigo) {
     const antes = escenas.find((e) => e.momento === 'antes');
     const despues = escenas.find((e) => e.momento === 'despues');
@@ -830,7 +931,7 @@
         ${marcoImagen(`DESPUÉS<small>${fecha(despues.fecha)}</small>`, despues.imagen, 'Imagen después', geom, despues.recorte || recorte)}
         ${swir ? marcoImagen('SWIR<small>suelo desnudo</small>', swir, 'Infrarrojo de onda corta', geom, recorte) : ''}
       </div>
-      <p class="sensor-nota">El contorno naranja es la alerta de GeoBosques. Antes y después son el par oficial del reporte. SWIR es la misma fecha reciente: el suelo sin bosque se ve magenta y ayuda a no confundir un río, una sombra o un derrumbe con una tala.</p>`
+      <p class="sensor-nota">Clic en una imagen para abrir el deslizador. El contorno naranja es la alerta. SWIR es la misma fecha reciente: el suelo sin bosque se ve magenta.</p>`
       : `<div class="sin-imagen"><i class="fas fa-cloud-sun"></i>Aún no hay un par guardado para el reporte. Puede buscar otra fecha abajo.</div>`;
     cont.innerHTML = `${par}
       <div class="busqueda-s2">
@@ -843,6 +944,11 @@
         <div class="s2-lista"></div>
         <div class="s2-vista" hidden></div>
       </div>`;
+    cont.querySelectorAll('.marco').forEach((fig) => {
+      const alt = fig.querySelector('img')?.alt || '';
+      fig.title = 'Abrir y deslizar';
+      fig.onclick = () => abrirFotos(alt.includes('onda corta') ? 'swir' : 'rgb', antes, despues, swir, geom, recorte);
+    });
     cont.querySelectorAll('.marco img').forEach((img) => {
       if (!img.alt.includes('onda corta')) return;
       img.onerror = () => {
@@ -1152,7 +1258,7 @@
     document.querySelectorAll('.rail-btn[data-modo]').forEach((b) => b.classList.toggle('activo', b.dataset.modo === modo));
     $('modo-consulta').hidden = modo !== 'consulta';
     $('modo-clasificar').hidden = modo !== 'clasificar';
-    $('cab-sub').textContent = modo === 'consulta' ? 'Áreas de Conservación Regional · Consulta de alertas' : 'Bandeja de clasificación · Especialistas regionales';
+    $('cab-sub').textContent = modo === 'consulta' ? 'GFP Subnacional · Consulta de alertas' : 'GFP Subnacional · Bandeja de clasificación';
     if (modo === 'clasificar') iniciarClasificacion();
     else if (st.geo) dibujarAlertas(st.geo.features);
   }
@@ -1419,6 +1525,14 @@
     setTimeout(() => mapa.invalidateSize(), 320);
   };
   $('btn-acerca').onclick = () => $('dlg-acerca').showModal();
+  $('acerca-guia').onclick = () => { $('dlg-acerca').close(); $('dlg-tutorial').showModal(); };
+  const recordarTutorial = () => {
+    try { localStorage.setItem('atd-tutorial', $('tut-siempre').checked ? 'si' : 'no'); } catch (e) {}
+  };
+  $('dlg-tutorial').addEventListener('close', recordarTutorial);
+  try {
+    if (localStorage.getItem('atd-tutorial') !== 'no') $('dlg-tutorial').showModal();
+  } catch (e) {}
   $('btn-tema').onclick = () => {
     const oscuro = document.documentElement.dataset.tema === 'oscuro';
     if (oscuro) delete document.documentElement.dataset.tema;
