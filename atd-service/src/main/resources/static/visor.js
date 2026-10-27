@@ -110,16 +110,17 @@
     style: {
       color: '#e8b931', weight: 1.7, opacity: .95,
       dashArray: '6 7', lineCap: 'round', lineJoin: 'round',
-      fillColor: '#e8b931', fillOpacity: .1,
+      fillOpacity: 0,
     },
-  }).addTo(mapa);
+  });
   const marcas = new Map();
 
   function estiloAlerta(p, sel) {
     return {
       color: sel ? '#ffffff' : '#e53935',
-      weight: sel ? 3.2 : 2.2,
-      fillOpacity: 0,
+      weight: sel ? 3.2 : 2.4,
+      fillColor: '#e53935',
+      fillOpacity: sel ? 0.28 : 0.16,
     };
   }
 
@@ -177,7 +178,7 @@
     const r = radioPunto();
     capaPuntos.eachLayer((l) => { if (l.setRadius) l.setRadius(r); });
     const prop = $('c-propuesta');
-    const verProp = mapa.getZoom() >= 13 && (!prop || prop.checked);
+    const verProp = !!prop && prop.checked && mapa.getZoom() >= 14;
     if (verProp && !mapa.hasLayer(capaPropuesta)) mapa.addLayer(capaPropuesta);
     if (!verProp && mapa.hasLayer(capaPropuesta)) mapa.removeLayer(capaPropuesta);
     capaAlertas.bringToFront();
@@ -287,7 +288,15 @@
 
   /* Panel de capas */
   $('capas-btn').onclick = () => $('capas-cuerpo').classList.toggle('oculto');
-  $('c-alertas').onchange = (e) => { e.target.checked ? mapa.addLayer(capaAlertas) : mapa.removeLayer(capaAlertas); ajustarPuntos(); };
+  $('c-alertas').onchange = (e) => {
+    if ($('f-c-alertas')) $('f-c-alertas').checked = e.target.checked;
+    ajustarPuntos();
+  };
+  $('c-poli').onchange = (e) => {
+    if (e.target.checked) mapa.addLayer(capaAlertas);
+    else mapa.removeLayer(capaAlertas);
+    if ($('f-c-poli')) $('f-c-poli').checked = e.target.checked;
+  };
   $('c-geob').onchange = (e) => {
     document.querySelectorAll('.ley-geob').forEach((d) => (d.hidden = !e.target.checked));
     if ($('f-c-geob')) $('f-c-geob').checked = e.target.checked;
@@ -707,6 +716,8 @@
   $('f-reset').onclick = () => resetFiltros();
   $('ir-2').onclick = () => buscar();
   $('f-c-alertas').onchange = (e) => { $('c-alertas').checked = e.target.checked; $('c-alertas').onchange(e); };
+  $('f-c-poli').onchange = (e) => { $('c-poli').checked = e.target.checked; $('c-poli').onchange(e); };
+  if ($('f-c-propuesta')) $('f-c-propuesta').onchange = (e) => { $('c-propuesta').checked = e.target.checked; $('c-propuesta').onchange(); };
   $('f-c-geob').onchange = (e) => { $('c-geob').checked = e.target.checked; $('c-geob').onchange(e); };
   $('f-c-limites').onchange = (e) => { $('c-limites').checked = e.target.checked; $('c-limites').onchange(e); };
   $('f-base').onchange = () => {

@@ -342,7 +342,8 @@ dialog .mb-sel { width: 100%; border: 1.5px solid var(--linea); border-radius: 1
 .dlg-fotos-x { width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; }
 .dlg-fotos .comparador { width: min(100%, 68vh); margin: 0 auto; max-height: none; }
 .dlg-fotos-nota { margin: 8px 2px 0; font-size: 12px; color: #c9d5cc; }
-.sw-prop { border: 2px dashed #e8b931 !important; background: rgba(232, 185, 49, .18) !important; }
+.sw-poli { border: 2px solid #e53935; background: rgba(229, 57, 53, .22); }
+.sw-prop { border: 2px dashed #e8b931 !important; background: transparent !important; }
 
 @media (max-width: 860px) {
   :root { --panel: calc(100vw - 72px); }

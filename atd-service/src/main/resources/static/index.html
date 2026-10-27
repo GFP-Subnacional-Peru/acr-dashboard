@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="/visor.css?v=20261022b">
+<link rel="stylesheet" href="/visor.css?v=20261027a">
 <script>
   try { if (localStorage.getItem('atd-tema') === 'oscuro') document.documentElement.dataset.tema = 'oscuro'; } catch (e) {}
 </script>
@@ -125,7 +125,9 @@
         </div>
         <div id="mb-capas" hidden>
           <p class="ayuda">La capa de GeoBosques muestra el año en curso, en vivo. Las alertas del sistema son las que ya ingresaron a la bandeja y tienen evidencia y reporte.</p>
-          <label class="mb-check"><input type="checkbox" id="f-c-alertas" checked> Alertas 2026</label>
+          <label class="mb-check"><input type="checkbox" id="f-c-poli" checked> Perturbación (polígono rojo)</label>
+          <label class="mb-check"><input type="checkbox" id="f-c-alertas" checked> Centros de alerta</label>
+          <label class="mb-check"><input type="checkbox" id="f-c-propuesta"> Contorno automático · Loreto</label>
           <label class="mb-check"><input type="checkbox" id="f-c-geob"> ATD GeoBosques 2026 <small>(oficial, en vivo)</small></label>
           <label class="mb-check"><input type="checkbox" id="f-c-limites" checked> Límites ACR / ZI</label>
           <label class="etq">Mapa base</label>
@@ -306,10 +308,11 @@
   <button class="capas-btn" id="capas-btn" title="Capas"><i class="fas fa-layer-group"></i></button>
   <div class="capas-cuerpo oculto" id="capas-cuerpo">
     <h4>Capas</h4>
-    <label><input type="checkbox" id="c-alertas" checked> <i class="sw sw-alerta"></i> Alertas 2026</label>
+    <label><input type="checkbox" id="c-poli" checked> <i class="sw sw-poli"></i> Perturbación (polígono rojo)</label>
+    <label><input type="checkbox" id="c-alertas" checked> <i class="sw sw-alerta"></i> Centros de alerta</label>
     <label><input type="checkbox" id="c-geob"> <i class="sw sw-geob"></i> ATD GeoBosques 2026 <small>(oficial, en vivo)</small></label>
     <label><input type="checkbox" id="c-limites" checked> <i class="sw sw-lim"></i> Límites ACR / ZI</label>
-    <label><input type="checkbox" id="c-propuesta" checked> <i class="sw sw-prop"></i> Contorno suavizado · Loreto</label>
+    <label><input type="checkbox" id="c-propuesta"> <i class="sw sw-prop"></i> Contorno automático · Loreto</label>
     <h4>Mapa base</h4>
     <label><input type="radio" name="base" value="esri" checked> Imagen satelital</label>
     <label><input type="radio" name="base" value="s2026"> Sentinel-2 2026 <small>(actual, nubes ≤ 30 %)</small></label>
@@ -322,8 +325,8 @@
 <div id="escena-fija" class="escena-fija" hidden></div>
 
 <div class="leyenda" id="leyenda">
-  <div><i class="borde" style="border-color:#e53935"></i>Alertas 2026</div>
-  <div><i class="borde punteado" style="border-color:#e8b931"></i>Contorno suavizado</div>
+  <div><i class="borde" style="border-color:#e53935"></i>Perturbación (alerta)</div>
+  <div><i class="borde punteado" style="border-color:#e8b931"></i>Contorno automático · Loreto</div>
   <div><i style="background:#1e88e5"></i>Cambio natural</div>
   <div><i style="background:#9e9e9e"></i>Falsa alerta</div>
   <div><i style="background:#fb8c00"></i>Pendiente (un solo polígono)</div>
@@ -359,7 +362,7 @@
   <h3>Cómo se lee una alerta</h3>
   <p class="tut-lead">El sistema no inventa el polígono. Trae lo que publicó GeoBosques y la persona decide qué es.</p>
   <div class="tut-pasos">
-    <div class="tut-paso"><i class="fas fa-map-location-dot"></i><div><b>Mapa.</b> El punto es el centro. El polígono rojo es la alerta. La línea ámbar punteada es un contorno automático suavizado, solo de Loreto: no es la alerta.</div></div>
+    <div class="tut-paso"><i class="fas fa-map-location-dot"></i><div><b>Mapa.</b> El punto es el centro. El polígono rojo es la perturbación de la alerta: se apaga para ver el bosque y se prende para ver el límite. La línea ámbar, apagada al entrar, es un contorno automático solo de Loreto. No es la alerta.</div></div>
     <div class="tut-paso"><i class="fas fa-images"></i><div><b>Tres imágenes.</b> Antes, después y SWIR. Un clic abre el deslizador: arrastra la barra para ver el cambio.</div></div>
     <div class="tut-paso"><i class="fas fa-satellite"></i><div><b>SWIR.</b> La misma fecha reciente. El suelo sin bosque se ve magenta. Sirve para no confundir un río, una sombra o un derrumbe con una tala.</div></div>
     <div class="tut-paso"><i class="fas fa-check"></i><div><b>Clasificar.</b> A es pérdida antrópica, N es cambio natural, F es falsa alerta. U deja la alerta en duda. Guardar escribe la decisión en la base.</div></div>
@@ -401,6 +404,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
-<script src="/visor.js?v=20261022c"></script>
+<script src="/visor.js?v=20261027a"></script>
 </body>
 </html>
