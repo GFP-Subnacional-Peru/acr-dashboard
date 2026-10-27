@@ -913,6 +913,16 @@
       </figure>`;
   }
 
+  let verContorno = true;
+
+  function aplicarContorno() {
+    const comp = document.querySelector('#fotos-lienzo .comparador');
+    if (comp) comp.classList.toggle('sin-contorno', !verContorno);
+    document.querySelectorAll('#ev-comparador .trio, #cl-comparador .trio').forEach((t) => t.classList.toggle('sin-contorno', !verContorno));
+    const btn = $('fotos-contorno');
+    if (btn) btn.classList.toggle('activo', verContorno);
+  }
+
   function htmlDeslizador(izqSrc, derSrc, rotIzq, rotDer, geom, recorte) {
     return `<div class="comparador" style="--pos:52%">
         <img src="${derSrc}" alt="">
@@ -937,15 +947,17 @@
       const comp = caja.querySelector('.comparador');
       const rango = caja.querySelector('input');
       rango.oninput = () => comp.style.setProperty('--pos', `${rango.value}%`);
-      $('fotos-modo').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', b.dataset.m === modo));
+      $('fotos-modo').querySelectorAll('button[data-m]').forEach((b) => b.classList.toggle('activo', b.dataset.m === modo));
+      aplicarContorno();
     };
     $('fotos-swir').hidden = !swir;
     $('fotos-modo').onclick = (e) => {
-      const b = e.target.closest('button');
+      const b = e.target.closest('button[data-m]');
       if (!b || b.hidden) return;
       modo = b.dataset.m;
       pintar();
     };
+    $('fotos-contorno').onclick = () => { verContorno = !verContorno; aplicarContorno(); };
     pintar();
     if (!dlg.open) dlg.showModal();
   }
@@ -979,6 +991,7 @@
       fig.title = 'Abrir y deslizar';
       fig.onclick = () => abrirFotos(alt.includes('onda corta') ? 'swir' : 'rgb', antes, despues, swir, geom, recorte);
     });
+    aplicarContorno();
     cont.querySelectorAll('.marco img').forEach((img) => {
       if (!img.alt.includes('onda corta')) return;
       img.onerror = () => {

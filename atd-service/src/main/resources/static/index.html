@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="/visor.css?v=20261027a">
+<link rel="stylesheet" href="/visor.css?v=20261027b">
 <script>
   try { if (localStorage.getItem('atd-tema') === 'oscuro') document.documentElement.dataset.tema = 'oscuro'; } catch (e) {}
 </script>
@@ -376,11 +376,12 @@
     <div class="dlg-fotos-modo" id="fotos-modo">
       <button type="button" data-m="rgb">Antes / Después</button>
       <button type="button" data-m="swir" id="fotos-swir">Antes / SWIR</button>
+      <button type="button" id="fotos-contorno" class="activo">Contorno</button>
     </div>
     <form method="dialog"><button class="dlg-fotos-x" value="cancel" aria-label="Cerrar"><i class="fas fa-xmark"></i></button></form>
   </div>
   <div id="fotos-lienzo"></div>
-  <p class="dlg-fotos-nota">Arrastra la barra para comparar. El contorno naranja es la alerta de GeoBosques.</p>
+  <p class="dlg-fotos-nota" id="fotos-nota">Arrastra la barra para comparar. Contorno muestra u oculta el polígono de la alerta.</p>
 </dialog>
 
 <dialog id="dlg-acerca">
@@ -404,6 +405,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
-<script src="/visor.js?v=20261027a"></script>
+<script src="/visor.js?v=20261027b"></script>
 </body>
 </html>
