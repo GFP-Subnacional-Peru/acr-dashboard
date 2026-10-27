@@ -67,3 +67,7 @@ atd-service/target/
 atd-service/db/gdb/
 atd-service/db/gdb_loreto/
 atd-service/db/escenas/
+
+# Pesos y cuaderno de la red (se generan al entrenar)
+scripts/red_mccallum/salidas/
+scripts/red_mccallum/.venv/

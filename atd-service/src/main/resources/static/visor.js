@@ -564,7 +564,9 @@
       const texto = ($('f-texto').value || '').trim().toUpperCase();
       const porCodigo = document.querySelector('input[name="f-por"]:checked')?.value !== 'territorio';
       if (porCodigo && /^[A-Z]{3}-\d{4}-\d{4,6}$/.test(texto)) {
+        $('f-texto').value = '';
         await abrirEnlace(texto);
+        $('f-texto').value = texto;
         return;
       }
       const acrs = acrsElegidos();
@@ -1002,6 +1004,27 @@
     if (codigo) buscarSentinel(cont, codigo, sugerida);
   }
 
+  let propuestasRed = null;
+  async function propuestasRedCargar() {
+    if (propuestasRed) return propuestasRed;
+    try {
+      const r = await fetch('/propuestas.json', { cache: 'no-store' });
+      propuestasRed = r.ok ? await r.json() : {};
+    } catch { propuestasRed = {}; }
+    return propuestasRed;
+  }
+  function pintarPropuesta(id, codigo) {
+    const box = $(id);
+    const p = propuestasRed && propuestasRed[codigo];
+    if (!box) return;
+    box.hidden = !p;
+    const txt = box.querySelector('b');
+    if (p && txt) {
+      const pct = Math.round(Number(p.probabilidad) * 100);
+      txt.textContent = `${p.causa} · ${p.confiabilidad} · ${pct} %`;
+    }
+  }
+
   function ficha(d, escenas) {
     const antes = escenas.find((e) => e.momento === 'antes');
     const despues = escenas.find((e) => e.momento === 'despues');
@@ -1031,6 +1054,8 @@
     verEscena(escenas.some((e) => e.momento === 'despues' && e.recorte) ? 'despues' : '');
     $('ev-editar').hidden = !ed.habilitada;
     $('ev-ficha').innerHTML = ficha(d, escenas);
+    await propuestasRedCargar();
+    pintarPropuesta('ev-red', codigo);
     cargarFotos(codigo);
     const concl = d.conclusion || (d.estado === 'pendiente' ? 'Alerta pendiente de validación técnica: aún no tiene clasificación ni causal definitiva.' : null);
     $('ev-conclusion').hidden = !concl;
@@ -1438,6 +1463,8 @@
     $('cl-conclusion').value = previa?.conclusion || '';
     $('cl-codigo').textContent = p.codigo;
     $('cl-codigo-nota').textContent = notaCodigo(p.codigo);
+    await propuestasRedCargar();
+    pintarPropuesta('cl-red', codigo);
     $('cl-sub').textContent = `${ha(p.superficie_ha)} · detectada el ${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'Dentro del ACR'}`;
     $('cl-cola').hidden = true; $('cl-cola-cab').hidden = true; $('cl-form').hidden = false;
     $('cl-comparador').innerHTML = '<div class="sin-imagen"><i class="fas fa-spinner fa-spin"></i>Cargando imágenes…</div>';
