@@ -159,7 +159,7 @@
   }
 
   mapa.on('click', (e) => {
-    if (st.modo !== 'clasificar') return;
+    if (st.modo !== 'clasificar' || ed.capa) return;
     const codigo = codigoCercano(e.latlng, 64);
     if (codigo) abrirClasificacion(codigo);
   });
@@ -1210,18 +1210,19 @@
   /* ---------- Escena Sentinel-2 exacta sobre el mapa ---------- */
   mapa.createPane('escena').style.zIndex = 350;
   let capaEscena = null;
-  function verEscena(momento) {
+  function verEscena(momento, acercar) {
     if (capaEscena) { mapa.removeLayer(capaEscena); capaEscena = null; }
     $('ev-escena-sel').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', b.dataset.v === momento));
-    const e = st.escenas.find((x) => x.momento === momento);
+    const e = (st.escenas || []).find((x) => x.momento === momento);
     const fija = $('escena-fija');
-    if (!e || !e.recorte) { fija.hidden = true; return; }
+    if (!e || !e.recorte) { fija.hidden = true; return null; }
     const [x0, y0, x1, y1] = e.recorte;
     const limites = L.latLngBounds(L.CRS.EPSG3857.unproject(L.point(x0, y0)), L.CRS.EPSG3857.unproject(L.point(x1, y1)));
     capaEscena = L.imageOverlay(e.imagen, limites, { pane: 'escena', interactive: false }).addTo(mapa);
-    if (!mapa.getBounds().intersects(limites)) mapa.flyToBounds(limites, encuadre(20));
+    if (acercar || !mapa.getBounds().contains(limites)) mapa.flyToBounds(limites, { ...encuadre(24), maxZoom: 17 });
     fija.hidden = false;
     fija.textContent = `Sentinel-2 L2A · ${momento === 'antes' ? 'antes' : 'después'} · ${fecha(e.fecha)} · ${e.escenaId}`;
+    return limites;
   }
   $('ev-escena-sel').querySelectorAll('button').forEach((b) => (b.onclick = () => verEscena(b.dataset.v)));
 
@@ -1238,7 +1239,8 @@
       $('usr-nombre').textContent = s.usuario;
       $('rail-usuario').title = `${s.usuario} · ${editor ? 'editor' : 'consulta'}`;
     }
-    if (st.alerta && $('ed-panel').hidden) $('ev-editar').hidden = !ed.habilitada;
+    if (st.alerta && $('ed-panel').hidden) pintarBotonEditar();
+    if (editor && st.modo === 'clasificar' && !$('cl-form').hidden && !ed.capa && st.alerta) editar();
     if (st.alerta) cargarFotos(st.alerta);
   }).catch(() => {});
 
@@ -1354,6 +1356,18 @@
     actualizarArea();
   }
 
+  const edAncla = $('ed-panel').parentElement;
+  function anclarEditor() {
+    const panel = $('ed-panel');
+    const destino = st.modo === 'clasificar' ? $('cl-editor') : edAncla;
+    if (destino && panel.parentElement !== destino) destino.appendChild(panel);
+  }
+  function pintarBotonEditar() {
+    const ver = ed.habilitada && !ed.capa;
+    $('ev-editar').hidden = !ver;
+    if ($('cl-editar')) $('cl-editar').hidden = !ver;
+  }
+
   async function editar() {
     const m = marcas.get(st.alerta);
     if (!ed.habilitada || !m || ed.capa || ed.abriendo) return;
@@ -1370,12 +1384,13 @@
     ed.capa.on('pm:edit pm:dragend pm:rotateend pm:vertexadded pm:vertexremoved pm:markerdragend', actualizarArea);
     capaAlertas.removeLayer(m.poli);
     capaPuntos.removeLayer(m.punto);
-    verEscena('despues');
-    mapa.flyToBounds(ed.capa.getBounds(), { ...encuadre(70), maxZoom: 17 });
+    anclarEditor();
+    verEscena('despues', true);
+    mapa.flyToBounds(ed.capa.getBounds(), { ...encuadre(90), maxZoom: 18 });
     $('ed-orig').textContent = `(antes: ${ha(st.detalle.superficie_ha)})`;
     $('ed-restaurar').hidden = !st.detalle.editada;
     $('ed-panel').hidden = false;
-    $('ev-editar').hidden = true;
+    pintarBotonEditar();
     aplicarHerramienta();
     actualizarArea();
     $('ed-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1392,7 +1407,7 @@
     const m = marcas.get(ed.codigo);
     if (m) { capaAlertas.addLayer(m.poli); capaPuntos.addLayer(m.punto); }
     $('ed-panel').hidden = true;
-    $('ev-editar').hidden = !ed.habilitada;
+    pintarBotonEditar();
   }
 
   async function enviarGeometria(metodo, geometria) {
@@ -1410,6 +1425,24 @@
   async function aplicarResultado() {
     const codigo = ed.codigo;
     terminarEdicion();
+    if (st.modo === 'clasificar') {
+      const det = await api(`/alertas/${codigo}`, true);
+      const f = (st.cl.geo?.features || []).find((x) => x.properties.codigo === codigo);
+      if (f) {
+        f.geometry = det.geometry;
+        f.properties.superficie_ha = det.properties.superficie_ha;
+        const item = st.cl.cola.find((x) => x.codigo === codigo);
+        if (item) item.superficie_ha = det.properties.superficie_ha;
+      }
+      dibujarAlertas(st.cl.geo.features);
+      st.alerta = codigo;
+      st.detalle = det.properties;
+      const p = st.cl.cola.find((x) => x.codigo === codigo);
+      if (p) $('cl-sub').textContent = `${ha(p.superficie_ha)} · detectada el ${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'Dentro del ACR'}`;
+      if (ed.habilitada) await editar();
+      else verEscena('despues', true);
+      return;
+    }
     if (st.geo) {
       st.geo = await api(`/alertas?acr=${st.acr}&ambito=${st.ambito}&anio=${st.anio}&mes=${st.mes}`, true);
       dibujarAlertas(st.geo.features);
@@ -1418,6 +1451,7 @@
   }
 
   $('ev-editar').onclick = editar;
+  if ($('cl-editar')) $('cl-editar').onclick = editar;
   $('ed-herr').querySelectorAll('[data-h]').forEach((b) => (b.onclick = () => { ed.herr = b.dataset.h; aplicarHerramienta(); }));
   $('ed-mas').onclick = () => escalar(1.05);
   $('ed-menos').onclick = () => escalar(1 / 1.05);
@@ -1616,10 +1650,24 @@
     if ($('cl-guia')) $('cl-guia').open = false;
     requestAnimationFrame(() => $('cl-form').scrollIntoView({ block: 'start' }));
     $('cl-comparador').innerHTML = '<div class="sin-imagen"><i class="fas fa-spinner fa-spin"></i>Cargando imágenes…</div>';
-    resaltar(codigo);
     pintarForm();
+    if (ed.capa) terminarEdicion();
     const feat = st.cl.geo.features.find((f) => f.properties.codigo === codigo);
-    comparador($('cl-comparador'), await api(`/alertas/${codigo}/evidencia`), feat?.geometry, codigo);
+    const escenas = await api(`/alertas/${codigo}/evidencia`);
+    st.escenas = escenas;
+    st.alerta = codigo;
+    comparador($('cl-comparador'), escenas, feat?.geometry, codigo);
+    const hayImagen = escenas.some((e) => e.momento === 'despues' && e.recorte);
+    if ($('cl-mapa-nota')) {
+      $('cl-mapa-nota').textContent = hayImagen
+        ? 'La imagen Sentinel de después está en el mapa, debajo del polígono. Arrastra los vértices para corregirlo.'
+        : 'Esta alerta todavía no tiene imagen Sentinel en el mapa. El polígono se edita sobre el fondo.';
+    }
+    if (ed.habilitada) await editar();
+    else {
+      verEscena(hayImagen ? 'despues' : '', true);
+      resaltar(codigo);
+    }
   }
 
   function pintarForm() {
@@ -1639,6 +1687,8 @@
   }
 
   function cerrarForm() {
+    if (ed.capa) terminarEdicion();
+    verEscena('');
     $('cl-form').hidden = true; $('cl-cola').hidden = false; $('cl-cola-cab').hidden = false;
     renderCola();
   }
