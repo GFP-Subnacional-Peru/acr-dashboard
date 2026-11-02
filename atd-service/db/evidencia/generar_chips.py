@@ -233,7 +233,7 @@ def guardar(con, alerta_id, bounds, momento, item, nubes, png):
                'Sentinel-2 L2A color natural · ' || e.escena_id
           FROM atd.escena e
          WHERE e.alerta_id = {alerta_id} AND e.momento = '{momento}' AND e.proveedor = 'sentinel2'
-        ON CONFLICT (alerta_id, tipo) DO UPDATE
+        ON CONFLICT (alerta_id, tipo) WHERE tipo IN ('chip_antes', 'chip_despues') DO UPDATE
            SET escena_id = EXCLUDED.escena_id, contenido = EXCLUDED.contenido, mime = EXCLUDED.mime,
                descripcion = EXCLUDED.descripcion, creado_en = now()
     """)
@@ -246,6 +246,7 @@ def main():
     ap.add_argument("--anio", type=int)
     ap.add_argument("--mes", type=int)
     ap.add_argument("--codigo", help="una sola alerta, p. ej. LOR-2026-0205")
+    ap.add_argument("--origen", help="solo alertas de este origen_gdb")
     ap.add_argument("--limite", type=int, default=50)
     ap.add_argument("--hilos", type=int, default=4)
     ap.add_argument("--rehacer", action="store_true")
@@ -262,10 +263,14 @@ def main():
         filtros.append(f"a.mes = {int(args.mes)}")
     if args.codigo:
         filtros.append(f"a.codigo = '{args.codigo.replace(chr(39), '')}'")
+    if args.origen:
+        filtros.append(f"a.origen_gdb = '{args.origen.replace(chr(39), '')}'")
     if not args.rehacer:
         filtros.append("NOT EXISTS (SELECT 1 FROM atd.escena e WHERE e.alerta_id = a.id "
                        "AND e.momento = 'despues' AND e.rec_xmin IS NOT NULL)")
 
+    orden = ("a.superficie_ha DESC NULLS LAST, a.fecha_imagen DESC"
+             if args.origen else "a.estado DESC, a.fecha_imagen DESC")
     con = pg()
     capa = con.ExecuteSQL(f"""
         SELECT a.id, a.codigo, a.codigo_reporte, a.fecha_imagen::text AS fecha, a.img_antes, a.img_despues,
@@ -273,7 +278,7 @@ def main():
                ST_X(ST_Transform(a.centroide, 3857)) AS x, ST_Y(ST_Transform(a.centroide, 3857)) AS y
           FROM atd.alerta a
          WHERE {' AND '.join(filtros)}
-         ORDER BY a.estado DESC, a.fecha_imagen DESC
+         ORDER BY {orden}
          LIMIT {int(args.limite)}
     """)
     campos = ("id", "codigo", "codigo_reporte", "fecha", "img_antes", "img_despues", "lon", "lat", "x", "y")

@@ -73,7 +73,9 @@ public class FotoController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> subir(@PathVariable @Pattern(regexp = PATRON_CODIGO) String codigo,
                                                      @RequestParam("foto") MultipartFile foto,
-                                                     @RequestParam(value = "nota", required = false) String nota) {
+                                                     @RequestParam(value = "nota", required = false) String nota,
+                                                     @RequestParam(value = "lat", required = false) String lat,
+                                                     @RequestParam(value = "lon", required = false) String lon) {
         if (foto == null || foto.isEmpty()) {
             return rechazo("Elige una foto");
         }
@@ -100,6 +102,17 @@ public class FotoController {
         if (limpia != null && limpia.length() > 250) {
             limpia = limpia.substring(0, 250);
         }
+        Double latitud = coordenada(lat, -90, 90);
+        Double longitud = coordenada(lon, -180, 180);
+        if (latitud == null && lat != null && !lat.isBlank()) {
+            return rechazo("La latitud tiene que estar entre -90 y 90");
+        }
+        if (longitud == null && lon != null && !lon.isBlank()) {
+            return rechazo("La longitud tiene que estar entre -180 y 180");
+        }
+        if ((latitud == null) != (longitud == null)) {
+            return rechazo("Escribe latitud y longitud, o deja las dos vacías");
+        }
         String ruta = null;
         byte[] guardar = datos;
         if (drive.activo()) {
@@ -111,8 +124,9 @@ public class FotoController {
                 log.warn("Drive no recibió la foto, queda en la base: {}", e.getMessage());
             }
         }
-        long id = repo.guardarFoto(codigo, guardar, mime, limpia, ruta);
-        return ResponseEntity.status(HttpStatus.CREATED).body(fotoJson(codigo, new EvidenciaRepository.Foto(id, limpia, "ahora")));
+        long id = repo.guardarFoto(codigo, guardar, mime, limpia, ruta, latitud, longitud);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(fotoJson(codigo, new EvidenciaRepository.Foto(id, limpia, "ahora", latitud, longitud)));
     }
 
     private static ResponseEntity<Map<String, Object>> rechazo(String mensaje) {
@@ -135,8 +149,26 @@ public class FotoController {
         m.put("id", f.id());
         m.put("nota", f.nota());
         m.put("tomada", f.tomada());
+        m.put("lat", f.lat());
+        m.put("lon", f.lon());
         m.put("url", "/api/atd/alertas/" + codigo + "/foto/" + f.id());
         return m;
+    }
+
+    /** Vacío vale null. Un número fuera de rango también devuelve null: el llamador lo distingue del vacío. */
+    private static Double coordenada(String texto, double min, double max) {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        try {
+            double n = Double.parseDouble(texto.trim().replace(',', '.'));
+            if (n < min || n > max || Double.isNaN(n)) {
+                return null;
+            }
+            return n;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /** JPG, PNG o WEBP por los primeros bytes. El nombre del archivo no basta. */

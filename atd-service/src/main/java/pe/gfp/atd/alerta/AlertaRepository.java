@@ -42,7 +42,11 @@ public class AlertaRepository {
             """.formatted(FILTRO_TERRITORIO);
 
     private static final String SELECT_PERIODOS = """
-            SELECT a.anio, a.mes, count(*) AS alertas
+            SELECT a.anio, a.mes, count(*) AS alertas,
+                   count(*) FILTER (WHERE EXISTS (
+                       SELECT 1 FROM evidencia vf
+                        WHERE vf.alerta_id = a.id AND vf.tipo = 'foto_campo'
+                   )) AS constatadas
               FROM alerta a
              WHERE %s
              GROUP BY a.anio, a.mes
@@ -148,8 +152,30 @@ public class AlertaRepository {
 
     public List<Periodo> periodos(String acr, Ambito ambito) {
         return jdbc.query(SELECT_PERIODOS, (rs, i) -> new Periodo(
-                rs.getInt("anio"), rs.getInt("mes"), rs.getInt("alertas")),
+                rs.getInt("anio"), rs.getInt("mes"), rs.getInt("alertas"), rs.getInt("constatadas")),
                 acr, ambito.name(), ambito.name());
+    }
+
+    /** Última clasificación de cada alerta del mes, agrupada por especialista. */
+    public List<LaborEspecialista> labor(String acr, Ambito ambito, int anio, int mes) {
+        return jdbc.query("""
+                SELECT especialista, count(*)::int AS clasificadas,
+                       count(*) FILTER (WHERE con_foto)::int AS constatadas
+                  FROM (
+                    SELECT DISTINCT ON (a.id)
+                           COALESCE(NULLIF(h.cambios->>'especialista', ''), 'Sin nombre') AS especialista,
+                           EXISTS (SELECT 1 FROM evidencia vf
+                                    WHERE vf.alerta_id = a.id AND vf.tipo = 'foto_campo') AS con_foto
+                      FROM alerta a
+                      JOIN historial_validacion h ON h.alerta_id = a.id AND h.accion = 'clasificar'
+                     WHERE a.acr_codigo = ? AND (?::text = 'AMBOS' OR a.ambito = ?)
+                       AND a.anio = ? AND a.mes = ?
+                     ORDER BY a.id, h.creado_en DESC
+                  ) t
+                 GROUP BY especialista
+                 ORDER BY clasificadas DESC, especialista
+                """, (rs, i) -> new LaborEspecialista(rs.getString(1), rs.getInt(2), rs.getInt(3)),
+                acr, ambito.name(), ambito.name(), anio, mes);
     }
 
     public String alertasGeoJson(String acr, Ambito ambito, int anio, int mes) {

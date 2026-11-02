@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="/visor.css?v=20261027c">
+<link rel="stylesheet" href="/visor.css?v=20261102a">
 <script>
   try { if (localStorage.getItem('atd-tema') === 'oscuro') document.documentElement.dataset.tema = 'oscuro'; } catch (e) {}
 </script>
@@ -77,6 +77,18 @@
             <button type="button" data-v="simple" class="activo">Simples</button>
             <button type="button" data-v="detallado">Detallado</button>
           </div>
+          <p class="etq">Territorio</p>
+          <label class="etq">Departamento</label>
+          <select id="f-region" class="mb-sel" aria-label="Departamento"></select>
+          <label class="etq">Ámbito de conservación</label>
+          <select id="f-ambito" class="mb-sel" aria-label="Ámbito de conservación">
+            <option value="ambos">ACR + zona de influencia</option>
+            <option value="acr">Solo ACR</option>
+            <option value="zi">Solo zona de influencia</option>
+          </select>
+          <label class="etq">Área de conservación regional</label>
+          <select id="f-acr" class="mb-sel" aria-label="Área de conservación regional"></select>
+          <label class="etq">Lógica de la búsqueda</label>
           <div class="mb-radios">
             <label><input type="radio" name="f-por" value="codigo" checked> Cód. de la alerta</label>
             <label><input type="radio" name="f-por" value="territorio"> Territorio</label>
@@ -91,6 +103,7 @@
             <input type="range" id="f-desde" min="0" max="9" value="0" aria-label="Mes inicial">
             <input type="range" id="f-hasta" min="0" max="9" value="9" aria-label="Mes final">
           </div>
+          <p class="ayuda">Las imágenes se buscan en Sentinel-2 L2A, catálogo Earth Search, con la fecha de la alerta y un tope de nubes. Es el mismo criterio que Earth Explorer.</p>
           <div id="mb-det" hidden>
             <label class="etq">Tamaño de la alerta (ha)</label>
             <div class="mb-rango-etiq"><span id="f-ha-min-lbl">0</span><span id="f-ha-max-lbl">500</span></div>
@@ -98,7 +111,7 @@
               <input type="range" id="f-ha-min" min="0" max="500" value="0" step="0.5" aria-label="Hectáreas mínimas">
               <input type="range" id="f-ha-max" min="0" max="500" value="500" step="0.5" aria-label="Hectáreas máximas">
             </div>
-            <label class="etq">Resultado</label>
+            <label class="etq">Tipo de deforestación</label>
             <select id="f-resultado" class="mb-sel">
               <option value="todas">Todas</option>
               <option value="antropica">Pérdida antrópica</option>
@@ -106,17 +119,22 @@
               <option value="falsa">Falsa alerta</option>
               <option value="pendiente">Pendiente</option>
             </select>
+            <label class="etq">Tipo de alerta</label>
+            <select id="f-estado" class="mb-sel">
+              <option value="todas">Todas</option>
+              <option value="pendiente">Sin constatar</option>
+              <option value="validada">Ya clasificada</option>
+              <option value="constatada">Constatada en campo</option>
+            </select>
+            <label class="etq">Causa</label>
+            <select id="f-causa" class="mb-sel"><option value="">Todas</option></select>
+            <label class="etq">Orden</label>
+            <select id="f-orden" class="mb-sel">
+              <option value="ha">Superficie, de mayor a menor</option>
+              <option value="fecha">Fecha de la imagen</option>
+              <option value="codigo">Código</option>
+            </select>
           </div>
-          <label class="etq">Región</label>
-          <select id="f-region" class="mb-sel" aria-label="Región"></select>
-          <label class="etq">Ámbito</label>
-          <select id="f-ambito" class="mb-sel" aria-label="Ámbito">
-            <option value="ambos">ACR + zona de influencia</option>
-            <option value="acr">Solo ACR</option>
-            <option value="zi">Solo zona de influencia</option>
-          </select>
-          <label class="etq">Área de Conservación Regional</label>
-          <select id="f-acr" class="mb-sel" aria-label="ACR"></select>
           <p class="vacio-mini" id="f-error" hidden></p>
           <div class="mb-acciones">
             <button class="btn-sec" id="f-reset" type="button">RESETAR</button>
@@ -159,6 +177,26 @@
         <div class="tarjeta">
           <h3>Alertas por mes · <span id="graf-anio"></span></h3>
           <div class="graf-meses" id="graf-meses"></div>
+          <div class="graf-leyenda" id="graf-leyenda"></div>
+          <div class="fila-btn">
+            <button class="btn-sec" id="mostrar-todo" type="button">Mostrar todo</button>
+            <button class="btn-sec" id="btn-comunicado" type="button">Comunicado de alertas nuevas</button>
+          </div>
+        </div>
+        <div class="tarjeta" id="tarjeta-equipo">
+          <h3>Equipo del ACR</h3>
+          <p class="ayuda">Personas a las que se les pide la fotointerpretación. No son cuentas de ingreso al visor.</p>
+          <div id="equipo"></div>
+          <form id="form-equipo" hidden>
+            <input id="eq-nombre" maxlength="150" placeholder="Nombre" required>
+            <input id="eq-correo" maxlength="150" placeholder="Correo" type="email">
+            <button class="btn-pri" type="submit">Agregar</button>
+          </form>
+        </div>
+        <div class="tarjeta" id="tarjeta-labor">
+          <h3>Labor de monitoreo</h3>
+          <p class="ayuda">Seguimiento del especialista en el mes de cierre del periodo: cuántas clasificó y cuántas ya están constatadas en campo.</p>
+          <div id="labor"></div>
         </div>
         <div class="tarjeta" id="tarjeta-causas">
           <h3>Pérdida antrópica por causal</h3>
@@ -218,12 +256,16 @@
           </div>
         </aside>
         <div class="campo" id="ev-campo">
-          <h3><i class="fas fa-camera"></i> Validación de campo</h3>
-          <p class="ayuda">Después de la lectura satelital, una foto tomada en el lugar confirma que la alerta sí es deforestación. Queda pegada a esta alerta, como la foto de una patrulla SMART.</p>
+          <h3><i class="fas fa-camera"></i> Reporte sobre constatación de deforestación</h3>
+          <p class="ayuda">La carga de la foto de campo es la corroboración de la alerta. Cada imagen lleva sus coordenadas y una descripción de lo que se ve.</p>
           <div class="fotos" id="ev-fotos"></div>
           <form id="form-foto" hidden>
             <input id="foto-archivo" type="file" accept="image/jpeg,image/png,image/webp" required>
-            <input id="foto-nota" maxlength="250" placeholder="Qué se ve: trocha, chacra, madera…">
+            <div class="dos-coord">
+              <input id="foto-lat" inputmode="decimal" placeholder="Latitud" aria-label="Latitud">
+              <input id="foto-lon" inputmode="decimal" placeholder="Longitud" aria-label="Longitud">
+            </div>
+            <input id="foto-nota" maxlength="250" placeholder="Descripción: trocha, chacra, madera…">
             <button class="btn-pri" type="submit"><i class="fas fa-upload"></i> Subir foto</button>
           </form>
           <p class="ayuda" id="foto-entrar">Entra con usuario de editor para subir la foto de la patrulla.</p>
@@ -231,14 +273,15 @@
         <div class="nota" id="ev-conclusion" hidden></div>
         <div class="fila-btn">
           <button class="btn-sec" id="ev-volver"><i class="fas fa-list"></i> Volver a la lista</button>
+          <button class="btn-sec" id="ir-const" type="button"><i class="fas fa-camera"></i> Reporte de constatación</button>
           <button class="btn-pri" id="ir-5">Generar reporte <i class="fas fa-file-pdf"></i></button>
         </div>
       </div>
 
       <!-- Paso 5 -->
       <div class="paso" data-paso="5" hidden>
-        <h2>Reporte técnico de la alerta</h2>
-        <p class="ayuda">Formato oficial: ubicación, mapa, imágenes Sentinel-2 antes y después, datos de monitoreo, afectación y producción.</p>
+        <h2>Reporte sobre alerta de deforestación</h2>
+        <p class="ayuda">El PDF de la alerta: ubicación, mapa, imágenes Sentinel-2 antes y después, datos de monitoreo, afectación y producción. La foto de campo va en el reporte de constatación.</p>
         <div class="reporte-prev" id="rep-prev"></div>
         <button class="btn-pri" id="rep-descargar"><i class="fas fa-download"></i> Descargar PDF</button>
       </div>
@@ -356,24 +399,6 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<dialog id="dlg-entrar">
-  <form method="post" action="/login" id="form-entrar" autocomplete="on">
-    <div class="dlg-marca"><img src="/img/gfp.png" alt="GFP Subnacional"><span>GFP Subnacional</span></div>
-    <h3>Ingresar para editar</h3>
-    <p>La consulta del mapa es libre. El usuario y la contraseña habilitan corregir el polígono, clasificar y subir la foto de la patrulla.</p>
-    <p class="lg-aviso error" id="entrar-aviso" hidden>Usuario o contraseña incorrectos.</p>
-    <input type="hidden" name="_csrf" id="entrar-csrf">
-    <label class="etq" for="entrar-usuario">Usuario</label>
-    <input id="entrar-usuario" name="username" class="mb-sel" autocomplete="username" required maxlength="60">
-    <label class="etq" for="entrar-clave">Contraseña</label>
-    <input id="entrar-clave" name="password" class="mb-sel" type="password" autocomplete="current-password" required maxlength="120">
-    <div class="fila-btn">
-      <button class="btn-sec" type="button" id="entrar-cancelar">Cancelar</button>
-      <button class="btn-pri" type="submit">Ingresar</button>
-    </div>
-  </form>
-</dialog>
-
 <dialog id="dlg-tutorial">
   <div class="dlg-marca"><img src="/img/gfp.png" alt="GFP Subnacional"><span>GFP Subnacional</span></div>
   <h3>Cómo se lee una alerta</h3>
@@ -422,6 +447,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
-<script src="/visor.js?v=20261027d"></script>
+<script src="/visor.js?v=20261102b"></script>
 </body>
 </html>

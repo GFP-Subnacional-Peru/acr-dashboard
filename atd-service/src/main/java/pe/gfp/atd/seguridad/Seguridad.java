@@ -58,6 +58,8 @@ public class Seguridad {
                 .requestMatchers(HttpMethod.DELETE, "/api/atd/alertas/*/geometria").hasRole("EDITOR")
                 .requestMatchers(HttpMethod.POST, "/api/atd/alertas/*/foto").hasRole("EDITOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/atd/alertas/*/foto/*").hasRole("EDITOR")
+                .requestMatchers(HttpMethod.POST, "/api/atd/responsables").hasRole("EDITOR")
+                .requestMatchers(HttpMethod.DELETE, "/api/atd/responsables/*").hasRole("EDITOR")
                 .anyRequest().authenticated())
             .formLogin(f -> f
                 .loginPage("/login.html")
@@ -68,7 +70,7 @@ public class Seguridad {
                 })
                 .failureHandler((req, res, e) -> {
                     intentos.fallo(req.getRemoteAddr(), req.getParameter("username"));
-                    res.sendRedirect("/?entrar=error");
+                    res.sendRedirect("/login.html?error");
                 }))
             .logout(l -> l
                 .logoutUrl("/logout")

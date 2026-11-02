@@ -213,7 +213,7 @@ public class ReportePdf {
 
     private PdfPTable titulo(String acr) {
         PdfPTable t = tabla(new float[] {W});
-        PdfPCell c1 = sinBorde(new Phrase("REPORTE TÉCNICO SOBRE ALERTA TEMPRANA DE DEFORESTACIÓN",
+        PdfPCell c1 = sinBorde(new Phrase("REPORTE SOBRE ALERTA DE DEFORESTACIÓN",
                 fuente(12, true, ROJO)));
         c1.setHorizontalAlignment(Element.ALIGN_CENTER);
         c1.setPaddingTop(3);

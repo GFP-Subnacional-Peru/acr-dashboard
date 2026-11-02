@@ -56,6 +56,15 @@ public class AlertaController {
         return ResponseEntity.ok().cacheControl(CACHE_CORTO).body(resumen);
     }
 
+    @GetMapping("/labor")
+    public List<LaborEspecialista> labor(
+            @RequestParam @Pattern(regexp = TerritorioController.PATRON_ACR) String acr,
+            @RequestParam(defaultValue = "ambos") @Pattern(regexp = PATRON_AMBITO) String ambito,
+            @RequestParam @Min(2000) @Max(2100) int anio,
+            @RequestParam @Min(1) @Max(12) int mes) {
+        return repo.labor(acr, Ambito.desde(ambito), anio, mes);
+    }
+
     @GetMapping("/alertas")
     public ResponseEntity<String> alertas(
             @RequestParam @Pattern(regexp = TerritorioController.PATRON_ACR) String acr,

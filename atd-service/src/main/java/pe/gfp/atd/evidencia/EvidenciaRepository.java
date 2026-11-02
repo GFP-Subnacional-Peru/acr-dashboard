@@ -69,16 +69,18 @@ public class EvidenciaRepository {
         return filas.stream().findFirst();
     }
 
-    public record Foto(long id, String nota, String tomada) {}
+    public record Foto(long id, String nota, String tomada, Double lat, Double lon) {}
 
     public List<Foto> fotos(String codigoAlerta) {
         return jdbc.query("""
-                SELECT v.id, v.descripcion, to_char(v.creado_en, 'DD/MM/YYYY HH24:MI') AS tomada
+                SELECT v.id, v.descripcion, to_char(v.creado_en, 'DD/MM/YYYY HH24:MI') AS tomada,
+                       v.lat, v.lon
                   FROM evidencia v
                   JOIN alerta a ON a.id = v.alerta_id
                  WHERE a.codigo = ? AND v.tipo = 'foto_campo'
                  ORDER BY v.creado_en
-                """, (rs, i) -> new Foto(rs.getLong("id"), rs.getString("descripcion"), rs.getString("tomada")),
+                """, (rs, i) -> new Foto(rs.getLong("id"), rs.getString("descripcion"), rs.getString("tomada"),
+                        (Double) rs.getObject("lat"), (Double) rs.getObject("lon")),
                 codigoAlerta);
     }
 
@@ -93,7 +95,8 @@ public class EvidenciaRepository {
 
     public record FotoGuardada(byte[] datos, String mime, String ruta) {}
 
-    public long guardarFoto(String codigoAlerta, byte[] datos, String mime, String nota, String ruta) {
+    public long guardarFoto(String codigoAlerta, byte[] datos, String mime, String nota, String ruta,
+                            Double lat, Double lon) {
         final Long alertaId;
         try {
             alertaId = jdbc.queryForObject("SELECT id FROM alerta WHERE codigo = ?", Long.class, codigoAlerta);
@@ -101,10 +104,10 @@ public class EvidenciaRepository {
             throw new pe.gfp.atd.config.NoEncontradoException("Alerta no encontrada");
         }
         Long id = jdbc.queryForObject("""
-                INSERT INTO evidencia (alerta_id, tipo, ruta, descripcion, contenido, mime)
-                VALUES (?, 'foto_campo', ?, ?, ?, ?)
+                INSERT INTO evidencia (alerta_id, tipo, ruta, descripcion, contenido, mime, lat, lon)
+                VALUES (?, 'foto_campo', ?, ?, ?, ?, ?, ?)
                 RETURNING id
-                """, Long.class, alertaId, ruta, nota, datos, mime);
+                """, Long.class, alertaId, ruta, nota, datos, mime, lat, lon);
         if (id == null) {
             throw new pe.gfp.atd.config.NoEncontradoException("Alerta no encontrada");
         }

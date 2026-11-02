@@ -157,15 +157,87 @@ def ficha_visor():
     return 0
 
 
+def puntuar_origen(origen="geobosques_2026"):
+    """Lee los recortes nuevos de la base y los suma a la ficha, sin borrar las 275."""
+    import io
+
+    from comun import CAUSA_DE_IDX
+    from preparar import conectar
+
+    if not PESOS.exists():
+        print("Todavía no hay pesos. Corre entrenar.py")
+        return 1
+    con = conectar()
+    with con.cursor() as cur:
+        cur.execute(
+            """
+            SELECT a.codigo, ev.contenido
+              FROM alerta a
+              JOIN evidencia ev ON ev.alerta_id = a.id AND ev.tipo = 'chip_despues'
+             WHERE a.origen_gdb = %s
+             ORDER BY a.superficie_ha DESC
+            """,
+            (origen,),
+        )
+        filas = cur.fetchall()
+    if not filas:
+        print("No hay recortes DESPUÉS para", origen)
+        return 1
+    device = dispositivo()
+    red, _ = cargar(PESOS, device)
+    paso = transformar_eval()
+    nuevas = {}
+    lote = 16
+    for i in range(0, len(filas), lote):
+        grupo = filas[i:i + lote]
+        xs = torch.stack([
+            paso(Image.open(io.BytesIO(bytes(contenido))).convert("RGB"))
+            for _, contenido in grupo
+        ]).to(device)
+        with torch.no_grad():
+            binaria, causa = red(xs)
+            pdef = torch.softmax(binaria, 1)[:, 1]
+            pc = torch.softmax(causa, 1)
+            idx = pc.argmax(1)
+        for j, (codigo, _) in enumerate(grupo):
+            causa_id = CAUSA_DE_IDX[int(idx[j])]
+            p = float(pc[j, int(idx[j])])
+            nuevas[codigo] = {
+                "causa": CAUSAS[causa_id],
+                "causa_id": causa_id,
+                "probabilidad": round(p, 4),
+                "confiabilidad": "Alto" if p >= UMBRAL_ALTO else "Bajo",
+                "deforestacion": round(float(pdef[j]), 4),
+            }
+            print(f"{codigo}  {nuevas[codigo]['causa']}  {nuevas[codigo]['confiabilidad']}  {p:.2f}", flush=True)
+    visor = Path(__file__).resolve().parents[2] / "atd-service" / "src" / "main" / "resources" / "static" / "propuestas.json"
+    previa = json.loads(visor.read_text(encoding="utf-8")) if visor.exists() else {}
+    previa.update(nuevas)
+    texto = json.dumps(previa, ensure_ascii=False)
+    (SALIDAS / "propuestas.json").write_text(texto, encoding="utf-8")
+    visor.write_text(texto, encoding="utf-8")
+    print(f"Sumadas {len(nuevas)}. Ficha total: {len(previa)}")
+    return 0
+
+
+def transformar_eval():
+    from comun import transformar
+
+    return transformar(False)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--imagen", help="Un PNG o JPG")
     ap.add_argument("--cuaderno", action="store_true", help="Recorre salidas/muestras.csv")
     ap.add_argument("--ficha", action="store_true", help="Solo la causa, para mostrarla en el visor local")
+    ap.add_argument("--nuevas", action="store_true", help="Puntúa los recortes de geobosques_2026 y los suma a la ficha")
     ap.add_argument("--limite", type=int, default=20)
     args = ap.parse_args()
     if args.ficha:
         return ficha_visor()
+    if args.nuevas:
+        return puntuar_origen()
     if not PESOS.exists():
         print("Todavía no hay pesos. Corre entrenar.py")
         return 1

@@ -13,13 +13,7 @@
   const fecha = (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '–');
   const clase = (p) => (p.estado === 'pendiente' ? 'pendiente' : p.resultado || 'pendiente');
 
-  const irAlLogin = () => {
-    const d = document.getElementById('dlg-entrar');
-    if (!d) { location.assign('/login.html'); return; }
-    const csrf = document.getElementById('entrar-csrf');
-    if (csrf) csrf.value = tokenCsrf();
-    if (!d.open) d.showModal();
-  };
+  const irAlLogin = () => { location.assign('/login.html'); };
   const tokenCsrf = () => decodeURIComponent((document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN=')) || '').slice(11));
 
   async function api(ruta, fresco = false) {
@@ -490,6 +484,8 @@
     if (!$('mb-det').hidden) {
       if (+$('f-ha-min').value > 0 || +$('f-ha-max').value < +$('f-ha-max').max) return true;
       if ($('f-resultado').value !== 'todas') return true;
+      if ($('f-estado').value !== 'todas') return true;
+      if ($('f-causa').value) return true;
     }
     return false;
   }
@@ -506,6 +502,12 @@
       if (s < haMin || s > haMax) return false;
       const res = $('f-resultado').value;
       if (res !== 'todas' && clase(p) !== res) return false;
+      const estado = $('f-estado').value;
+      if (estado === 'pendiente' && p.estado !== 'pendiente') return false;
+      if (estado === 'validada' && p.estado !== 'validada') return false;
+      if (estado === 'constatada' && !p.con_foto) return false;
+      const causa = $('f-causa').value;
+      if (causa && String(p.causa_id) !== causa) return false;
     }
     return true;
   }
@@ -649,24 +651,41 @@
     $('tarjeta-causas').hidden = !filas.length;
     $('causas').innerHTML = filas.map(([causa, valor]) => `<div class="causa-fila"><span>${esc(causa)}</span>
       <div class="bar"><i style="width:${(valor / maxC) * 100}%"></i></div><b>${num(valor)}</b></div>`).join('');
+    pintarSeguimiento();
   }
 
   function pintarGraficoMeses() {
     $('graf-anio').textContent = st.anio;
     const porMes = Array(12).fill(0);
+    const conMes = Array(12).fill(0);
     const codigos = $('f-acr').value === 'todas' ? acrsElegidos() : [st.acr];
     codigos.forEach((codigo) => {
-      (st.periodosPorAcr[codigo] || []).filter((p) => p.anio === st.anio).forEach((p) => { porMes[p.mes - 1] += p.alertas; });
+      (st.periodosPorAcr[codigo] || []).filter((p) => p.anio === st.anio).forEach((p) => {
+        porMes[p.mes - 1] += p.alertas;
+        conMes[p.mes - 1] += p.constatadas || 0;
+      });
     });
     const desde = st.eje[+$('f-desde').value];
     const hasta = st.eje[+$('f-hasta').value];
     const max = Math.max(1, ...porMes);
+    let totalCon = 0;
+    let total = 0;
     $('graf-meses').innerHTML = porMes.map((n, i) => {
       const cur = st.anio * 12 + (i + 1);
       const sel = desde && hasta && cur >= ym(desde) && cur <= ym(hasta);
-      return `<div data-m="${i + 1}" class="${sel ? 'sel' : ''}" title="${MESES[i]}: ${n} alertas">
-      <b>${n || ''}</b><i style="height:${(n / max) * 80}%"></i>${MESES[i].slice(0, 1)}</div>`;
+      const con = Math.min(conMes[i], n);
+      const sin = n - con;
+      if (sel) { total += n; totalCon += con; }
+      const alto = Math.max(2, Math.round((n / max) * 78));
+      return `<div data-m="${i + 1}" class="${sel ? 'sel' : ''}" title="${MESES[i]}: ${con} constatadas, ${sin} sin constatar">
+      <b>${n || ''}</b>
+      <span class="pila" style="height:${n ? alto : 2}px">
+        <i class="con" style="height:${n ? (con / n) * 100 : 0}%"></i>
+        <i class="sin" style="height:${n ? (sin / n) * 100 : 100}%"></i>
+      </span>${MESES[i].slice(0, 1)}</div>`;
     }).join('');
+    $('graf-leyenda').innerHTML = `<span><i style="background:#2e7d32"></i>Constatadas <b>${totalCon}</b></span>
+      <span><i style="background:#c5e1a5"></i>Sin constatar <b>${Math.max(0, total - totalCon)}</b></span>`;
     $('graf-meses').querySelectorAll('div').forEach((d) => (d.onclick = async () => {
       const m = +d.dataset.m;
       const idx = st.eje.findIndex((p) => p.anio === st.anio && p.mes === m);
@@ -685,6 +704,9 @@
     $('f-ha-min').value = '0';
     $('f-ha-max').value = $('f-ha-max').max;
     $('f-resultado').value = 'todas';
+    $('f-estado').value = 'todas';
+    $('f-causa').value = '';
+    $('f-orden').value = 'ha';
     $('f-ambito').value = 'ambos';
     st.ambito = 'ambos';
     pintarHa();
@@ -779,9 +801,101 @@
     $('causas').innerHTML = r.porCausa.map((c) => `<div class="causa-fila"><span>${esc(c.causa)}</span>
       <div class="bar"><i style="width:${(+c.ha / maxC) * 100}%"></i></div><b>${num(c.ha)}</b></div>`).join('');
     renderLista();
+    pintarSeguimiento();
   }
 
   $('ir-3').onclick = () => desbloquear(3);
+
+  function ordenLista(x, y) {
+    const orden = $('f-orden') ? $('f-orden').value : 'ha';
+    if (orden === 'fecha') return String(y.properties.fecha_imagen || '').localeCompare(String(x.properties.fecha_imagen || ''));
+    if (orden === 'codigo') return String(x.properties.codigo).localeCompare(String(y.properties.codigo));
+    return y.properties.superficie_ha - x.properties.superficie_ha;
+  }
+
+  async function pintarSeguimiento() {
+    await Promise.all([pintarLabor(), pintarEquipo()]);
+  }
+
+  async function pintarLabor() {
+    if (!st.acr || !String(st.acr).startsWith('ACR_')) {
+      $('labor').innerHTML = '<p class="ayuda">Elige un ACR para ver la labor del especialista.</p>';
+      return;
+    }
+    let filas = [];
+    try {
+      filas = await api(`/labor?acr=${encodeURIComponent(st.acr)}&ambito=${st.ambito}&anio=${st.anio}&mes=${st.mes}`);
+    } catch { filas = []; }
+    $('labor').innerHTML = filas.length
+      ? filas.map((f) => `<div class="labor-fila"><span>${esc(f.especialista)}</span><b>${f.clasificadas} clasificadas · ${f.constatadas} constatadas</b></div>`).join('')
+      : '<p class="ayuda">En este mes todavía no hay clasificaciones guardadas.</p>';
+  }
+
+  async function pintarEquipo() {
+    $('form-equipo').hidden = !ed.habilitada;
+    if (!st.acr || !String(st.acr).startsWith('ACR_')) {
+      $('equipo').innerHTML = '<p class="ayuda">Elige un ACR para ver a quién se le pide la fotointerpretación.</p>';
+      return;
+    }
+    let gente = [];
+    try { gente = await api(`/responsables?acr=${encodeURIComponent(st.acr)}`, true); } catch { gente = []; }
+    $('equipo').innerHTML = gente.length
+      ? gente.map((p) => `<div class="equipo-fila"><span>${esc(p.nombre)}${p.correo ? ' · ' + esc(p.correo) : ''}</span>${ed.habilitada ? `<button type="button" data-id="${p.id}" title="Quitar">×</button>` : ''}</div>`).join('')
+      : '<p class="ayuda">Todavía no hay personas anotadas para este ACR.</p>';
+    $('equipo').querySelectorAll('button[data-id]').forEach((b) => {
+      b.onclick = async () => {
+        const r = await fetch(`${API}/responsables/${b.dataset.id}`, { method: 'DELETE', headers: { 'X-XSRF-TOKEN': tokenCsrf() } });
+        if (r.status === 401 || r.status === 403) { irAlLogin(); return; }
+        if (!r.ok) { toast('No se pudo quitar'); return; }
+        pintarEquipo();
+      };
+    });
+  }
+
+  function abrirComunicado() {
+    const feats = (st.geo && st.geo.features) || [];
+    const nuevas = feats.filter((f) => f.properties.estado === 'pendiente');
+    const destinos = [...$('equipo').querySelectorAll('.equipo-fila span')].map((n) => n.textContent);
+    const filas = nuevas.map((f) => {
+      const p = f.properties;
+      const coord = (p.lat != null && p.lon != null) ? `${p.lat}, ${p.lon}` : '';
+      return `<tr><td>${esc(p.codigo)}</td><td>${fecha(p.fecha_imagen)}</td><td>${num(p.superficie_ha)} ha</td><td>${esc(coord)}</td></tr>`;
+    }).join('');
+    const w = window.open('', '_blank');
+    if (!w) { toast('El navegador bloqueó el comunicado'); return; }
+    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Comunicado de alertas nuevas</title>
+      <style>body{font-family:Georgia,serif;margin:36px;color:#1d2b20}h1{font-size:22px;color:#1b5e20;margin-bottom:4px}p{line-height:1.45}table{border-collapse:collapse;width:100%;margin-top:16px}td,th{border-bottom:1px solid #d7e0d4;padding:7px 6px;text-align:left;font-size:14px}th{color:#1b5e20}</style></head><body>
+      <h1>Comunicado de alertas nuevas</h1>
+      <p><b>${esc(tituloTerritorio())}</b>. Se solicita la fotointerpretación de estas alertas de deforestación.</p>
+      <p>${destinos.length ? 'Para: ' + esc(destinos.join(' · ')) : 'Sin destinatarios anotados en el equipo del ACR.'}</p>
+      ${nuevas.length ? `<table><thead><tr><th>Código</th><th>Fecha</th><th>Superficie</th><th>Coordenadas</th></tr></thead><tbody>${filas}</tbody></table>` : '<p>No hay alertas pendientes en el periodo que está en pantalla.</p>'}
+      </body></html>`);
+    w.document.close();
+  }
+
+  $('mostrar-todo').onclick = async () => {
+    if (!st.eje.length) return;
+    $('f-desde').value = '0';
+    $('f-hasta').value = String(st.eje.length - 1);
+    pintarEtiquetasPeriodo();
+    await buscar();
+  };
+  $('btn-comunicado').onclick = () => abrirComunicado();
+  $('form-equipo').onsubmit = async (e) => {
+    e.preventDefault();
+    if (!st.acr || !String(st.acr).startsWith('ACR_')) { toast('Elige un ACR'); return; }
+    const r = await fetch(`${API}/responsables`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': tokenCsrf() },
+      body: JSON.stringify({ acr: st.acr, nombre: $('eq-nombre').value.trim(), correo: $('eq-correo').value.trim() }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 401 || r.status === 403) { irAlLogin(); return; }
+    if (!r.ok) { toast(j.error || 'No se pudo agregar'); return; }
+    $('eq-nombre').value = '';
+    $('eq-correo').value = '';
+    pintarEquipo();
+  };
 
   /* ---------- Paso 3: lista ---------- */
   function renderLista() {
@@ -793,7 +907,7 @@
     $('filtros-res').querySelectorAll('.filtro').forEach((b) => (b.onclick = () => { st.filtro = b.dataset.f; renderLista(); }));
 
     const lista = feats.filter((f) => st.filtro === 'todas' || clase(f.properties) === st.filtro)
-      .sort((x, y) => y.properties.superficie_ha - x.properties.superficie_ha);
+      .sort(ordenLista);
     $('lista').innerHTML = lista.length ? lista.map((f) => {
       const p = f.properties, c = clase(p);
       const mini = p.con_imagen ? `style="background-image:url('${API}/alertas/${p.codigo}/imagen/despues.png')"` : '';
@@ -1054,6 +1168,10 @@
     verEscena(escenas.some((e) => e.momento === 'despues' && e.recorte) ? 'despues' : '');
     $('ev-editar').hidden = !ed.habilitada;
     $('ev-ficha').innerHTML = ficha(d, escenas);
+    if ($('foto-lat')) {
+      $('foto-lat').value = d.lat ?? '';
+      $('foto-lon').value = d.lon ?? '';
+    }
     await propuestasRedCargar();
     pintarPropuesta('ev-red', codigo);
     cargarFotos(codigo);
@@ -1105,12 +1223,14 @@
     let fotos = [];
     try { fotos = await api(`/alertas/${codigo}/foto`, true); } catch { fotos = []; }
     const box = $('ev-fotos');
-    box.innerHTML = fotos.length ? fotos.map((f) => `
-      <figure>
-        <img src="${f.url}" alt="Foto de campo de ${esc(codigo)}">
-        <figcaption>${esc(f.nota || 'Foto de patrulla')}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption>
+    box.innerHTML = fotos.length ? fotos.map((f) => {
+      const coord = (f.lat != null && f.lon != null) ? `${Number(f.lat).toFixed(5)}, ${Number(f.lon).toFixed(5)}` : 'Sin coordenadas';
+      return `<figure>
+        <img src="${f.url}" alt="Foto de constatación de ${esc(codigo)}">
+        <figcaption>${esc(f.nota || 'Sin descripción')} · ${esc(coord)}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption>
         ${ed.habilitada ? `<button type="button" class="btn-sec foto-borrar" data-id="${f.id}">Quitar</button>` : ''}
-      </figure>`).join('') : '<p class="ayuda">Todavía no hay foto de campo en esta alerta.</p>';
+      </figure>`;
+    }).join('') : '<p class="ayuda">Todavía no hay foto de constatación en esta alerta.</p>';
     box.querySelectorAll('.foto-borrar').forEach((b) => {
       b.onclick = async () => {
         const r = await fetch(`${API}/alertas/${codigo}/foto/${b.dataset.id}`, {
@@ -1130,8 +1250,8 @@
       celda = document.getElementById('ev-ficha-foto');
     }
     if (celda) celda.querySelector('b').textContent = fotos.length
-      ? `${fotos.length} foto${fotos.length === 1 ? '' : 's'} de patrulla`
-      : 'Sin foto de patrulla';
+      ? `${fotos.length} foto${fotos.length === 1 ? '' : 's'} de constatación`
+      : 'Sin constatación';
     marcarFoto(codigo, fotos.length > 0);
   }
 
@@ -1149,6 +1269,8 @@
     const fd = new FormData();
     fd.append('foto', archivo);
     fd.append('nota', $('foto-nota').value.trim());
+    fd.append('lat', $('foto-lat').value.trim());
+    fd.append('lon', $('foto-lon').value.trim());
     const r = await fetch(`${API}/alertas/${st.alerta}/foto`, {
       method: 'POST',
       headers: { 'X-XSRF-TOKEN': tokenCsrf() },
@@ -1164,13 +1286,6 @@
     cargarFotos(st.alerta);
   };
   $('btn-entrar').onclick = () => irAlLogin();
-  $('entrar-cancelar').onclick = () => $('dlg-entrar').close();
-  if (new URLSearchParams(location.search).get('entrar') === 'error') {
-    $('entrar-aviso').hidden = false;
-    irAlLogin();
-  } else if (new URLSearchParams(location.search).get('entrar') === '1') {
-    irAlLogin();
-  }
   $('form-salir').onsubmit = () => { $('salir-csrf').value = tokenCsrf(); };
 
   function anilloHa(anillo) {
@@ -1315,6 +1430,10 @@
       <a class="btn-sec rp-abrir" href="${urlReporte()}" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> Abrir PDF</a>`;
   }
   $('ir-5').onclick = () => { if (ed.capa) terminarEdicion(); renderReporte(); desbloquear(5); };
+  $('ir-const').onclick = () => {
+    if (!st.alerta) return;
+    window.open(`/constatacion.html?codigo=${encodeURIComponent(st.alerta)}`, '_blank');
+  };
   $('rep-descargar').onclick = () => {
     const a = Object.assign(document.createElement('a'), { href: urlReporte(), download: '' });
     document.body.appendChild(a);
@@ -1646,6 +1765,11 @@
     try {
       st.territorios = await api('/territorios');
       llenarRegiones();
+      try {
+        st.catalogos = await api('/catalogos');
+        $('f-causa').innerHTML = '<option value="">Todas</option>' + st.catalogos.causas
+          .map((c) => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('');
+      } catch { /* el filtro de causa queda en Todas */ }
       const enlace = new URLSearchParams(location.search).get('alerta');
       if (enlace) {
         await abrirEnlace(enlace).catch(() => toast('No se encontró la alerta del enlace'));
