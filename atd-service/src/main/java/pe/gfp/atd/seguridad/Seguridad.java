@@ -25,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -52,6 +53,7 @@ public class Seguridad {
         http
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/login.html", "/login.css", "/img/**", "/docs/**", "/error", "/api/atd/salud").permitAll()
+                .requestMatchers("/", "/index.html", "/constatacion.html").authenticated()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/atd/alertas/*/geometria").hasRole("EDITOR")
                 .requestMatchers(HttpMethod.PUT, "/api/atd/alertas/*/clasificacion").hasRole("EDITOR")
@@ -74,12 +76,13 @@ public class Seguridad {
                 }))
             .logout(l -> l
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
+                .logoutSuccessUrl("/login.html?salir")
                 .deleteCookies("ATD_SESION"))
             .csrf(c -> c
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(csrf))
             .exceptionHandling(e -> e
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login.html"))
                 .defaultAuthenticationEntryPointFor(
                     new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), new AntPathRequestMatcher("/api/**"))
                 // Formulario de ingreso o de salida con token vencido (p. ej. volver atrás tras ingresar).
