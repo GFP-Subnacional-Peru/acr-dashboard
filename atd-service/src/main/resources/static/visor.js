@@ -118,6 +118,24 @@
     };
   }
 
+  function abrirDesdeMapa(codigo, ev) {
+    if (ev) L.DomEvent.stop(ev);
+    if (st.modo === 'clasificar') abrirClasificacion(codigo);
+    else verAlerta(codigo);
+  }
+
+  function codigoCercano(latlng, px) {
+    const aqui = mapa.latLngToContainerPoint(latlng);
+    let mejor = null;
+    let dist = px;
+    marcas.forEach((m, codigo) => {
+      const q = mapa.latLngToContainerPoint(m.punto.getLatLng());
+      const d = aqui.distanceTo(q);
+      if (d <= dist) { dist = d; mejor = codigo; }
+    });
+    return mejor;
+  }
+
   function dibujarAlertas(features) {
     capaAlertas.clearLayers();
     capaPuntos.clearLayers();
@@ -130,16 +148,21 @@
       });
       poli.bindTooltip(`${p.codigo} · ${ha(p.superficie_ha)} · un solo polígono`);
       punto.bindTooltip(`${p.codigo} · centro de esta misma alerta`);
-      [poli, punto].forEach((l) => {
-        l.on('click', () => (st.modo === 'clasificar' ? abrirClasificacion(p.codigo) : verAlerta(p.codigo)));
-      });
+      [poli, punto].forEach((l) => l.on('click', (ev) => abrirDesdeMapa(p.codigo, ev)));
       capaAlertas.addLayer(poli);
       capaPuntos.addLayer(punto);
       marcas.set(p.codigo, { poli, punto, p });
     });
-    capaLimites.bringToFront();
     ajustarPuntos();
+    if (mapa.hasLayer(capaAlertas)) capaAlertas.bringToFront();
+    if (mapa.hasLayer(capaPuntos)) capaPuntos.bringToFront();
   }
+
+  mapa.on('click', (e) => {
+    if (st.modo !== 'clasificar') return;
+    const codigo = codigoCercano(e.latlng, 64);
+    if (codigo) abrirClasificacion(codigo);
+  });
 
   // En pantallas angostas el panel flota sobre el mapa: el encuadre debe dejar libre lo que tapa.
   function encuadre(margen) {
@@ -1463,8 +1486,9 @@
     const esp = $('cl-especialista');
     if (esp && !esp.value) esp.value = localStorage.getItem('atd-especialista') || '';
     if (esp) esp.onchange = () => localStorage.setItem('atd-especialista', esp.value.trim());
-    if (!st.catalogos) {
-      st.catalogos = await api('/catalogos');
+    if (!st.territorios.length) st.territorios = await api('/territorios');
+    if (!st.catalogos) st.catalogos = await api('/catalogos');
+    if (!$('cl-causas').children.length) {
       $('cl-causas').innerHTML = st.catalogos.causas.filter((c) => c.resultado === 'antropica')
         .map((c) => `<button data-v="${c.id}">${esc(c.nombre)}</button>`).join('');
       $('cl-causas').querySelectorAll('button').forEach((b) => (b.onclick = () => { st.cl.causa = +b.dataset.v; pintarForm(); }));
@@ -1472,7 +1496,8 @@
       $('cl-bosque').innerHTML = st.catalogos.tipoBosque.map((c) => `<button data-v="${c.id}">${esc(c.nombre)}</button>`).join('');
       $('cl-conf').querySelectorAll('button').forEach((b) => (b.onclick = () => { st.cl.conf = +b.dataset.v; pintarForm(); }));
       $('cl-bosque').querySelectorAll('button').forEach((b) => (b.onclick = () => { st.cl.bosque = +b.dataset.v; pintarForm(); }));
-
+    }
+    if (!st.cl.acrs) {
       const conPend = [];
       for (const t of st.territorios.filter((x) => x.tipo === 'ACR')) {
         const per = await api(`/periodos?acr=${t.codigo}&ambito=ambos`);
@@ -1524,6 +1549,8 @@
     st.acr = acr;
     await cargarLimitesOficiales();
     capaLimites.setStyle(capaLimites.options.style);
+    if (mapa.hasLayer(capaAlertas)) capaAlertas.bringToFront();
+    if (mapa.hasLayer(capaPuntos)) capaPuntos.bringToFront();
     enfocarAcr();
     $('cl-form').hidden = true;
     renderCola();
@@ -1586,6 +1613,8 @@
     pintarPropuesta('cl-red', codigo);
     $('cl-sub').textContent = `${ha(p.superficie_ha)} · detectada el ${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'Dentro del ACR'}`;
     $('cl-cola').hidden = true; $('cl-cola-cab').hidden = true; $('cl-form').hidden = false;
+    if ($('cl-guia')) $('cl-guia').open = false;
+    requestAnimationFrame(() => $('cl-form').scrollIntoView({ block: 'start' }));
     $('cl-comparador').innerHTML = '<div class="sin-imagen"><i class="fas fa-spinner fa-spin"></i>Cargando imágenes…</div>';
     resaltar(codigo);
     pintarForm();
