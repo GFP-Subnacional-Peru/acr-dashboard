@@ -809,6 +809,10 @@ if _FRONTEND_DIR.exists():
 
     @app.get("/acuerdos")
     def portal_acuerdos():
+        return _html("acuerdos_home.html")
+
+    @app.get("/acuerdos/mapa")
+    def portal_acuerdos_mapa():
         return _html("acuerdos.html")
 
     @app.get("/alertas-tempranas", include_in_schema=False)

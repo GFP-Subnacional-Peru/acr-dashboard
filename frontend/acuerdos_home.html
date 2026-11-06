@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Acuerdos de conservación — Portal GFP</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20261021d" />
+  <style>
+    .acuerdos-ficha .acr-mosaic { grid-template-columns: 1fr; }
+    .acuerdos-ficha .acr-tile-media { height: 240px; }
+  </style>
+  <link rel="prefetch" href="/acuerdos/mapa" />
+  <script>
+    (function () {
+      try {
+        if (window.self !== window.top) document.documentElement.classList.add("is-embed");
+      } catch (e) {
+        document.documentElement.classList.add("is-embed");
+      }
+    })();
+  </script>
+</head>
+<body class="portal-body">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-logos" aria-label="Identidad institucional GFP · SECO · Basel">
+        <a class="site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
+          <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="48" loading="eager"/>
+        </a>
+        <div class="site-logos-partners">
+          <img class="site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" loading="eager"/>
+          <img class="site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" loading="eager"/>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="portal-main">
+    <section class="portal-hero" aria-label="Portada">
+      <nav class="portal-hero-nav navbar" aria-label="Navegación de acuerdos de conservación">
+        <ul class="nav-tabs">
+          <li><a class="active" href="/acuerdos"><i class="fas fa-home"></i> Inicio</a></li>
+          <li><a href="/acuerdos/mapa"><i class="fas fa-map"></i> Mapa</a></li>
+          <li><a href="/acuerdos/mapa?tab=marco"><i class="fas fa-book-open"></i> Marco normativo</a></li>
+        </ul>
+      </nav>
+      <div class="portal-hero-inner">
+        <span class="portal-hero-eyebrow">Programa GFP Subnacional</span>
+        <h1>Acuerdos de conservación</h1>
+        <p>Portal propio de los acuerdos que una comunidad suscribe con el Gobierno Regional para cuidar un ámbito del ACR. Este espacio no forma parte del monitoreo de deforestación.</p>
+        <div>
+          <a class="portal-cta" href="/acuerdos/mapa"><i class="fas fa-map-marked-alt"></i> Entrar al dashboard</a>
+          <a class="portal-cta portal-cta-secondary" href="/acuerdos/mapa?tab=marco"><i class="fas fa-book-open"></i> Ver el marco normativo</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="portal-section acr-showcase" aria-labelledby="acuerdos-title">
+      <div class="portal-section-head acr-showcase-head">
+        <div>
+          <p class="acr-showcase-kicker"><i class="fas fa-handshake"></i> Acuerdos cargados</p>
+          <h2 id="acuerdos-title">Un acuerdo con polígono</h2>
+          <p>Illapani es el único acuerdo firmado y mapeado en este portal.</p>
+        </div>
+      </div>
+      <div class="datos-split">
+        <div class="datos-split-col acuerdos-ficha">
+          <div class="acr-mosaic">
+            <article class="acr-tile acr-tile--cusco">
+              <div class="acr-tile-media">
+                <img class="acr-tile-photo" src="/mapas/thumbs/chu.jpg?v=20260922d" alt="ACR Chuyapi Urusayhua" loading="lazy" width="480" height="280" />
+                <div class="acr-tile-brand">
+                  <img src="/assets/img/logos/acr/acr_chu.png?v=20260922d" alt="Logo ACR Chuyapi Urusayhua" loading="lazy" width="96" height="96" />
+                </div>
+                <span class="acr-tile-depto">Cusco</span>
+              </div>
+              <h3>Acuerdo Illapani</h3>
+              <p class="acr-tile-desc">001-2026-ACR Chuyapi Urusayhua. Asociación de Servicios Turísticos de la Catarata Illapani, en el ACR Chuyapi Urusayhua. El documento señala 1,000 ha y el polígono mide 952 ha.</p>
+              <div class="acr-tile-actions">
+                <a class="acr-tile-map" href="/acuerdos/mapa">Ingresar al dashboard</a>
+              </div>
+            </article>
+          </div>
+        </div>
+        <div class="datos-split-col datos-split-downloads">
+          <div class="datos-split-head">
+            <h3><i class="fas fa-download"></i> Descargar este acuerdo</h3>
+          </div>
+          <p class="datos-download-lead">El PDF es el documento firmado. El GeoJSON es el polígono ámbar del mapa.</p>
+          <div class="datos-links datos-links-stack">
+            <a href="/assets/data/acuerdos/ADC-001-2026-CHU.pdf" download="ADC-001-2026-CHU.pdf"><i class="fas fa-file-pdf"></i> Acuerdo Illapani (PDF)</a>
+            <a class="alt" href="/assets/data/acuerdos_conservacion.geojson" download="acuerdos_conservacion.geojson"><i class="fas fa-draw-polygon"></i> Polígono del acuerdo (GeoJSON)</a>
+          </div>
+          <div class="datos-note">
+            <strong>Qué incluye.</strong>
+            Un solo acuerdo: Illapani, ACR Chuyapi Urusayhua, Cusco. La cifra del documento es 1,000 ha y la del polígono es 952 ha.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="portal-footer">
+    <div class="portal-footer-inner">
+      <div>
+        <strong>GFP Subnacional — Suiza apoyando al Perú</strong>
+        <p>Acuerdos de conservación en Áreas de Conservación Regional. El Gobierno Regional firma. El acuerdo no autoriza deforestación.</p>
+      </div>
+      <a href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer">gfpsubnacional.pe <i class="fas fa-external-link-alt"></i></a>
+    </div>
+  </footer>
+</body>
+</html>

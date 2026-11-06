@@ -3,34 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Acuerdos de conservación — Dashboard ACR</title>
+  <title>Dashboard de acuerdos de conservación</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20261021b" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20261103b" />
 </head>
 <body class="page-mapa">
   <header class="site-header site-header--compact">
     <div class="site-header-inner">
       <nav class="navbar" aria-label="Secciones del dashboard">
         <ul class="nav-tabs">
-          <li><a class="nav-link-ext" href="/"><i class="fas fa-home"></i> Inicio</a></li>
-          <li><a class="nav-link-ext" href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
-          <li><a class="nav-link-ext" href="/datos"><i class="fas fa-database"></i> Datos</a></li>
-          <li><a class="nav-link-ext" href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
-          <li><a class="nav-link-ext" href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Tendencias</a></li>
-          <li><a class="nav-link-ext active" href="/acuerdos"><i class="fas fa-handshake"></i> Acuerdos de conservación</a></li>
-          <li><a class="nav-link-ext" href="/alertas-tempranas" target="_blank" rel="noopener" title="Alertas Tempranas de Deforestación (acceso con usuario)"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
+          <li><a class="nav-link-ext" href="/acuerdos"><i class="fas fa-home"></i> Inicio</a></li>
+          <li><button type="button" class="active" data-tab="dashboard"><i class="fas fa-map"></i> Mapa</button></li>
+          <li><button type="button" data-tab="marco"><i class="fas fa-book-open"></i> Marco normativo</button></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <section>
+  <section id="tab-dashboard" class="tab-panel active">
     <div class="dash-hero">
       <div class="dash-hero-inner">
         <div class="dash-hero-copy">
-          <h1>Acuerdos de conservación</h1>
-          <p class="dash-hero-sub">Piloto. Ámbitos acordados con comunidades, separados del mapa de deforestación.</p>
+          <h1>Acuerdos de conservación en Áreas de Conservación Regional</h1>
+          <p class="dash-hero-sub">Compromiso de una comunidad con el Gobierno Regional para cuidar un ámbito del ACR, compatible con el Plan Maestro</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -39,21 +35,138 @@
       </div>
     </div>
 
-    <div class="acuerdos-contexto">
-      <p class="acuerdos-contexto-lead">Un acuerdo de conservación es el compromiso de una comunidad con el Gobierno Regional para cuidar un bosque dentro del ACR. No es una alerta de deforestación y no autoriza a talar: es el ámbito que la gente se compromete a vigilar, de acuerdo con el Plan Maestro.</p>
-      <p>Este piloto muestra el primero. En Illapani, centro poblado Palma Real, distrito de Echarati, la Asociación de Servicios Turísticos de la Catarata Illapani firmó con el Gobierno Regional de Cusco el cuidado de un sector del ACR Chuyapi Urusayhua. El polígono ámbar es ese ámbito, dentro del límite verde del área. El documento señala 1,000 hectáreas; el mapa mide 952.</p>
+    <div class="dash-filters-bar well-panel">
+      <div class="dash-filters-row">
+        <h5 class="dash-filters-title"><i class="fas fa-filter"></i> Filtros de consulta</h5>
+        <div class="dash-filter-field">
+          <label for="departamento"><i class="fas fa-map-marker-alt"></i> Departamento</label>
+          <select id="departamento">
+            <option value="todos">Todos</option>
+            <option value="loreto">Loreto</option>
+            <option value="san_martin">San Martín</option>
+            <option value="cusco">Cusco</option>
+          </select>
+        </div>
+        <div class="dash-filter-field dash-filter-acr">
+          <label for="nombre_acr"><i class="fas fa-tree"></i> Nombre ACR</label>
+          <select id="nombre_acr"></select>
+        </div>
+        <div class="dash-filter-field">
+          <label for="estado"><i class="fas fa-file-signature"></i> Instrumento</label>
+          <select id="estado">
+            <option value="todos">Todos los cargados</option>
+            <option value="vigente">Suscritos</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-info-row">
+        <div id="filter-info" class="filter-info">El acuerdo no es una alerta de deforestación y no autoriza a talar.</div>
+        <button type="button" id="btn-restablecer" class="btn-restablecer hidden" title="Restablecer filtros">
+          <i class="fas fa-undo"></i> Restablecer
+        </button>
+      </div>
     </div>
 
-    <div class="acuerdos-wrap">
-      <div id="acuerdo-mapa" class="acuerdos-map" role="application" aria-label="Mapa del acuerdo"></div>
-      <aside id="acuerdo-ficha" class="acuerdos-ficha" aria-live="polite">
-        <p class="acuerdos-kicker">Cargando el acuerdo…</p>
-      </aside>
+    <div class="dash-main-grid">
+      <div class="dash-col-left">
+        <section class="panelbox dash-kpi-card">
+          <h5 class="section-title"><i class="fas fa-handshake"></i> Indicadores del acuerdo</h5>
+          <p class="dash-kpi-subtitle">Ámbitos que una organización local se compromete a vigilar dentro del ACR</p>
+          <div class="kpi-list">
+            <div class="value-box kpi-row kpi-row--ha">
+              <div class="kpi-icon kpi-icon--tree" aria-hidden="true"><i class="fas fa-file-signature"></i></div>
+              <div class="kpi-body">
+                <p class="label">Acuerdos cargados</p>
+                <p class="number" id="kpi-acuerdos">—</p>
+                <span class="sub" id="kpi-acuerdos-sub">Según los filtros</span>
+              </div>
+            </div>
+            <div class="value-box kpi-row kpi-row--var">
+              <div class="kpi-icon kpi-icon--chart" aria-hidden="true"><i class="fas fa-ruler-combined"></i></div>
+              <div class="kpi-body">
+                <p class="label">Hectáreas en el documento</p>
+                <p class="number" id="kpi-documento">—</p>
+                <span class="sub">Cifra escrita en el acuerdo</span>
+              </div>
+            </div>
+            <div class="value-box kpi-row kpi-row--ant">
+              <div class="kpi-icon kpi-icon--pie" aria-hidden="true"><i class="fas fa-draw-polygon"></i></div>
+              <div class="kpi-body">
+                <p class="label">Hectáreas en el mapa</p>
+                <p class="number" id="kpi-mapa">—</p>
+                <span class="sub">Medición del polígono ámbar</span>
+              </div>
+            </div>
+            <div class="value-box kpi-row kpi-row--causa">
+              <div class="kpi-icon kpi-icon--gear" aria-hidden="true"><i class="fas fa-tree"></i></div>
+              <div class="kpi-body">
+                <p class="label">ACR con acuerdo</p>
+                <p class="number" id="kpi-acr">—</p>
+                <span class="sub">De las 9 ACR del monitoreo</span>
+              </div>
+            </div>
+          </div>
+          <div class="adc-lista" id="adc-lista"></div>
+        </section>
+      </div>
+
+      <div class="dash-col-right">
+        <section class="panelbox dash-map-card">
+          <h5 class="section-title"><i class="fas fa-map-marked-alt"></i> Ámbito acordado</h5>
+          <p class="dash-map-period" id="dash-map-period">Polígono ámbar: lo que se firmó. Línea verde: límite del ACR.</p>
+          <div class="dash-map-shell">
+            <div id="map" class="dash-map" role="application" aria-label="Mapa de acuerdos de conservación"></div>
+            <div id="adc-vacio" class="adc-vacio" hidden>En este filtro todavía no hay un acuerdo cargado.</div>
+          </div>
+        </section>
+      </div>
     </div>
-    <footer class="footer-simple"><div class="footer-logo"><i class="fas fa-leaf"></i></div><p style="font-style:italic;color:#1a4d2e">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p></footer>
+
+    <div class="adc-partes" id="adc-partes"></div>
+
+    <footer class="footer-simple">
+      <div class="footer-logo"><i class="fas fa-leaf"></i></div>
+      <p style="font-style:italic;color:#1a4d2e">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p>
+    </footer>
+  </section>
+
+  <section id="tab-marco" class="tab-panel">
+    <div class="dash-hero section-hero">
+      <div class="dash-hero-inner">
+        <div class="dash-hero-copy">
+          <p class="dash-hero-eyebrow">Marco normativo</p>
+          <h1>Acuerdos de conservación en Áreas de Conservación Regional</h1>
+          <p class="dash-hero-sub">Ley de Áreas Naturales Protegidas y administración del Gobierno Regional</p>
+        </div>
+        <div class="dash-hero-accent" aria-hidden="true">
+          <span class="dash-hero-accent-bar"></span>
+          <p>Territorios que conservan oportunidades</p>
+        </div>
+      </div>
+    </div>
+    <div class="panelbox metodologia-content">
+      <h3><i class="fas fa-book"></i> 1. Marco normativo</h3>
+      <p class="metodologia-p">La Ley N.º 26834, Ley de Áreas Naturales Protegidas, y su Reglamento, el Decreto Supremo N.º 038-2001-AG, permiten que la autoridad del área suscriba acuerdos con la población local. Esos acuerdos conservan y usan el bosque de forma compatible con la categoría del área y con el Plan Maestro.</p>
+      <blockquote class="metodologia-quote">En un Área de Conservación Regional quien administra y firma es el Gobierno Regional, por la Ley Orgánica de Gobiernos Regionales, Ley N.º 27867. El SERNANP es la autoridad nacional del SINANPE y da la opinión técnica previa cuando se establece el ACR.</blockquote>
+      <hr />
+      <h3><i class="fas fa-handshake"></i> 2. Qué compromete el acuerdo</h3>
+      <ul class="metodologia-list">
+        <li><strong>Partes:</strong> el Gobierno Regional y una organización local del ámbito</li>
+        <li><strong>Objeto:</strong> vigilar el bosque y mantener la cobertura, dentro del Plan Maestro</li>
+        <li><strong>Ámbito:</strong> un polígono mapeado. La cifra del documento y la medición del dibujo se muestran por separado</li>
+        <li>El acuerdo no transfiere la propiedad, no cambia la zonificación y no autoriza deforestación</li>
+      </ul>
+      <hr />
+      <h3><i class="fas fa-map-marked-alt"></i> 3. Lo que muestra este dashboard</h3>
+      <p class="metodologia-p">Este tablero es independiente del monitoreo de la línea base de deforestación. Aquí solo entran los acuerdos cargados con polígono. Hoy hay uno: el acuerdo Illapani, número 001-2026-ACR Chuyapi Urusayhua, suscrito por la Asociación de Servicios Turísticos de la Catarata Illapani, en el ACR Chuyapi Urusayhua, Cusco. El documento señala 1,000 ha y el polígono del mapa mide 952 ha.</p>
+    </div>
+    <footer class="footer-simple">
+      <div class="footer-logo"><i class="fas fa-leaf"></i></div>
+      <p style="font-style:italic;color:#1a4d2e">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p>
+    </footer>
   </section>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/assets/js/acuerdos.js?v=20261019a"></script>
+  <script src="/assets/js/acuerdos.js?v=20261105b"></script>
 </body>
 </html>
