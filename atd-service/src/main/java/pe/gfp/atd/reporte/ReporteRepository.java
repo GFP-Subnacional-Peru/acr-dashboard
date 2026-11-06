@@ -1,7 +1,10 @@
 package pe.gfp.atd.reporte;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -94,6 +97,64 @@ public class ReporteRepository {
                         rs.getDouble("rec_xmin"), rs.getDouble("rec_ymin"),
                         rs.getDouble("rec_xmax"), rs.getDouble("rec_ymax")},
                 rs.getBytes("contenido")), codigo);
+    }
+
+    /**
+     * Cargo que imprime el PDF. Primero el de quien clasificó la alerta, si está en el equipo;
+     * si no, el de la persona cuyo nombre coincide con el responsable del reporte; si el equipo
+     * tiene una sola persona con cargo, el de esa persona.
+     */
+    public String cargoDe(String acrCodigo, String codigoAlerta, String responsable) {
+        List<Map<String, Object>> equipo = jdbc.queryForList("""
+                SELECT nombre, cargo
+                  FROM responsable_acr
+                 WHERE acr_codigo = ? AND nullif(btrim(cargo), '') IS NOT NULL
+                """, acrCodigo);
+        if (equipo.isEmpty()) {
+            return null;
+        }
+        String especialista = jdbc.query("""
+                SELECT h.cambios->>'especialista'
+                  FROM historial_validacion h
+                  JOIN alerta a ON a.id = h.alerta_id
+                 WHERE a.codigo = ?
+                   AND nullif(btrim(h.cambios->>'especialista'), '') IS NOT NULL
+                 ORDER BY h.creado_en DESC
+                 LIMIT 1
+                """, rs -> rs.next() ? rs.getString(1) : null, codigoAlerta);
+        String porEspecialista = cargoDeNombre(equipo, especialista);
+        if (porEspecialista != null) {
+            return porEspecialista;
+        }
+        String porResponsable = cargoDeNombre(equipo, responsable);
+        if (porResponsable != null) {
+            return porResponsable;
+        }
+        if (equipo.size() == 1) {
+            return equipo.get(0).get("cargo").toString();
+        }
+        return null;
+    }
+
+    private static String cargoDeNombre(List<Map<String, Object>> equipo, String nombre) {
+        String buscado = normalizar(nombre);
+        if (buscado.isEmpty()) {
+            return null;
+        }
+        for (Map<String, Object> persona : equipo) {
+            if (buscado.equals(normalizar(String.valueOf(persona.get("nombre"))))) {
+                return persona.get("cargo").toString();
+            }
+        }
+        return null;
+    }
+
+    private static String normalizar(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        String sinTilde = Normalizer.normalize(texto, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return sinTilde.toLowerCase(Locale.ROOT).replaceAll("\\s+", " ").trim();
     }
 
     public Limites limites(String acrCodigo) {

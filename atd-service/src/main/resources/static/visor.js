@@ -236,6 +236,164 @@
   }
   mapa.on('zoomend', ajustarPuntos);
 
+  /* Cuadrícula EXA, zonificación y sectores: sin relleno, línea negra, etiqueta de la feature class. */
+  const lienzoRef = L.canvas({ padding: 0.15 });
+  const capaRef = {
+    exa: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: { color: '#111', weight: 1.15, opacity: .95, fill: false } }),
+    zon: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: { color: '#111', weight: 2.6, opacity: 1, fill: false } }),
+    sec: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: { color: '#111', weight: 2.1, opacity: 1, dashArray: '8 6', fill: false } }),
+  };
+  const etiquetasRef = L.layerGroup();
+  const refDatos = {};
+  const refCarga = {};
+  const refClave = {};
+  let refGen = 0;
+  const REF = {
+    exa: { url: '/limites/exa.geojson', caja: 'c-exa', ley: 'ley-exa', zoom: 10, zoomEtiqueta: 13, tope: 12000, cupo: 50 },
+    zon: { url: '/limites/zonif.geojson', caja: 'c-zon', ley: 'ley-zon', zoom: 8, zoomEtiqueta: 10, tope: 2000, cupo: 36 },
+    sec: { url: '/limites/sectores.geojson', caja: 'c-sec', ley: 'ley-sec', zoom: 8, zoomEtiqueta: 9, tope: 400, cupo: 24 },
+  };
+
+  function cajaGeom(g) {
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    const rec = (c) => {
+      if (typeof c[0] === 'number') {
+        if (c[0] < minx) minx = c[0];
+        if (c[1] < miny) miny = c[1];
+        if (c[0] > maxx) maxx = c[0];
+        if (c[1] > maxy) maxy = c[1];
+      } else c.forEach(rec);
+    };
+    rec(g.coordinates);
+    return [minx, miny, maxx, maxy];
+  }
+
+  function centroGeom(g) {
+    const anillo = g.type === 'Polygon' ? g.coordinates[0] : (g.coordinates[0] && g.coordinates[0][0]);
+    if (!anillo || !anillo.length) return [0, 0];
+    let x = 0, y = 0;
+    const n = anillo.length > 1 ? anillo.length - 1 : anillo.length;
+    for (let i = 0; i < n; i++) { x += anillo[i][0]; y += anillo[i][1]; }
+    return [y / n, x / n];
+  }
+
+  function cruza(caja, b) {
+    return caja[0] <= b.getEast() && caja[2] >= b.getWest() && caja[1] <= b.getNorth() && caja[3] >= b.getSouth();
+  }
+
+  function asegurarRef(clave) {
+    if (refDatos[clave]) return Promise.resolve();
+    if (!refCarga[clave]) {
+      refCarga[clave] = fetch(REF[clave].url).then(async (r) => {
+        if (!r.ok) throw new Error(clave);
+        const gj = await r.json();
+        refDatos[clave] = (gj.features || []).map((f) => ({
+          acr: f.properties.acr,
+          label: f.properties.label,
+          geometry: f.geometry,
+          caja: cajaGeom(f.geometry),
+          centro: centroGeom(f.geometry),
+        }));
+      });
+    }
+    return refCarga[clave];
+  }
+
+  function pintarEtiquetasRef() {
+    etiquetasRef.clearLayers();
+    const z = mapa.getZoom();
+    const b = mapa.getBounds();
+    const centro = mapa.getCenter();
+    const acr = st.acr && String(st.acr).startsWith('ACR_') ? st.acr : null;
+    let puestos = 0;
+    ['sec', 'zon', 'exa'].forEach((clave) => {
+      const def = REF[clave];
+      const caja = $(def.caja);
+      if (!caja || !caja.checked || !refDatos[clave] || z < def.zoomEtiqueta) return;
+      const cerca = refDatos[clave].filter((f) => (!acr || f.acr === acr) && cruza(f.caja, b));
+      cerca.sort((a, c) => centro.distanceTo(a.centro) - centro.distanceTo(c.centro));
+      cerca.slice(0, def.cupo).forEach((f) => {
+        const punto = L.circleMarker(f.centro, { radius: 0, stroke: false, fill: false, interactive: false });
+        punto.bindTooltip(f.label, { permanent: true, direction: 'center', className: 'etiq-ref', opacity: 1 });
+        etiquetasRef.addLayer(punto);
+        puestos += 1;
+      });
+    });
+    if (puestos && !mapa.hasLayer(etiquetasRef)) etiquetasRef.addTo(mapa);
+    if (!puestos && mapa.hasLayer(etiquetasRef)) mapa.removeLayer(etiquetasRef);
+  }
+
+  async function pintarReferencia() {
+    const gen = ++refGen;
+    const z = mapa.getZoom();
+    const b = mapa.getBounds();
+    const acr = st.acr && String(st.acr).startsWith('ACR_') ? st.acr : null;
+    const activas = [];
+    for (const clave of Object.keys(REF)) {
+      const def = REF[clave];
+      const caja = $(def.caja);
+      const filtro = $(`f-${def.caja}`);
+      const activo = !!(caja && caja.checked);
+      document.querySelectorAll(`.${def.ley}`).forEach((nodo) => { nodo.hidden = !activo; });
+      if (filtro && filtro.checked !== activo) filtro.checked = activo;
+      if (!activo) {
+        if (mapa.hasLayer(capaRef[clave])) mapa.removeLayer(capaRef[clave]);
+        refClave[clave] = '';
+        continue;
+      }
+      activas.push(clave);
+    }
+    try {
+      await Promise.all(activas.map((clave) => asegurarRef(clave)));
+    } catch {
+      toast('No se pudo cargar la capa');
+      return;
+    }
+    if (gen !== refGen) return;
+    for (const clave of activas) {
+      const def = REF[clave];
+      const firma = acr && z >= def.zoom
+        ? `${acr}|fijo`
+        : (z < def.zoom ? 'lejos' : `vista|${b.getWest().toFixed(2)}|${b.getSouth().toFixed(2)}|${b.getEast().toFixed(2)}|${b.getNorth().toFixed(2)}`);
+      if (refClave[clave] === firma && (firma === 'lejos' || mapa.hasLayer(capaRef[clave]))) continue;
+      refClave[clave] = firma;
+      capaRef[clave].clearLayers();
+      if (z < def.zoom) {
+        if (mapa.hasLayer(capaRef[clave])) mapa.removeLayer(capaRef[clave]);
+        continue;
+      }
+      const feats = [];
+      for (const f of refDatos[clave]) {
+        if (acr && f.acr !== acr) continue;
+        if (!acr && !cruza(f.caja, b)) continue;
+        feats.push({ type: 'Feature', properties: {}, geometry: f.geometry });
+        if (feats.length >= def.tope) break;
+      }
+      if (feats.length) {
+        capaRef[clave].addData({ type: 'FeatureCollection', features: feats });
+        if (!mapa.hasLayer(capaRef[clave])) capaRef[clave].addTo(mapa);
+      } else if (mapa.hasLayer(capaRef[clave])) {
+        mapa.removeLayer(capaRef[clave]);
+      }
+    }
+    pintarEtiquetasRef();
+    if (mapa.hasLayer(capaAlertas)) capaAlertas.bringToFront();
+    if (mapa.hasLayer(capaPuntos)) capaPuntos.bringToFront();
+  }
+
+  function engancharReferencia(id) {
+    const el = $(id);
+    const filtro = $(`f-${id}`);
+    if (!el) return;
+    el.onchange = () => {
+      if (filtro) filtro.checked = el.checked;
+      pintarReferencia();
+    };
+    if (filtro) filtro.onchange = () => { el.checked = filtro.checked; el.onchange(); };
+  }
+  ['c-exa', 'c-zon', 'c-sec'].forEach(engancharReferencia);
+  mapa.on('moveend', () => { pintarReferencia(); });
+
   async function cargarLimitesOficiales() {
     if (capaLimites.getLayers().length) return;
     const [acr, zi] = await Promise.all([
@@ -961,7 +1119,7 @@
     let gente = [];
     try { gente = await api(`/responsables?acr=${encodeURIComponent(st.acr)}`, true); } catch { gente = []; }
     $('equipo').innerHTML = gente.length
-      ? gente.map((p) => `<div class="equipo-fila"><span>${esc(p.nombre)}${p.correo ? ' · ' + esc(p.correo) : ''}</span>${ed.habilitada ? `<button type="button" data-id="${p.id}" title="Quitar">×</button>` : ''}</div>`).join('')
+      ? gente.map((p) => `<div class="equipo-fila"><span>${esc(p.nombre)} · ${p.cargo ? esc(p.cargo) : 'sin cargo'}</span>${ed.habilitada ? `<button type="button" data-id="${p.id}" title="Quitar">×</button>` : ''}</div>`).join('')
       : '<p class="ayuda">Todavía no hay personas anotadas para este ACR.</p>';
     $('equipo').querySelectorAll('button[data-id]').forEach((b) => {
       b.onclick = async () => {
@@ -1008,13 +1166,13 @@
     const r = await fetch(`${API}/responsables`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': tokenCsrf() },
-      body: JSON.stringify({ acr: st.acr, nombre: $('eq-nombre').value.trim(), correo: $('eq-correo').value.trim() }),
+      body: JSON.stringify({ acr: st.acr, nombre: $('eq-nombre').value.trim(), cargo: $('eq-cargo').value.trim() }),
     });
     const j = await r.json().catch(() => ({}));
     if (r.status === 401 || r.status === 403) { irAlLogin(); return; }
     if (!r.ok) { toast(j.error || 'No se pudo agregar'); return; }
     $('eq-nombre').value = '';
-    $('eq-correo').value = '';
+    $('eq-cargo').value = '';
     pintarEquipo();
   };
 
@@ -1287,7 +1445,6 @@
     comparador($('ev-comparador'), escenas, det.geometry, codigo);
     $('ev-escena').hidden = !escenas.some((e) => e.recorte);
     verEscena(escenas.some((e) => e.momento === 'despues' && e.recorte) ? 'despues' : '');
-    $('ev-editar').hidden = !ed.habilitada;
     $('ev-ficha').innerHTML = ficha(d, escenas);
     if ($('foto-lat')) {
       $('foto-lat').value = d.lat ?? '';
@@ -1325,7 +1482,7 @@
   $('ev-escena-sel').querySelectorAll('button').forEach((b) => (b.onclick = () => verEscena(b.dataset.v)));
 
   /* ---------- Edición del polígono ---------- */
-  const ed = { habilitada: false, capa: null, codigo: null, herr: 'vertices' };
+  const ed = { habilitada: false, capa: null, codigo: null, herr: 'vertices', redibujando: false };
   api('/sesion', true).then((s) => {
     const editor = !!s.editor && !!s.ingresado;
     ed.habilitada = editor;
@@ -1461,9 +1618,7 @@
     if (destino && panel.parentElement !== destino) destino.appendChild(panel);
   }
   function pintarBotonEditar() {
-    const ver = ed.habilitada && !ed.capa;
-    $('ev-editar').hidden = !ver;
-    if ($('cl-editar')) $('cl-editar').hidden = !ver;
+    if ($('cl-editar')) $('cl-editar').hidden = !(ed.habilitada && !ed.capa && st.modo === 'clasificar');
   }
 
   async function editar() {
@@ -1487,6 +1642,7 @@
     mapa.flyToBounds(ed.capa.getBounds(), { ...encuadre(90), maxZoom: 18 });
     $('ed-orig').textContent = `(antes: ${ha(st.detalle.superficie_ha)})`;
     $('ed-restaurar').hidden = !st.detalle.editada;
+    $('ed-guardar').disabled = false;
     $('ed-panel').hidden = false;
     pintarBotonEditar();
     aplicarHerramienta();
@@ -1494,7 +1650,13 @@
     $('ed-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  function cortarDibujo() {
+    ed.redibujando = false;
+    if (mapa.pm && typeof mapa.pm.globalDrawModeEnabled === 'function' && mapa.pm.globalDrawModeEnabled()) mapa.pm.disableDraw();
+  }
+
   function terminarEdicion() {
+    cortarDibujo();
     if (ed.capa) {
       ed.capa.pm.disable();
       ed.capa.pm.disableLayerDrag();
@@ -1548,12 +1710,45 @@
     await verAlerta(codigo, true);
   }
 
-  $('ev-editar').onclick = editar;
   if ($('cl-editar')) $('cl-editar').onclick = editar;
   $('ed-herr').querySelectorAll('[data-h]').forEach((b) => (b.onclick = () => { ed.herr = b.dataset.h; aplicarHerramienta(); }));
   $('ed-mas').onclick = () => escalar(1.05);
   $('ed-menos').onclick = () => escalar(1 / 1.05);
   $('ed-cancelar').onclick = terminarEdicion;
+  $('ed-eliminar').onclick = () => {
+    if (!ed.capa || st.modo !== 'clasificar') return;
+    if (!confirm('¿Eliminar este vector? Luego dibuja el polígono nuevo. Cancelar lo devuelve sin guardar.')) return;
+    ed.capa.pm.disable();
+    ed.capa.pm.disableLayerDrag();
+    if (ed.capa.pm.rotateEnabled()) ed.capa.pm.disableRotate();
+    mapa.removeLayer(ed.capa);
+    ed.capa = null;
+    ed.redibujando = true;
+    $('ed-guardar').disabled = true;
+    $('ed-ha').textContent = '–';
+    $('ed-orig').textContent = 'Doble clic cierra el polígono nuevo.';
+    mapa.pm.enableDraw('Polygon', {
+      snappable: false,
+      allowSelfIntersection: false,
+      finishOn: 'dblclick',
+      templineStyle: { color: '#00e5ff', weight: 2 },
+      hintlineStyle: { color: '#00e5ff', dashArray: '4 4' },
+      pathOptions: { color: '#00e5ff', weight: 2.2, fillColor: '#00e5ff', fillOpacity: 0.12 },
+    });
+  };
+  mapa.on('pm:create', (e) => {
+    if (!ed.redibujando) {
+      mapa.removeLayer(e.layer);
+      return;
+    }
+    cortarDibujo();
+    ed.capa = e.layer;
+    ed.herr = 'vertices';
+    ed.capa.on('pm:edit pm:dragend pm:rotateend pm:vertexadded pm:vertexremoved pm:markerdragend', actualizarArea);
+    $('ed-guardar').disabled = false;
+    aplicarHerramienta();
+    actualizarArea();
+  });
   $('ed-guardar').onclick = async () => {
     try {
       const j = await enviarGeometria('PUT', ed.capa.toGeoJSON().geometry);
@@ -1598,6 +1793,7 @@
 
   /* ====================================================== MODO CLASIFICAR */
   function cambiarModo(modo) {
+    if (modo !== 'clasificar' && (ed.capa || ed.redibujando)) terminarEdicion();
     st.modo = modo;
     document.querySelectorAll('.rail-btn[data-modo]').forEach((b) => b.classList.toggle('activo', b.dataset.modo === modo));
     $('modo-consulta').hidden = modo !== 'consulta';

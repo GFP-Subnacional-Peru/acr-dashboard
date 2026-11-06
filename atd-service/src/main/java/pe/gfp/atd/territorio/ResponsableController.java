@@ -33,7 +33,7 @@ public class ResponsableController {
     public List<Map<String, Object>> listar(
             @RequestParam @Pattern(regexp = TerritorioController.PATRON_ACR) String acr) {
         return jdbc.query("""
-                SELECT id, nombre, correo
+                SELECT id, nombre, cargo
                   FROM responsable_acr
                  WHERE acr_codigo = ?
                  ORDER BY nombre
@@ -41,7 +41,7 @@ public class ResponsableController {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", rs.getLong("id"));
             m.put("nombre", rs.getString("nombre"));
-            m.put("correo", rs.getString("correo"));
+            m.put("cargo", rs.getString("cargo"));
             return m;
         }, acr);
     }
@@ -50,26 +50,26 @@ public class ResponsableController {
     public ResponseEntity<Map<String, Object>> crear(@RequestBody Map<String, Object> cuerpo) {
         String acr = texto(cuerpo.get("acr"));
         String nombre = texto(cuerpo.get("nombre"));
-        String correo = texto(cuerpo.get("correo"));
+        String cargo = texto(cuerpo.get("cargo"));
         if (!acr.matches(TerritorioController.PATRON_ACR)) {
             return ResponseEntity.badRequest().body(Map.of("error", "Elige un ACR"));
         }
         if (nombre.isBlank() || nombre.length() > 150) {
             return ResponseEntity.badRequest().body(Map.of("error", "Escribe el nombre"));
         }
-        if (!correo.isBlank() && (correo.length() > 150 || !correo.contains("@"))) {
-            return ResponseEntity.badRequest().body(Map.of("error", "El correo no parece válido"));
+        if (cargo.isBlank() || cargo.length() > 120) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Escribe el cargo"));
         }
         try {
             Long id = jdbc.queryForObject("""
-                    INSERT INTO responsable_acr (acr_codigo, nombre, correo)
-                    VALUES (?, ?, NULLIF(?, ''))
+                    INSERT INTO responsable_acr (acr_codigo, nombre, cargo)
+                    VALUES (?, ?, ?)
                     RETURNING id
-                    """, Long.class, acr, nombre, correo);
+                    """, Long.class, acr, nombre, cargo);
             Map<String, Object> out = new LinkedHashMap<>();
             out.put("id", id);
             out.put("nombre", nombre);
-            out.put("correo", correo.isBlank() ? null : correo);
+            out.put("cargo", cargo);
             return ResponseEntity.status(HttpStatus.CREATED).body(out);
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Ese ACR no está en el visor"));

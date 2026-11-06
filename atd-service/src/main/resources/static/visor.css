@@ -173,7 +173,7 @@ section { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .graf-leyenda b { color: var(--texto); }
 .graf-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; }
 .dos-coord { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.dos-coord input, #eq-nombre, #eq-correo { width: 100%; padding: 8px 10px; border: 1px solid var(--linea); border-radius: 8px; font: inherit; }
+.dos-coord input, #eq-nombre, #eq-cargo { width: 100%; padding: 8px 10px; border: 1px solid var(--linea); border-radius: 8px; font: inherit; }
 #form-equipo { display: grid; gap: 8px; margin-top: 8px; }
 #form-equipo[hidden] { display: none; }
 .equipo-fila, .labor-fila { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--linea); font-size: 13px; }
@@ -220,7 +220,24 @@ section { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .ed-herr button.activo { border-color: #00acc1; background: #e0f7fa; color: #00838f; }
 .ed-area { margin-top: 10px; font-size: 13px; }
 .ed-area small { color: var(--gris); }
-.editor .fila-btn .btn-sec, .editor .fila-btn .btn-pri { margin-top: 12px; padding: 10px 12px; }
+.editor .fila-btn { flex-wrap: wrap; }
+.editor .fila-btn .btn-sec, .editor .fila-btn .btn-pri { margin-top: 12px; padding: 10px 12px; flex: 1 1 42%; }
+#ed-eliminar { color: #b71c1c; }
+#ed-guardar:disabled { opacity: .45; cursor: default; }
+.sw-exa { border: 1.5px solid #111; background: transparent; }
+.sw-zon { border: 2.5px solid #111; background: transparent; }
+.sw-sec { border: 2px dashed #111; background: transparent; }
+.leyenda i.grueso { border-width: 3px; }
+.leaflet-tooltip.etiq-ref {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #111;
+  font: 700 12px Inter, sans-serif;
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff;
+  padding: 0;
+}
+.leaflet-tooltip.etiq-ref::before { display: none; }
 .rp-pdf { display: flex; align-items: center; gap: 12px; }
 .rp-pdf > i { font-size: 34px; color: #c41e3a; }
 .rp-pdf b { display: block; font-size: 14px; }

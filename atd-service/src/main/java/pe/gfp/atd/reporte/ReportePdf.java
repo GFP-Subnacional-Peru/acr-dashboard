@@ -108,6 +108,10 @@ public class ReportePdf {
         LocalDate hoy = LocalDate.now(LIMA);
         String periodo = periodo(d, hoy);
         String codigoReporte = d.codigoReporte() != null ? d.codigoReporte() : d.codigo();
+        String cargoPdf = repo.cargoDe(d.acrCodigo(), d.codigo(), responsable);
+        if (cargoPdf == null || cargoPdf.isBlank()) {
+            cargoPdf = cargo;
+        }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document doc = new Document(PageSize.A4, cm(1.1), cm(1.1), cm(0.7), cm(0.6));
@@ -145,7 +149,7 @@ public class ReportePdf {
             doc.add(par(
                     seccion("5", "Datos de Producción", new String[][] {
                             {"Responsable:", responsable},
-                            {"Cargo:", cargo},
+                            {"Cargo:", cargoPdf},
                             {"Fecha de emisión:", DMY.format(hoy)}}, wa, wb, false),
                     seccion("6", "Datos de Elaboración", new String[][] {
                             {"Metodología:", "Abrir metodología (documento HTML)", base + "/docs/ATD_metodologia.html"},
