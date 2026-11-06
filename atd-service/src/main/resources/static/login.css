@@ -2,14 +2,14 @@
 [hidden] { display: none !important; }
 html, body { margin: 0; min-height: 100%; font-family: Inter, "Segoe UI", Roboto, sans-serif; color: #1d2b20; }
 body {
-  background-color: #071018;
+  background-color: #07111f;
   background-image:
-    radial-gradient(ellipse 90% 55% at 12% 108%, rgba(36, 72, 58, 0.55), transparent 58%),
-    radial-gradient(ellipse 42% 28% at 82% 8%, rgba(186, 154, 96, 0.09), transparent 70%),
-    linear-gradient(rgba(214, 224, 216, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(214, 224, 216, 0.045) 1px, transparent 1px),
-    linear-gradient(168deg, #10202c 0%, #08141c 46%, #0c1c18 100%);
-  background-size: auto, auto, 64px 64px, 64px 64px, auto;
+    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    radial-gradient(ellipse 48% 70% at 0% 58%, rgba(255, 255, 255, 0.14), transparent 62%),
+    radial-gradient(ellipse 42% 60% at 100% 30%, rgba(255, 255, 255, 0.16), transparent 64%),
+    linear-gradient(102deg, #b71c1c 0%, #e53935 30%, #3a1d28 47%, #102033 55%, #1565c0 74%, #0d47a1 100%);
+  background-size: 64px 64px, 64px 64px, auto, auto, auto;
   min-height: 100vh;
 }
 
@@ -32,15 +32,15 @@ label { display: block; font-size: 12px; font-weight: 700; color: #4a5a4e; margi
 .lg-campo { position: relative; display: flex; align-items: center; }
 .lg-campo > i { position: absolute; left: 13px; color: #8a9a8e; font-size: 14px; }
 .lg-campo input { width: 100%; font: inherit; font-size: 15px; padding: 12px 42px 12px 38px; border: 1.5px solid #e3e9e4; border-radius: 12px; outline: none; transition: .15s; background: #fbfcfb; }
-.lg-campo input:focus { border-color: #2e7d32; background: #fff; box-shadow: 0 0 0 4px rgba(46,125,50,.12); }
+.lg-campo input:focus { border-color: #1565c0; background: #fff; box-shadow: 0 0 0 4px rgba(21,101,192,.16); }
 .lg-ver { position: absolute; right: 6px; border: 0; background: none; color: #8a9a8e; padding: 8px; cursor: pointer; border-radius: 8px; }
-.lg-ver:hover { color: #2e7d32; }
+.lg-ver:hover { color: #1565c0; }
 
-.lg-entrar { width: 100%; margin-top: 20px; border: 0; border-radius: 12px; padding: 13px; font: inherit; font-size: 15px; font-weight: 700; color: #fff; cursor: pointer; background: linear-gradient(120deg, #43a047, #2e7d32); box-shadow: 0 8px 20px rgba(46,125,50,.35); transition: .15s; display: flex; gap: 8px; justify-content: center; align-items: center; }
+.lg-entrar { width: 100%; margin-top: 20px; border: 0; border-radius: 12px; padding: 13px; font: inherit; font-size: 15px; font-weight: 700; color: #fff; cursor: pointer; background: linear-gradient(100deg, #e53935 0%, #c62828 42%, #1565c0 100%); box-shadow: 0 8px 20px rgba(13,71,161,.35); transition: .15s; display: flex; gap: 8px; justify-content: center; align-items: center; }
 .lg-entrar:hover { filter: brightness(1.06); transform: translateY(-1px); }
 .lg-entrar:disabled { opacity: .75; transform: none; cursor: progress; }
 
-.lg-volver { display: inline-flex; gap: 6px; align-items: center; margin-top: 16px; font-size: 13px; color: #2e7d32; text-decoration: none; font-weight: 600; }
+.lg-volver { display: inline-flex; gap: 6px; align-items: center; margin-top: 16px; font-size: 13px; color: #1565c0; text-decoration: none; font-weight: 600; }
 .lg-volver:hover { text-decoration: underline; }
 .lg-logos { display: flex; gap: 18px; align-items: center; justify-content: center; margin-top: 22px; padding-top: 18px; border-top: 1px solid #eef2ee; }
 
