@@ -1,56 +1,107 @@
-/* Página Datos — mapas + descargas (mitad / mitad) */
+/* Catálogo de datos de deforestación — una ficha por conjunto. */
 (function () {
-  const MAPAS = {
-    loreto: [
-      { titulo: "Ampiyacu Apayacu", thumb: "/mapas/thumbs/aa.jpg", img: "/mapas/MAPA_ACR_AA_page-0001.jpg", pdf: "/api/descargas/mapa/aa" },
-      { titulo: "Alto Nanay – Pintuyacu Chambira", thumb: "/mapas/thumbs/anpch.jpg", img: "/mapas/MAPA_ACR_ANPCH_page-0001.jpg", pdf: "/api/descargas/mapa/anpch" },
-      { titulo: "Tamshiyacu Tahuayo", thumb: "/mapas/thumbs/ctt.jpg", img: "/mapas/MAPA_ACR_CTT_page-0001.jpg", pdf: "/api/descargas/mapa/ctt" },
-      { titulo: "Maijuna Kichwa", thumb: "/mapas/thumbs/mk.jpg", img: "/mapas/MAPA_ACR_MK_page-0001.jpg", pdf: "/api/descargas/mapa/mk" },
-    ],
-    sanmartin: [
-      {
-        titulo: "Bosques de Shunté y Mishollo",
-        thumb: "/mapas/thumbs/boshumi.jpg",
-        img: `/mapas/${encodeURIComponent("25NOV17_Mapa_de_deforestación_en_ACR_BOSHUMI_y_su_ZI_A2.jpg")}`,
-        pdf: "/api/descargas/mapa/boshumi",
-      },
-      {
-        titulo: "Cordillera Escalera",
-        thumb: "/mapas/thumbs/ce.jpg",
-        img: `/mapas/${encodeURIComponent("25NOV17_Mapa_de_deforestación_en_ACR_CE_y_su_ZI_A2.jpg")}`,
-        pdf: "/api/descargas/mapa/ce",
-      },
-    ],
-    cusco: [
-      { titulo: "Choquequirao", thumb: "/mapas/thumbs/chq.jpg", img: "/mapas/MAPA_CHOQUE_DEF_page-0001.jpg", pdf: "/api/descargas/mapa/chq" },
-      { titulo: "Chuyapi Urusayhua", thumb: "/mapas/thumbs/chu.jpg", img: "/mapas/MAPA_CHUYAPI_ANEXO2_page-0001.jpg", pdf: "/api/descargas/mapa/chu" },
-      { titulo: "Q'eros Kosñipata", thumb: "/mapas/thumbs/qk.jpg", img: "/mapas/MAPA_QEROS_ANEXO3_page-0001.jpg", pdf: "/api/descargas/mapa/qk" },
-    ],
-  };
+  const DATASETS = [
+    { id: "ACR_AA", titulo: "Deforestación acumulada — Ampiyacu Apayacu", resumen: "Polígonos de pérdida de bosque del ACR Ampiyacu Apayacu y su mapa de línea base.", depto: "Loreto", deptoKey: "loreto", geojson: "/api/descargas/acr/ACR_AA", pdf: "/api/descargas/mapa/aa", thumb: "/mapas/thumbs/aa.jpg", img: "/mapas/MAPA_ACR_AA_page-0001.jpg" },
+    { id: "ACR_ANPCH", titulo: "Deforestación acumulada — Alto Nanay Pintuyacu Chambira", resumen: "Polígonos de pérdida de bosque del ACR Alto Nanay – Pintuyacu Chambira y su mapa de línea base.", depto: "Loreto", deptoKey: "loreto", geojson: "/api/descargas/acr/ACR_ANPCH", pdf: "/api/descargas/mapa/anpch", thumb: "/mapas/thumbs/anpch.jpg", img: "/mapas/MAPA_ACR_ANPCH_page-0001.jpg" },
+    { id: "ACR_MK", titulo: "Deforestación acumulada — Maijuna Kichwa", resumen: "Polígonos de pérdida de bosque del ACR Maijuna Kichwa y su mapa de línea base.", depto: "Loreto", deptoKey: "loreto", geojson: "/api/descargas/acr/ACR_MK", pdf: "/api/descargas/mapa/mk", thumb: "/mapas/thumbs/mk.jpg", img: "/mapas/MAPA_ACR_MK_page-0001.jpg" },
+    { id: "ACR_CTT", titulo: "Deforestación acumulada — Comunal Tamshiyacu Tahuayo", resumen: "Polígonos de pérdida de bosque del ACR Comunal Tamshiyacu Tahuayo y su mapa de línea base.", depto: "Loreto", deptoKey: "loreto", geojson: "/api/descargas/acr/ACR_CTT", pdf: "/api/descargas/mapa/ctt", thumb: "/mapas/thumbs/ctt.jpg", img: "/mapas/MAPA_ACR_CTT_page-0001.jpg" },
+    { id: "ACR_BSM", titulo: "Deforestación acumulada — Bosques de Shunté y Mishollo", resumen: "Polígonos de pérdida de bosque del ACR Bosques de Shunté y Mishollo y su mapa de línea base.", depto: "San Martín", deptoKey: "sanmartin", geojson: "/api/descargas/acr/ACR_BSM", pdf: "/api/descargas/mapa/boshumi", thumb: "/mapas/thumbs/boshumi.jpg", img: "/mapas/" + encodeURIComponent("25NOV17_Mapa_de_deforestación_en_ACR_BOSHUMI_y_su_ZI_A2.jpg") },
+    { id: "ACR_CE", titulo: "Deforestación acumulada — Cordillera Escalera", resumen: "Polígonos de pérdida de bosque del ACR Cordillera Escalera y su mapa de línea base.", depto: "San Martín", deptoKey: "sanmartin", geojson: "/api/descargas/acr/ACR_CE", pdf: "/api/descargas/mapa/ce", thumb: "/mapas/thumbs/ce.jpg", img: "/mapas/" + encodeURIComponent("25NOV17_Mapa_de_deforestación_en_ACR_CE_y_su_ZI_A2.jpg") },
+    { id: "ACR_CHQ", titulo: "Deforestación acumulada — Choquequirao", resumen: "Polígonos de pérdida de bosque del ACR Choquequirao y su mapa de línea base.", depto: "Cusco", deptoKey: "cusco", geojson: "/api/descargas/acr/ACR_CHQ", pdf: "/api/descargas/mapa/chq", thumb: "/mapas/thumbs/chq.jpg", img: "/mapas/MAPA_CHOQUE_DEF_page-0001.jpg" },
+    { id: "ACR_CHU", titulo: "Deforestación acumulada — Chuyapi Urusayhua", resumen: "Polígonos de pérdida de bosque del ACR Chuyapi Urusayhua y su mapa de línea base.", depto: "Cusco", deptoKey: "cusco", geojson: "/api/descargas/acr/ACR_CHU", pdf: "/api/descargas/mapa/chu", thumb: "/mapas/thumbs/chu.jpg", img: "/mapas/MAPA_CHUYAPI_ANEXO2_page-0001.jpg" },
+    { id: "ACR_QK", titulo: "Deforestación acumulada — Q'eros Kosñipata", resumen: "Polígonos de pérdida de bosque del ACR Q'eros Kosñipata y su mapa de línea base.", depto: "Cusco", deptoKey: "cusco", geojson: "/api/descargas/acr/ACR_QK", pdf: "/api/descargas/mapa/qk", thumb: "/mapas/thumbs/qk.jpg", img: "/mapas/MAPA_QEROS_ANEXO3_page-0001.jpg" },
+    { id: "paquete", titulo: "Paquete de datos del dashboard", resumen: "Archivo comprimido con el caché exportado: centroides de deforestación en CSV y GeoJSON generados para el monitoreo.", depto: "Nacional", deptoKey: "todos", zip: "/api/descargas/datos", formatos: ["ZIP"] },
+  ];
 
-  function cardHtml(m) {
-    return `<div class="card-mapa-nueva">
-      <div class="card-mapa-thumb">
-        <img src="${m.thumb}" alt="${m.titulo}" loading="lazy" decoding="async" class="card-mapa-img loaded"/>
-      </div>
-      <div class="card-mapa-body">
-        <h5><i class="fas fa-leaf"></i> ${m.titulo}</h5>
-        <div class="card-mapa-actions">
-          <a class="btn-mapa-ver" href="${m.img}" target="_blank" rel="noopener"><i class="fas fa-search-plus"></i> Ver</a>
-          <a class="btn-mapa-pdf" href="${m.pdf}" download><i class="fas fa-download"></i> PDF</a>
-        </div>
-      </div>
-    </div>`;
+  const state = { q: "", depto: "todos", formato: "todos", orden: "nombre" };
+
+  function formatos(d) {
+    if (d.formatos) return d.formatos;
+    return ["GeoJSON", "PDF", "JPG"];
   }
 
-  function render(depto) {
-    const root = document.getElementById("datos-mapas-gallery");
-    if (!root) return;
-    const items = MAPAS[depto] || [];
-    root.innerHTML = items.map(cardHtml).join("");
+  function coincide(d) {
+    if (state.depto !== "todos" && d.deptoKey !== state.depto && d.deptoKey !== "todos") return false;
+    const tiene = formatos(d).map((f) => f.toLowerCase());
+    if (state.formato === "geojson" && !tiene.includes("geojson")) return false;
+    if (state.formato === "pdf" && !tiene.includes("pdf")) return false;
+    if (state.formato === "zip" && !tiene.includes("zip")) return false;
+    const texto = (d.titulo + " " + d.resumen + " " + d.depto).toLowerCase();
+    return !state.q || texto.includes(state.q);
   }
 
-  const sel = document.getElementById("datos-filtro-depto");
-  sel?.addEventListener("change", (e) => render(e.target.value));
-  render(sel?.value || "loreto");
+  function ordenar(lista) {
+    const copia = lista.slice();
+    copia.sort((a, b) => {
+      const ka = state.orden === "depto" ? a.depto + a.titulo : a.titulo;
+      const kb = state.orden === "depto" ? b.depto + b.titulo : b.titulo;
+      return ka.localeCompare(kb, "es");
+    });
+    return copia;
+  }
+
+  function pills(d) {
+    return formatos(d).map((f) => `<span class="ide-pill">${f}</span>`).join("");
+  }
+
+  function acciones(d) {
+    if (d.zip) {
+      return `<a class="ide-btn ide-btn-main" href="${d.zip}"><i class="fas fa-file-archive"></i> Descargar ZIP</a>`;
+    }
+    return `<a class="ide-btn ide-btn-main" href="${d.geojson}"><i class="fas fa-download"></i> GeoJSON</a>
+      <a class="ide-btn" href="${d.img}" target="_blank" rel="noopener"><i class="fas fa-map"></i> Ver mapa</a>
+      <a class="ide-btn" href="${d.pdf}"><i class="fas fa-file-pdf"></i> PDF</a>`;
+  }
+
+  function card(d) {
+    const thumb = d.thumb
+      ? `<img src="${d.thumb}" alt="" loading="lazy" decoding="async" />`
+      : `<span class="ide-thumb-zip"><i class="fas fa-file-archive"></i></span>`;
+    return `<article class="ide-card">
+      <div class="ide-thumb">${thumb}</div>
+      <div class="ide-body">
+        <p class="ide-org">GFP Subnacional · ${d.depto}</p>
+        <h3>${d.titulo}</h3>
+        <p>${d.resumen}</p>
+        <div class="ide-meta">${pills(d)}<span class="ide-pill ide-pill-tema">Medio ambiente</span></div>
+        <div class="ide-actions">${acciones(d)}<a class="ide-btn ide-btn-link" href="/mapa"><i class="fas fa-map-marked-alt"></i> Abrir en el mapa</a></div>
+      </div>
+    </article>`;
+  }
+
+  function render() {
+    const lista = ordenar(DATASETS.filter(coincide));
+    const root = document.getElementById("ide-results");
+    const count = document.getElementById("ide-count");
+    count.textContent = lista.length + (lista.length === 1 ? " conjunto" : " conjuntos");
+    root.innerHTML = lista.length
+      ? lista.map(card).join("")
+      : `<p class="ide-vacio">Ningún conjunto coincide con esa búsqueda.</p>`;
+  }
+
+  document.getElementById("ide-search").addEventListener("submit", (e) => e.preventDefault());
+  document.getElementById("ide-q").addEventListener("input", (e) => {
+    state.q = e.target.value.trim().toLowerCase();
+    render();
+  });
+  document.getElementById("ide-orden").addEventListener("change", (e) => {
+    state.orden = e.target.value;
+    render();
+  });
+  document.getElementById("ide-depto").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    state.depto = btn.dataset.depto;
+    btn.parentElement.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b === btn));
+    render();
+  });
+  document.getElementById("ide-formato").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    state.formato = btn.dataset.formato;
+    btn.parentElement.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b === btn));
+    render();
+  });
+
+  render();
 })();

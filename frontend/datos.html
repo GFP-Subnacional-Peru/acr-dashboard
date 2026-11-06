@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Datos — Portal ACR | GFP Subnacional</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="/assets/css/portal.css?v=20261021d" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20261105c" />
   <link rel="stylesheet" href="/assets/css/app.css?v=20261021b" />
   <script>
     (function () {
@@ -49,8 +49,8 @@
       <div class="dash-hero-inner">
         <div class="dash-hero-copy">
           <p class="dash-hero-eyebrow">Catálogo ACR · GFP Subnacional</p>
-          <h1>Datos y mapas por departamento</h1>
-          <p class="dash-hero-sub">Descargue GeoJSON por ACR y explore los mapas de línea base de Loreto, San Martín y Cusco.</p>
+          <h1>Catálogo de datos de deforestación</h1>
+          <p class="dash-hero-sub">Conjuntos de las 9 ACR de Loreto, San Martín y Cusco. Cada ficha trae la capa GeoJSON y el mapa de línea base.</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -59,70 +59,39 @@
       </div>
     </section>
 
-    <section class="portal-section">
-      <div class="portal-section-head">
-        <h2>Catálogo de datos por departamento</h2>
-        <p>Mitad mapas · mitad descargas por región (Loreto, San Martín y Cusco).</p>
-      </div>
+    <section class="portal-section ide-catalog" aria-label="Catálogo de conjuntos de datos">
+      <form class="ide-search" id="ide-search" role="search">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input id="ide-q" type="search" placeholder="Buscar por ACR, departamento o formato" autocomplete="off" />
+        <label class="ide-sort">
+          Orden
+          <select id="ide-orden">
+            <option value="nombre">Nombre</option>
+            <option value="depto">Departamento</option>
+          </select>
+        </label>
+      </form>
+      <p class="ide-count" id="ide-count">10 conjuntos</p>
 
-      <div class="datos-split">
-        <div class="datos-split-col">
-          <div class="datos-split-head">
-            <h3><i class="fas fa-map"></i> Mapas de línea base</h3>
-            <label class="datos-depto-select">
-              Departamento
-              <select id="datos-filtro-depto">
-                <option value="loreto">Loreto</option>
-                <option value="sanmartin">San Martín</option>
-                <option value="cusco">Cusco</option>
-              </select>
-            </label>
+      <div class="ide-layout">
+        <aside class="ide-facets" aria-label="Filtros del catálogo">
+          <h2>Departamento</h2>
+          <div class="ide-facet" id="ide-depto" role="group">
+            <button type="button" class="active" data-depto="todos">Todos</button>
+            <button type="button" data-depto="loreto">Loreto</button>
+            <button type="button" data-depto="sanmartin">San Martín</button>
+            <button type="button" data-depto="cusco">Cusco</button>
           </div>
-          <div id="datos-mapas-gallery" class="map-gallery datos-map-gallery"></div>
-        </div>
-
-        <div class="datos-split-col datos-split-downloads">
-          <div class="datos-split-head">
-            <h3><i class="fas fa-download"></i> Datos para descargar</h3>
+          <h2>Formato</h2>
+          <div class="ide-facet" id="ide-formato" role="group">
+            <button type="button" class="active" data-formato="todos">Todos</button>
+            <button type="button" data-formato="geojson">GeoJSON</button>
+            <button type="button" data-formato="pdf">PDF</button>
+            <button type="button" data-formato="zip">Paquete ZIP</button>
           </div>
-          <p class="datos-download-lead">Abra cada región y haga clic en una ACR para descargar su GeoJSON.</p>
-
-          <div class="datos-deptos datos-deptos--stack">
-            <details class="datos-depto" open>
-              <summary>Loreto</summary>
-              <ul>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_AA" download><i class="fas fa-download" aria-hidden="true"></i> Ampiyacu Apayacu</a></li>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_ANPCH" download><i class="fas fa-download" aria-hidden="true"></i> Alto Nanay – Pintuyacu Chambira</a></li>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_MK" download><i class="fas fa-download" aria-hidden="true"></i> Maijuna Kichwa</a></li>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_CTT" download><i class="fas fa-download" aria-hidden="true"></i> Comunal Tamshiyacu Tahuayo</a></li>
-              </ul>
-            </details>
-            <details class="datos-depto">
-              <summary>San Martín</summary>
-              <ul>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_BSM" download><i class="fas fa-download" aria-hidden="true"></i> Bosques de Shunté y Mishollo</a></li>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_CE" download><i class="fas fa-download" aria-hidden="true"></i> Cordillera Escalera</a></li>
-              </ul>
-            </details>
-            <details class="datos-depto">
-              <summary>Cusco</summary>
-              <ul>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_CHQ" download><i class="fas fa-download" aria-hidden="true"></i> Choquequirao</a></li>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_CHU" download><i class="fas fa-download" aria-hidden="true"></i> Chuyapi Urusayhua</a></li>
-                <li><a class="datos-dl" href="/api/descargas/acr/ACR_QK" download><i class="fas fa-download" aria-hidden="true"></i> Q'eros Kosñipata</a></li>
-              </ul>
-            </details>
-          </div>
-
-          <div class="datos-links datos-links-stack">
-            <a class="alt" href="/api/descargas/datos"><i class="fas fa-file-archive"></i> Descargar paquete de datos</a>
-            <a href="/mapa"><i class="fas fa-map-marked-alt"></i> Ir al mapa interactivo</a>
-          </div>
-          <div class="datos-note">
-            <strong>Fuentes.</strong>
-            Polígonos de deforestación acumulada por departamento (Loreto, San Martín, Cusco) vía API a partir de capas GeoJSON/GDB.
-          </div>
-        </div>
+          <p class="ide-fuente"><strong>Organización.</strong> GFP Subnacional. Capas de deforestación acumulada y mapas de línea base de las 9 ACR.</p>
+        </aside>
+        <div id="ide-results" class="ide-results"></div>
       </div>
     </section>
   </main>
@@ -137,6 +106,6 @@
     </div>
   </footer>
 
-  <script src="/assets/js/datos-page.js?v=20260922a"></script>
+  <script src="/assets/js/datos-page.js?v=20261105c"></script>
 </body>
 </html>
