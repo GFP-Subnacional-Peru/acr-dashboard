@@ -645,18 +645,21 @@ def escena_endpoint(
     south: float = Query(...),
     east: float = Query(...),
     north: float = Query(...),
+    retro: int = Query(0, ge=0, le=1),
 ) -> Response:
-    """Foto del recorte: Sentinel-2 desde 2017, Landsat de 2001 a 2016."""
+    """Foto del recorte. retro=1 busca una escena clara de 2005 a 2011."""
     try:
-        escena = obtener_escena(anio, west, south, east, north)
+        escena = obtener_escena(anio, west, south, east, north, retro=bool(retro))
     except EscenaNoDisponible as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    anio_foto = escena.fecha[:4] if len(escena.fecha) >= 4 else str(anio)
     return Response(
         content=escena.body,
         media_type="image/jpeg",
         headers={
             "Cache-Control": "public, max-age=86400",
             "X-Escena-Fecha": escena.fecha,
+            "X-Escena-Anio": anio_foto,
             "X-Escena-Sensor": escena.sensor,
         },
     )

@@ -35,10 +35,17 @@ class Escena:
     sensor: str
 
 
-def obtener_escena(anio: int, west: float, south: float, east: float, north: float) -> Escena:
+def obtener_escena(
+    anio: int,
+    west: float,
+    south: float,
+    east: float,
+    north: float,
+    retro: bool = False,
+) -> Escena:
     _validar(anio, west, south, east, north)
     key = (
-        anio,
+        ("antes-2016" if retro else anio),
         round(west, 5),
         round(south, 5),
         round(east, 5),
@@ -49,7 +56,11 @@ def obtener_escena(anio: int, west: float, south: float, east: float, north: flo
         if previa is not None:
             _CACHE.move_to_end(key)
             return previa
-    escena = _buscar_y_recortar(anio, west, south, east, north)
+    escena = (
+        _buscar_mucho_antes(west, south, east, north)
+        if retro
+        else _buscar_y_recortar(anio, west, south, east, north)
+    )
     with _LOCK:
         _CACHE[key] = escena
         _CACHE.move_to_end(key)
@@ -93,12 +104,47 @@ def _buscar_y_recortar(anio: int, west: float, south: float, east: float, north:
     raise EscenaNoDisponible("No hay una escena con 30% de nube o menos en ese año.")
 
 
-def _buscar(coleccion: str, bbox: list[float], anio: int) -> list[dict]:
+def _buscar_mucho_antes(west: float, south: float, east: float, north: float) -> Escena:
+    """2016 y 2017 no se ven bien. La foto sale de 2005 a 2011, bastante antes."""
+    bbox = [west, south, east, north]
+    rasgos = _orden(
+        _buscar(
+            "landsat-c2-l2",
+            bbox,
+            2010,
+            plataforma="landsat-5",
+            inicio="2005-01-01T00:00:00Z",
+            fin="2011-12-31T23:59:59Z",
+        ),
+        False,
+    )
+    for rasgo in rasgos[:3]:
+        item = str(rasgo.get("id") or "")
+        if not item.startswith("LT05"):
+            continue
+        fecha = str((rasgo.get("properties") or {}).get("datetime") or "")[:10]
+        cuerpo = _render("landsat-c2-l2", item, west, south, east, north, False)
+        if cuerpo:
+            return Escena(body=cuerpo, fecha=fecha, sensor="Landsat")
+    raise EscenaNoDisponible("No hay una escena clara de antes de 2016 en este recorte.")
+
+
+def _buscar(
+    coleccion: str,
+    bbox: list[float],
+    anio: int,
+    plataforma: str | None = None,
+    inicio: str | None = None,
+    fin: str | None = None,
+) -> list[dict]:
+    consulta: dict = {"eo:cloud_cover": {"lte": _NUBE_MAX}}
+    if plataforma:
+        consulta["platform"] = {"eq": plataforma}
     cuerpo = {
         "collections": [coleccion],
         "bbox": bbox,
-        "datetime": f"{anio}-01-01T00:00:00Z/{anio}-12-31T23:59:59Z",
-        "query": {"eo:cloud_cover": {"lte": _NUBE_MAX}},
+        "datetime": f"{inicio}/{fin}" if inicio and fin else f"{anio}-01-01T00:00:00Z/{anio}-12-31T23:59:59Z",
+        "query": consulta,
         "sortby": [{"field": "properties.eo:cloud_cover", "direction": "asc"}],
         "limit": 12,
         "fields": {

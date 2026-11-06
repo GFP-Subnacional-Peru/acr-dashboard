@@ -306,7 +306,11 @@ const AcrMap = (() => {
     return { west: cx - dx / 2, south: cy - dy / 2, east: cx + dx / 2, north: cy + dy / 2 };
   }
 
-  function urlEscena(anio, caja) {
+  function necesitaRetro(anio) {
+    return anio >= 2016 && anio < ANIO_SENTINEL;
+  }
+
+  function urlEscena(anio, caja, retro) {
     const q = new URLSearchParams({
       anio: String(anio),
       west: caja.west.toFixed(5),
@@ -314,7 +318,8 @@ const AcrMap = (() => {
       east: caja.east.toFixed(5),
       north: caja.north.toFixed(5),
     });
-    return `/api/escena?${q.toString()}&v=2`;
+    if (retro) q.set("retro", "1");
+    return `/api/escena?${q.toString()}&v=3`;
   }
 
   const MESES_ESCENA = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
@@ -354,22 +359,26 @@ const AcrMap = (() => {
 
   function htmlSwipe(anio, cierre) {
     const mismo = anio === cierre;
-    const nota = mismo
-      ? `El polígono es de ${anio}, el cierre del periodo. Las dos vistas son de ese año, ${sensorDe(anio)}.`
-      : `A la izquierda, ${anio} · ${sensorDe(anio)}. A la derecha, ${cierre} · ${sensorDe(cierre)}. Arrastre la barra para comparar.`;
+    const retro = necesitaRetro(anio);
+    const nota = retro
+      ? `2016 y 2017 no se ven bien. A la izquierda va una escena clara de mucho antes, entre 2005 y 2011. A la derecha, ${cierre} · ${sensorDe(cierre)}.`
+      : mismo
+        ? `El polígono es de ${anio}, el cierre del periodo. Las dos vistas son de ese año, ${sensorDe(anio)}.`
+        : `A la izquierda, ${anio} · ${sensorDe(anio)}. A la derecha, ${cierre} · ${sensorDe(cierre)}. Arrastre la barra para comparar.`;
+    const chipIzq = retro ? "Antes de 2016" : `${anio} · ${sensorDe(anio)}`;
     return `
       <div class="map-feature-section map-swipe" data-anio="${anio}" data-cierre="${cierre}">
         <div class="map-feature-section-title">Paisaje del año y del cierre</div>
         <div class="map-swipe-stage">
           <img class="map-swipe-img map-swipe-despues" alt="${cierre}, ${sensorDe(cierre)}" draggable="false">
-          <img class="map-swipe-img map-swipe-antes" alt="${anio}, ${sensorDe(anio)}" draggable="false">
+          <img class="map-swipe-img map-swipe-antes" alt="${chipIzq}" draggable="false">
           <div class="map-swipe-linea"></div>
-          <span class="map-swipe-chip map-swipe-chip--izq">${anio} · ${sensorDe(anio)}</span>
+          <span class="map-swipe-chip map-swipe-chip--izq">${chipIzq}</span>
           <span class="map-swipe-chip map-swipe-chip--der">${cierre} · ${sensorDe(cierre)}</span>
           <p class="map-swipe-carga">Buscando la escena del recorte…</p>
         </div>
         <input class="map-swipe-rango" type="range" min="0" max="100" value="58" aria-label="Comparar el año del polígono con el cierre del periodo">
-        <p class="map-swipe-nota">${nota} Sentinel-2 desde 2018. De 2001 a 2017, Landsat. Solo escenas con 30% de nube o menos, de cualquier fecha del año.</p>
+        <p class="map-swipe-nota">${nota} Sentinel-2 desde 2018. De 2001 a 2015, Landsat. Solo escenas con 30% de nube o menos.</p>
       </div>`;
   }
 
@@ -413,14 +422,15 @@ const AcrMap = (() => {
         : "Una de las dos escenas no llegó. La otra sí está en el recorte.";
     };
     const pedir = (img, anioFoto, chip) => {
-      fetch(urlEscena(anioFoto, caja))
+      fetch(urlEscena(anioFoto, caja, chip && chip.classList.contains("map-swipe-chip--izq") && necesitaRetro(anioFoto)))
         .then((res) => {
           if (token !== swipeToken) return null;
           if (!res.ok) throw new Error("sin escena");
+          const anioReal = Number(res.headers.get("X-Escena-Anio")) || anioFoto;
           const dia = fechaEscena(res.headers.get("X-Escena-Fecha"));
-          if (dia && chip) {
-            chip.textContent = `${anioFoto} · ${dia}`;
-            chip.title = sensorDe(anioFoto);
+          if (chip) {
+            chip.textContent = dia ? `${anioReal} · ${dia}` : `${anioReal} · ${sensorDe(anioReal)}`;
+            chip.title = sensorDe(anioReal);
           }
           return res.blob();
         })
