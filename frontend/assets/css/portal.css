@@ -1076,6 +1076,45 @@ body.portal-body {
 .ide-btn-main { background: #0c5c49; color: #fff; }
 .ide-btn:hover { filter: brightness(1.05); }
 .ide-vacio { margin: 0; padding: 1.2rem; background: #fff; border-radius: 14px; color: #4d6278; }
+.ide-btn-ficha { border: 0; cursor: pointer; font-family: inherit; }
+.ide-ficha {
+  width: min(740px, calc(100vw - 1.5rem));
+  max-height: min(86vh, 820px);
+  border: 0;
+  border-radius: 16px;
+  padding: 0;
+  color: #0a2540;
+  box-shadow: 0 24px 60px rgba(10, 37, 64, 0.28);
+}
+.ide-ficha::backdrop { background: rgba(10, 20, 32, 0.48); }
+.ide-ficha form { padding: 1.1rem 1.25rem 1.2rem; overflow: auto; max-height: min(86vh, 820px); }
+.ide-ficha-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.ide-ficha-head h2 { margin: 0; font-size: 1.25rem; line-height: 1.25; }
+.ide-ficha-x {
+  border: 0;
+  background: #f4f7fb;
+  color: #0a2540;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  flex: none;
+}
+.ide-ficha > form > p { margin: 0.7rem 0 0; color: #3d5166; line-height: 1.45; }
+.ide-ficha dl {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr);
+  gap: 0.55rem 0.9rem;
+  margin: 1rem 0 0;
+}
+.ide-ficha dt { margin: 0; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #5b7190; }
+.ide-ficha dd { margin: 0; line-height: 1.4; }
+.ide-ficha-metodo { font-weight: 700; }
+.ide-ficha-metodo a { color: #0c5c49; }
+@media (max-width: 640px) {
+  .ide-ficha dl { grid-template-columns: 1fr; gap: 0.15rem; }
+  .ide-ficha dd { margin-bottom: 0.45rem; }
+}
 @media (max-width: 860px) {
   .ide-layout, .ide-card { grid-template-columns: 1fr; }
   .ide-body { padding: 0.2rem 0.9rem 0.95rem; }
