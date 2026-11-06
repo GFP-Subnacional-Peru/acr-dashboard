@@ -2,10 +2,14 @@
 [hidden] { display: none !important; }
 html, body { margin: 0; min-height: 100%; font-family: Inter, "Segoe UI", Roboto, sans-serif; color: #1d2b20; }
 body {
-  background:
-    radial-gradient(1200px 600px at 10% 0%, rgba(139,195,74,.35), transparent 60%),
-    radial-gradient(900px 500px at 100% 100%, rgba(0,0,0,.35), transparent 60%),
-    linear-gradient(135deg, #2e7d32 0%, #1b5e20 55%, #0f3d14 100%);
+  background-color: #071018;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 12% 108%, rgba(36, 72, 58, 0.55), transparent 58%),
+    radial-gradient(ellipse 42% 28% at 82% 8%, rgba(186, 154, 96, 0.09), transparent 70%),
+    linear-gradient(rgba(214, 224, 216, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(214, 224, 216, 0.045) 1px, transparent 1px),
+    linear-gradient(168deg, #10202c 0%, #08141c 46%, #0c1c18 100%);
+  background-size: auto, auto, 64px 64px, 64px 64px, auto;
   min-height: 100vh;
 }
 
@@ -17,8 +21,7 @@ body {
 .lg-inst { margin-top: 18px !important; font-size: 14px !important; letter-spacing: .02em; opacity: .78 !important; }
 
 .lg-tarjeta { background: #fff; border-radius: 20px; padding: 32px 32px 24px; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
-.lg-marca { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #8bc34a, #1b5e20); color: #fff; font-weight: 800; display: grid; place-items: center; letter-spacing: .5px; box-shadow: 0 6px 16px rgba(46,125,50,.35); }
-.lg-tarjeta h2 { margin: 16px 0 2px; font-size: 24px; font-weight: 800; letter-spacing: -.3px; }
+.lg-tarjeta h2 { margin: 0 0 2px; font-size: 24px; font-weight: 800; letter-spacing: -.3px; }
 .lg-sub { margin: 0 0 18px; color: #66756a; font-size: 13.5px; }
 
 .lg-aviso { border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
