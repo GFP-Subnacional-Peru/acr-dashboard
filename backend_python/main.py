@@ -56,6 +56,7 @@ from services.deforestacion_vectors_service import (
     vectors_en_alcance,
     warmup_acumulado_cache,
 )
+from services.escena_service import EscenaNoDisponible, obtener_escena
 from services.estadisticas_service import estadisticas_a_catalogo
 from services.filtros_config import ACR_OPCIONES_POR_DEPTO
 from services.filtros_service import (
@@ -633,6 +634,30 @@ def deforestacion_vectors_endpoint(
                 "count": 0,
             },
         }
+
+
+@app.get("/api/escena")
+def escena_endpoint(
+    anio: int = Query(..., ge=2001, le=2030),
+    west: float = Query(...),
+    south: float = Query(...),
+    east: float = Query(...),
+    north: float = Query(...),
+) -> Response:
+    """Foto del recorte: Sentinel-2 desde 2017, Landsat de 2001 a 2016."""
+    try:
+        escena = obtener_escena(anio, west, south, east, north)
+    except EscenaNoDisponible as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return Response(
+        content=escena.body,
+        media_type="image/jpeg",
+        headers={
+            "Cache-Control": "public, max-age=86400",
+            "X-Escena-Fecha": escena.fecha,
+            "X-Escena-Sensor": escena.sensor,
+        },
+    )
 
 
 @app.get("/api/deforestacion/centroides")

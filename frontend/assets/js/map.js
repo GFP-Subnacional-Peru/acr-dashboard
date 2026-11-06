@@ -282,6 +282,168 @@ const AcrMap = (() => {
     }
   }
 
+  const ANIO_SENTINEL = 2017;
+  let swipeToken = 0;
+
+  function anioCierre() {
+    const txt = document.getElementById("dash-map-period")?.textContent || "";
+    const anos = (txt.match(/20\d{2}/g) || []).map(Number);
+    const mostrado = anos.length ? Math.max(...anos) : 2025;
+    return Math.max(mostrado, 2025);
+  }
+
+  function sensorDe(anio) {
+    return anio >= ANIO_SENTINEL ? "Sentinel-2" : "Landsat";
+  }
+
+  function recorteDe(bounds) {
+    const cx = (bounds.getWest() + bounds.getEast()) / 2;
+    const cy = (bounds.getSouth() + bounds.getNorth()) / 2;
+    let dx = Math.max((bounds.getEast() - bounds.getWest()) * 1.6, 0.012);
+    let dy = Math.max((bounds.getNorth() - bounds.getSouth()) * 1.6, 0.012);
+    dx = Math.min(dx, 0.09);
+    dy = Math.min(dy, 0.09);
+    return { west: cx - dx / 2, south: cy - dy / 2, east: cx + dx / 2, north: cy + dy / 2 };
+  }
+
+  function urlEscena(anio, caja) {
+    const q = new URLSearchParams({
+      anio: String(anio),
+      west: caja.west.toFixed(5),
+      south: caja.south.toFixed(5),
+      east: caja.east.toFixed(5),
+      north: caja.north.toFixed(5),
+    });
+    return `/api/escena?${q.toString()}`;
+  }
+
+  const MESES_ESCENA = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+  function fechaEscena(iso) {
+    const partes = String(iso || "").split("-");
+    if (partes.length !== 3) return "";
+    const mes = MESES_ESCENA[Number(partes[1]) - 1];
+    if (!mes) return "";
+    return `${Number(partes[2])} ${mes}`;
+  }
+
+  function anillosDe(layer) {
+    if (!layer || typeof layer.getLatLngs !== "function") return [];
+    const planos = [];
+    const caminar = (nodo) => {
+      if (!nodo || nodo.lat != null) return;
+      if (nodo[0] && nodo[0].lat != null) planos.push(nodo);
+      else if (Array.isArray(nodo)) nodo.forEach(caminar);
+    };
+    caminar(layer.getLatLngs());
+    return planos;
+  }
+
+  function contornoSvg(layer, caja) {
+    const dx = caja.east - caja.west;
+    const dy = caja.north - caja.south;
+    if (dx <= 0 || dy <= 0) return "";
+    const d = anillosDe(layer).map((anillo) => anillo.map((ll, i) => {
+      const x = ((ll.lng - caja.west) / dx) * 100;
+      const y = ((caja.north - ll.lat) / dy) * 100;
+      return `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`;
+    }).join(" ") + " Z").join(" ");
+    if (!d) return "";
+    return `<svg class="map-swipe-contorno" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${d}"/></svg>`;
+  }
+
+  function htmlSwipe(anio, cierre) {
+    const mismo = anio === cierre;
+    const nota = mismo
+      ? `El polígono es de ${anio}, el cierre del periodo. Las dos vistas son de ese año, ${sensorDe(anio)}.`
+      : `A la izquierda, ${anio} · ${sensorDe(anio)}. A la derecha, ${cierre} · ${sensorDe(cierre)}. Arrastre la barra para comparar.`;
+    return `
+      <div class="map-feature-section map-swipe" data-anio="${anio}" data-cierre="${cierre}">
+        <div class="map-feature-section-title">Paisaje del año y del cierre</div>
+        <div class="map-swipe-stage">
+          <img class="map-swipe-img map-swipe-despues" alt="${cierre}, ${sensorDe(cierre)}" draggable="false">
+          <img class="map-swipe-img map-swipe-antes" alt="${anio}, ${sensorDe(anio)}" draggable="false">
+          <div class="map-swipe-linea"></div>
+          <span class="map-swipe-chip map-swipe-chip--izq">${anio} · ${sensorDe(anio)}</span>
+          <span class="map-swipe-chip map-swipe-chip--der">${cierre} · ${sensorDe(cierre)}</span>
+          <p class="map-swipe-carga">Buscando la escena del recorte…</p>
+        </div>
+        <input class="map-swipe-rango" type="range" min="0" max="100" value="58" aria-label="Comparar el año del polígono con el cierre del periodo">
+        <p class="map-swipe-nota">${nota} Sentinel-2 desde 2017. De 2001 a 2016, Landsat. Cada foto es la escena más despejada de su año.</p>
+      </div>`;
+  }
+
+  function enlazarSwipe(layer, caja) {
+    const raiz = document.querySelector("#map-feature-body .map-swipe");
+    if (!raiz) return;
+    const token = ++swipeToken;
+    const anio = Number(raiz.dataset.anio);
+    const cierre = Number(raiz.dataset.cierre);
+    const antes = raiz.querySelector(".map-swipe-antes");
+    const despues = raiz.querySelector(".map-swipe-despues");
+    const linea = raiz.querySelector(".map-swipe-linea");
+    const rango = raiz.querySelector(".map-swipe-rango");
+    const carga = raiz.querySelector(".map-swipe-carga");
+    const stage = raiz.querySelector(".map-swipe-stage");
+    const cos = Math.cos(((caja.south + caja.north) / 2) * Math.PI / 180);
+    const aspecto = ((caja.east - caja.west) * Math.max(cos, 0.2)) / (caja.north - caja.south);
+    stage.style.aspectRatio = `${Math.max(0.8, Math.min(aspecto, 2.2))} / 1`;
+    stage.insertAdjacentHTML("beforeend", contornoSvg(layer, caja));
+    const poner = (valor) => {
+      const pct = Math.max(0, Math.min(100, Number(valor)));
+      antes.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+      linea.style.left = `${pct}%`;
+    };
+    poner(rango.value);
+    rango.addEventListener("input", () => poner(rango.value));
+    let vivas = 2;
+    let fallos = 0;
+    const terminar = (ok) => {
+      if (token !== swipeToken) return;
+      if (!ok) fallos += 1;
+      vivas -= 1;
+      if (vivas > 0 || !carga) return;
+      if (!fallos) {
+        carga.hidden = true;
+        return;
+      }
+      carga.hidden = false;
+      carga.textContent = fallos === 2
+        ? "No hay una escena clara de esos años en este recorte."
+        : "Una de las dos escenas no llegó. La otra sí está en el recorte.";
+    };
+    const pedir = (img, anioFoto, chip) => {
+      fetch(urlEscena(anioFoto, caja))
+        .then((res) => {
+          if (token !== swipeToken) return null;
+          if (!res.ok) throw new Error("sin escena");
+          const dia = fechaEscena(res.headers.get("X-Escena-Fecha"));
+          if (dia && chip) {
+            chip.textContent = `${anioFoto} · ${dia}`;
+            chip.title = sensorDe(anioFoto);
+          }
+          return res.blob();
+        })
+        .then((blob) => {
+          if (!blob || token !== swipeToken) return;
+          const url = URL.createObjectURL(blob);
+          img.addEventListener("load", () => terminar(true), { once: true });
+          img.addEventListener("error", () => {
+            img.classList.add("map-swipe-fallo");
+            terminar(false);
+          }, { once: true });
+          img.src = url;
+        })
+        .catch(() => {
+          if (token !== swipeToken) return;
+          img.classList.add("map-swipe-fallo");
+          terminar(false);
+        });
+    };
+    pedir(antes, anio, raiz.querySelector(".map-swipe-chip--izq"));
+    pedir(despues, cierre, raiz.querySelector(".map-swipe-chip--der"));
+  }
+
   function showDefoPanel(p, layer) {
     const tipo = p.tipo || "—";
     const causa = (p.causa_nombre || "").trim();
@@ -325,8 +487,17 @@ const AcrMap = (() => {
           </div>
           ${showCausa ? `<p class="map-feature-note"><strong>Causa estimada:</strong> ${escHtml(causa)}</p>` : ""}
         </div>
+        ${(() => {
+          const anio = Number(p.anno);
+          if (!Number.isInteger(anio) || anio < 2001 || anio > 2030 || !layer || typeof layer.getBounds !== "function") return "";
+          const cierre = Math.max(anioCierre(), anio);
+          return htmlSwipe(anio, cierre);
+        })()}
         <p class="map-feature-foot"><i class="fas fa-hand-pointer"></i> Haga clic en otro polígono para actualizar el resumen.</p>`,
     });
+    if (layer && typeof layer.getBounds === "function" && Number.isInteger(Number(p.anno))) {
+      enlazarSwipe(layer, recorteDe(layer.getBounds()));
+    }
   }
 
   function showAcrPanel(p, kind, layer) {
