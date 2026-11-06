@@ -103,6 +103,7 @@
     ACR_ANPCH: 'ACR Alto Nanay - Pintuyacu Chambira', ZI_ANPCH: 'ZI Alto Nanay - Pintuyacu Chambira',
     ACR_CTT: 'ACR Comunal Tamshiyacu Tahuayo', ZI_CTT: 'ZI Comunal Tamshiyacu Tahuayo',
     ACR_MK: 'ACR Maijuna Kichwa', ZI_MK: 'ZI Maijuna Kichwa',
+    ACR_MPA: 'ACR Medio Putumayo Algodón',
     ACR_BSM: 'ACR Bosques de Shunté y Mishollo', ZI_BSM: 'ZI Bosques de Shunté y Mishollo',
     ACR_CE: 'ACR Cordillera Escalera', ZI_CE: 'ZI Cordillera Escalera',
     ACR_CHQ: 'ACR Choquequirao', ZI_CHQ: 'ZI Choquequirao',
@@ -186,13 +187,20 @@
       capaPuntos.addLayer(punto);
       marcas.set(p.codigo, { poli, punto, p });
     });
+    if (ed.codigo && (ed.capa || ed.redibujando)) {
+      const oculta = marcas.get(ed.codigo);
+      if (oculta) {
+        capaAlertas.removeLayer(oculta.poli);
+        capaPuntos.removeLayer(oculta.punto);
+      }
+    }
     ajustarPuntos();
     if (mapa.hasLayer(capaAlertas)) capaAlertas.bringToFront();
     if (mapa.hasLayer(capaPuntos)) capaPuntos.bringToFront();
   }
 
   mapa.on('click', (e) => {
-    if (st.modo !== 'clasificar' || ed.capa) return;
+    if (st.modo !== 'clasificar' || ed.capa || ed.redibujando) return;
     const codigo = codigoCercano(e.latlng, 64);
     if (codigo) abrirClasificacion(codigo);
   });
@@ -236,12 +244,23 @@
   }
   mapa.on('zoomend', ajustarPuntos);
 
-  /* Cuadrícula EXA, zonificación y sectores: sin relleno, línea negra, etiqueta de la feature class. */
+  /* Cuadrícula EXA, zonificación y sectores: sin relleno. En satélite la línea es clara; en el mapa claro, negra. */
   const lienzoRef = L.canvas({ padding: 0.15 });
+  function tonoRef() {
+    const v = document.querySelector('input[name=base]:checked');
+    const id = v ? v.value : 'esri';
+    return (id === 'topo' || id === 'gris') ? '#1a1a1a' : '#efe6d0';
+  }
+  function estiloRef(clave) {
+    const color = tonoRef();
+    if (clave === 'zon') return { color, weight: 2.3, opacity: .92, fill: false };
+    if (clave === 'sec') return { color, weight: 2, opacity: .92, dashArray: '7 5', fill: false };
+    return { color, weight: 1.2, opacity: .88, fill: false };
+  }
   const capaRef = {
-    exa: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: { color: '#111', weight: 1.15, opacity: .95, fill: false } }),
-    zon: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: { color: '#111', weight: 2.6, opacity: 1, fill: false } }),
-    sec: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: { color: '#111', weight: 2.1, opacity: 1, dashArray: '8 6', fill: false } }),
+    exa: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: () => estiloRef('exa') }),
+    zon: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: () => estiloRef('zon') }),
+    sec: L.geoJSON(null, { interactive: false, renderer: lienzoRef, style: () => estiloRef('sec') }),
   };
   const etiquetasRef = L.layerGroup();
   const refDatos = {};
@@ -304,7 +323,7 @@
     const z = mapa.getZoom();
     const b = mapa.getBounds();
     const centro = mapa.getCenter();
-    const acr = st.acr && String(st.acr).startsWith('ACR_') ? st.acr : null;
+    const acr = acrDeReferencia();
     let puestos = 0;
     ['sec', 'zon', 'exa'].forEach((clave) => {
       const def = REF[clave];
@@ -323,11 +342,19 @@
     if (!puestos && mapa.hasLayer(etiquetasRef)) mapa.removeLayer(etiquetasRef);
   }
 
+  function acrDeReferencia() {
+    if (st.modo === 'clasificar') return st.acr && String(st.acr).startsWith('ACR_') ? st.acr : null;
+    const sel = $('f-acr') ? $('f-acr').value : 'todas';
+    if (!sel || sel === 'todas') return null;
+    if (String(sel).startsWith('ZI_')) return sel.replace('ZI_', 'ACR_');
+    return String(sel).startsWith('ACR_') ? sel : null;
+  }
+
   async function pintarReferencia() {
     const gen = ++refGen;
     const z = mapa.getZoom();
     const b = mapa.getBounds();
-    const acr = st.acr && String(st.acr).startsWith('ACR_') ? st.acr : null;
+    const acr = acrDeReferencia();
     const activas = [];
     for (const clave of Object.keys(REF)) {
       const def = REF[clave];
@@ -403,7 +430,7 @@
     capaLimites.addData(acr);
     capaLimites.addData(zi);
     capaLimites.bringToFront();
-    const loreto = new Set(['ACR_AA', 'ZI_AA', 'ACR_ANPCH', 'ZI_ANPCH', 'ACR_CTT', 'ZI_CTT', 'ACR_MK', 'ZI_MK']);
+    const loreto = new Set(['ACR_AA', 'ZI_AA', 'ACR_ANPCH', 'ZI_ANPCH', 'ACR_CTT', 'ZI_CTT', 'ACR_MK', 'ZI_MK', 'ACR_MPA']);
     const foco = capaLimites.getLayers().filter((l) => loreto.has(l.feature.properties.codigo));
     if (!st.region && foco.length) mapa.fitBounds(L.featureGroup(foco).getBounds(), encuadre(40));
   }
@@ -510,6 +537,33 @@
     if ($('f-c-geob')) $('f-c-geob').checked = e.target.checked;
     if (e.target.checked) { geobosques.addTo(mapa); toast('GeoBosques 2026: magenta = última semana, azul = acumulado del año'); } else mapa.removeLayer(geobosques);
   };
+  const capaSemana = L.geoJSON(null, {
+    style: { color: '#c45c26', weight: 1.6, fillColor: '#c45c26', fillOpacity: 0.2 },
+    onEachFeature: (f, capa) => {
+      const p = f.properties || {};
+      capa.bindTooltip(`${p.region} · ${p.ambito} · ${p.fecha} · ${num(p.ha)} ha`);
+    },
+  });
+  let semanaLista = null;
+  async function verSemana(prender) {
+    document.querySelectorAll('.ley-semana').forEach((nodo) => { nodo.hidden = !prender; });
+    if (!prender) {
+      if (mapa.hasLayer(capaSemana)) mapa.removeLayer(capaSemana);
+      return;
+    }
+    if (!semanaLista) {
+      const r = await fetch('/limites/semana.geojson');
+      if (!r.ok) { toast('No se pudo cargar la semana nueva'); return; }
+      semanaLista = await r.json();
+      capaSemana.addData(semanaLista);
+    }
+    if (!mapa.hasLayer(capaSemana)) capaSemana.addTo(mapa);
+    capaSemana.bringToFront();
+  }
+  if ($('c-semana')) $('c-semana').onchange = (e) => {
+    if ($('f-c-semana')) $('f-c-semana').checked = e.target.checked;
+    verSemana(e.target.checked);
+  };
   if ($('c-geob').checked) geobosques.addTo(mapa);
   $('c-limites').onchange = (e) => (e.target.checked ? mapa.addLayer(capaLimites) : mapa.removeLayer(capaLimites));
   if ($('c-propuesta')) $('c-propuesta').onchange = () => ajustarPuntos();
@@ -518,6 +572,7 @@
     base = bases[r.value].addTo(mapa);
     base.bringToBack();
     etiquetas.bringToFront();
+    Object.entries(capaRef).forEach(([clave, capa]) => capa.setStyle(estiloRef(clave)));
   }));
 
   /* ====================================================== SINCRONIZACIÓN */
@@ -1022,6 +1077,7 @@
   $('f-c-poli').onchange = (e) => { $('c-poli').checked = e.target.checked; $('c-poli').onchange(e); };
   if ($('f-c-propuesta')) $('f-c-propuesta').onchange = (e) => { $('c-propuesta').checked = e.target.checked; $('c-propuesta').onchange(); };
   $('f-c-geob').onchange = (e) => { $('c-geob').checked = e.target.checked; $('c-geob').onchange(e); };
+  if ($('f-c-semana')) $('f-c-semana').onchange = (e) => { $('c-semana').checked = e.target.checked; $('c-semana').onchange(e); };
   $('f-c-limites').onchange = (e) => { $('c-limites').checked = e.target.checked; $('c-limites').onchange(e); };
   $('f-base').onchange = () => {
     const r = document.querySelector(`input[name=base][value="${$('f-base').value}"]`);
@@ -1715,14 +1771,25 @@
   $('ed-mas').onclick = () => escalar(1.05);
   $('ed-menos').onclick = () => escalar(1 / 1.05);
   $('ed-cancelar').onclick = terminarEdicion;
-  $('ed-eliminar').onclick = () => {
-    if (!ed.capa || st.modo !== 'clasificar') return;
-    if (!confirm('¿Eliminar este vector? Luego dibuja el polígono nuevo. Cancelar lo devuelve sin guardar.')) return;
-    ed.capa.pm.disable();
-    ed.capa.pm.disableLayerDrag();
-    if (ed.capa.pm.rotateEnabled()) ed.capa.pm.disableRotate();
+  function soltarVector() {
+    if (!ed.capa) return;
+    try {
+      ed.capa.pm.disable();
+      ed.capa.pm.disableLayerDrag();
+      if (typeof ed.capa.pm.rotateEnabled === 'function' && ed.capa.pm.rotateEnabled()) ed.capa.pm.disableRotate();
+    } catch (e) { /* el polígono igual se quita */ }
     mapa.removeLayer(ed.capa);
     ed.capa = null;
+  }
+  $('ed-eliminar').onclick = () => {
+    if (st.modo !== 'clasificar' || !ed.codigo || (!ed.capa && !ed.redibujando)) return;
+    if (!confirm('¿Eliminar este vector? Luego dibuja el polígono nuevo. Cancelar lo devuelve sin guardar.')) return;
+    soltarVector();
+    const rojo = marcas.get(ed.codigo);
+    if (rojo) {
+      capaAlertas.removeLayer(rojo.poli);
+      capaPuntos.removeLayer(rojo.punto);
+    }
     ed.redibujando = true;
     $('ed-guardar').disabled = true;
     $('ed-ha').textContent = '–';
@@ -1798,7 +1865,7 @@
     document.querySelectorAll('.rail-btn[data-modo]').forEach((b) => b.classList.toggle('activo', b.dataset.modo === modo));
     $('modo-consulta').hidden = modo !== 'consulta';
     $('modo-clasificar').hidden = modo !== 'clasificar';
-    $('cab-sub').textContent = modo === 'consulta' ? 'GFP Subnacional · Consulta de alertas' : 'GFP Subnacional · Bandeja de clasificación';
+    $('cab-sub').textContent = modo === 'consulta' ? 'Consulta de alertas' : 'Bandeja de clasificación';
     if (modo === 'clasificar') iniciarClasificacion();
     else if (st.geo) dibujarAlertas(st.geo.features);
   }

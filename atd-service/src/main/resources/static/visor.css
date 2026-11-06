@@ -24,10 +24,8 @@ kbd { font: 600 10px Inter, sans-serif; background: rgba(0,0,0,.08); border-radi
 
 /* ---------- Barra de íconos ---------- */
 .rail { position: fixed; inset: 0 auto 0 0; width: 72px; background: var(--papel); border-right: 1px solid var(--linea); display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 6px; z-index: 1001; }
-.rail-logo { position: relative; width: 52px; height: 52px; border-radius: 14px; background: #fff; display: block; padding: 5px 4px 0; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(20, 45, 25, .18); overflow: hidden; text-decoration: none; }
-.rail-logo img { width: 100%; height: 30px; object-fit: cover; object-position: center 18%; display: block; }
-.rail-sat { position: absolute; right: 2px; bottom: 2px; width: 20px; height: 20px; border-radius: 50%; background: #1b5e20; display: grid; place-items: center; box-shadow: 0 1px 4px rgba(0,0,0,.28); }
-.rail-sat svg { width: 14px; height: 14px; display: block; }
+.rail-satelite { width: 52px; height: 36px; margin-bottom: 8px; color: var(--verde-osc); display: grid; place-items: center; }
+.rail-satelite svg { width: 48px; height: 26px; display: block; }
 .rail-btn { position: relative; width: 60px; border: 0; background: none; color: var(--gris); padding: 9px 0 7px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; transition: .18s; }
 .rail-btn i { font-size: 18px; }
 .rail-btn:hover { background: var(--verde-fondo); color: var(--verde); }
@@ -43,9 +41,8 @@ kbd { font: 600 10px Inter, sans-serif; background: rgba(0,0,0,.08); border-radi
 .panel { position: fixed; top: 0; bottom: 0; left: 72px; width: var(--panel); background: var(--papel); z-index: 1000; display: flex; flex-direction: column; box-shadow: var(--sombra); transition: transform .3s ease; }
 .panel.oculto { transform: translateX(calc(-1 * var(--panel) - 10px)); }
 .panel-cab { background: linear-gradient(120deg, #7cb342 0%, #388e3c 55%, #1b5e20 100%); color: #fff; padding: 16px 16px 14px; display: flex; align-items: center; gap: 10px; }
-.marca-gfp { height: 40px; width: auto; background: #fff; border-radius: 8px; padding: 3px 6px; flex: none; }
-.marca-sat { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,.92); display: grid; place-items: center; flex: none; }
-.marca-sat svg { width: 26px; height: 26px; display: block; }
+.marca-sat { width: 54px; height: 32px; display: grid; place-items: center; flex: none; color: #fff; }
+.marca-sat svg { width: 52px; height: 28px; display: block; }
 .panel-cab h1 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: -.2px; line-height: 1.2; }
 .panel-cab p { margin: 3px 0 0; font-size: 12px; opacity: .92; }
 .sync { display: flex; gap: 10px; align-items: center; margin: 12px 16px 0; padding: 10px 12px; border-radius: 12px; background: var(--verde-fondo); border: 1px solid #dcedc8; }
@@ -326,6 +323,7 @@ body.sin-panel #mapa { left: 72px; }
 .sw { width: 14px; height: 14px; border-radius: 4px; flex: none; }
 .sw-alerta { background: conic-gradient(var(--rojo) 0 25%, var(--azul) 0 50%, var(--gris-alerta) 0 75%, var(--naranja) 0); }
 .sw-geob { background: linear-gradient(135deg, #ff00c5 50%, #0066ff 50%); }
+.sw-semana { border: 1.5px solid #c45c26; background: rgba(196, 92, 38, .28); }
 .sw-lim { border: 2px solid #2ecc40; }
 .s2-2026 { filter: contrast(1.9) brightness(.78) saturate(1.5); }
 .leyenda { position: fixed; right: 14px; bottom: 26px; z-index: 1000; background: rgba(255,255,255,.95); backdrop-filter: blur(8px); border-radius: 12px; box-shadow: var(--sombra); padding: 9px 12px; font-size: 11.5px; display: grid; gap: 4px; }
