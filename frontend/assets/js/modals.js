@@ -333,13 +333,8 @@ const Modals = (() => {
     );
   }
 
-  function plotConfig(filename) {
-    return {
-      responsive: true,
-      displaylogo: false,
-      modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"],
-      toImageButtonOptions: { format: "png", filename, scale: 2 },
-    };
+  function plotConfig() {
+    return { responsive: true, displayModeBar: false };
   }
 
   function downloadCsv(filename, headers, rows) {
