@@ -1,8 +1,7 @@
 """Foto del recorte de un polígono, del año pedido.
 
-Sentinel-2 desde 2017 y Landsat de 2001 a 2016. El servicio público de Esri
-solo conserva Sentinel de los últimos 14 meses, así que el histórico sale
-de Planetary Computer: la escena con menos nube de ese año.
+Sentinel-2 desde 2018 y Landsat de 2001 a 2017. Cualquier fecha del año
+sirve, siempre que la escena tenga 30% de nube o menos.
 """
 
 from __future__ import annotations
@@ -18,7 +17,8 @@ from urllib.parse import urlencode
 
 _STAC = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
 _RENDER = "https://planetarycomputer.microsoft.com/api/data/v1/item/bbox"
-_ANIO_SENTINEL = 2017
+_ANIO_SENTINEL = 2018
+_NUBE_MAX = 30
 _CACHE: OrderedDict[tuple, "Escena"] = OrderedDict()
 _LOCK = threading.Lock()
 _MAX_CACHE = 48
@@ -75,64 +75,65 @@ def _buscar_y_recortar(anio: int, west: float, south: float, east: float, north:
     sentinel = anio >= _ANIO_SENTINEL
     coleccion = "sentinel-2-l2a" if sentinel else "landsat-c2-l2"
     sensor = "Sentinel-2" if sentinel else "Landsat"
-    bbox = [west, south, east, north]
-    vistos: set[str] = set()
-    for inicio, fin, nube in _ventanas(anio):
-        rasgos = _buscar(coleccion, bbox, inicio, fin, nube)
-        for rasgo in _orden(rasgos, sentinel):
-            item = str(rasgo.get("id") or "")
-            if not item or item in vistos:
-                continue
-            vistos.add(item)
-            fecha = str((rasgo.get("properties") or {}).get("datetime") or "")[:10]
-            cuerpo = _render(coleccion, item, west, south, east, north, sentinel)
-            if cuerpo:
-                return Escena(body=cuerpo, fecha=fecha, sensor=sensor)
-            if len(vistos) >= 4:
-                break
-        if len(vistos) >= 4:
-            break
-    raise EscenaNoDisponible("No hay una escena clara de ese año en este recorte.")
+    rasgos = _orden(
+        _buscar(coleccion, [west, south, east, north], anio),
+        sentinel,
+    )
+    for rasgo in rasgos[:2]:
+        nube = (rasgo.get("properties") or {}).get("eo:cloud_cover")
+        if not isinstance(nube, (int, float)) or nube > _NUBE_MAX:
+            continue
+        item = str(rasgo.get("id") or "")
+        if not item:
+            continue
+        fecha = str((rasgo.get("properties") or {}).get("datetime") or "")[:10]
+        cuerpo = _render(coleccion, item, west, south, east, north, sentinel)
+        if cuerpo:
+            return Escena(body=cuerpo, fecha=fecha, sensor=sensor)
+    raise EscenaNoDisponible("No hay una escena con 30% de nube o menos en ese año.")
 
 
-def _ventanas(anio: int) -> list[tuple[str, str, int]]:
-    seco = (f"{anio}-06-01T00:00:00Z", f"{anio}-10-31T23:59:59Z", 25)
-    año = (f"{anio}-01-01T00:00:00Z", f"{anio}-12-31T23:59:59Z", 50)
-    amplio = (f"{anio}-01-01T00:00:00Z", f"{anio}-12-31T23:59:59Z", 90)
-    return [seco, año, amplio]
-
-
-def _buscar(coleccion: str, bbox: list[float], inicio: str, fin: str, nube: int) -> list[dict]:
+def _buscar(coleccion: str, bbox: list[float], anio: int) -> list[dict]:
     cuerpo = {
         "collections": [coleccion],
         "bbox": bbox,
-        "datetime": f"{inicio}/{fin}",
-        "query": {"eo:cloud_cover": {"lt": nube}},
+        "datetime": f"{anio}-01-01T00:00:00Z/{anio}-12-31T23:59:59Z",
+        "query": {"eo:cloud_cover": {"lte": _NUBE_MAX}},
         "sortby": [{"field": "properties.eo:cloud_cover", "direction": "asc"}],
-        "limit": 8,
+        "limit": 12,
+        "fields": {
+            "include": ["id", "properties.datetime", "properties.eo:cloud_cover"],
+            "exclude": ["geometry", "assets", "links", "bbox"],
+        },
     }
     try:
-        data = _json(_STAC, cuerpo, 20)
+        data = _json(_STAC, cuerpo, 12)
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
-        print(f"Escena búsqueda {coleccion} {inicio[:4]}: {exc}", flush=True)
+        print(f"Escena búsqueda {coleccion} {anio}: {exc}", flush=True)
         return []
     rasgos = data.get("features") if isinstance(data, dict) else None
     return rasgos if isinstance(rasgos, list) else []
 
 
 def _orden(rasgos: list[dict], sentinel: bool) -> list[dict]:
-    if sentinel:
-        return rasgos
-
-    def llave(rasgo: dict) -> tuple:
+    def nube_de(rasgo: dict) -> float:
         nube = (rasgo.get("properties") or {}).get("eo:cloud_cover")
-        if not isinstance(nube, (int, float)):
-            nube = 100
-        item = str(rasgo.get("id") or "")
-        reciente = 0 if item.startswith(("LC08", "LC09")) else 1
-        return (reciente, nube)
+        return float(nube) if isinstance(nube, (int, float)) else 101.0
 
-    return sorted(rasgos, key=llave)
+    limpios = [r for r in rasgos if nube_de(r) <= _NUBE_MAX]
+    if sentinel:
+        return sorted(limpios, key=nube_de)
+
+    def grupo(rasgo: dict) -> int:
+        # Landsat 7 queda al final: trae franjas negras aunque reporte poca nube.
+        item = str(rasgo.get("id") or "")
+        if item.startswith(("LC08", "LC09")):
+            return 0
+        if item.startswith(("LT05", "LT04")):
+            return 1
+        return 2
+
+    return sorted(limpios, key=lambda r: (grupo(r), nube_de(r)))
 
 
 def _render(
@@ -147,7 +148,7 @@ def _render(
     cos = math.cos(((south + north) / 2) * math.pi / 180)
     ancho_grados = (east - west) * max(cos, 0.2)
     alto_grados = north - south
-    width = 640
+    width = 480
     height = max(220, min(520, round(width * (alto_grados / ancho_grados)))) if ancho_grados else 480
     pares: list[tuple[str, str]] = [
         ("collection", coleccion),
@@ -165,7 +166,7 @@ def _render(
         pares.append(("color_formula", "gamma RGB 1.35"))
     url = f"{_RENDER}/{west},{south},{east},{north}.jpg?{urlencode(pares)}"
     try:
-        tipo, data = _bytes(url, 28)
+        tipo, data = _bytes(url, 18)
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         print(f"Escena render {item}: {exc}", flush=True)
         return None

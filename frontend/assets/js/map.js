@@ -282,7 +282,7 @@ const AcrMap = (() => {
     }
   }
 
-  const ANIO_SENTINEL = 2017;
+  const ANIO_SENTINEL = 2018;
   let swipeToken = 0;
 
   function anioCierre() {
@@ -314,7 +314,7 @@ const AcrMap = (() => {
       east: caja.east.toFixed(5),
       north: caja.north.toFixed(5),
     });
-    return `/api/escena?${q.toString()}`;
+    return `/api/escena?${q.toString()}&v=2`;
   }
 
   const MESES_ESCENA = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
@@ -369,7 +369,7 @@ const AcrMap = (() => {
           <p class="map-swipe-carga">Buscando la escena del recorte…</p>
         </div>
         <input class="map-swipe-rango" type="range" min="0" max="100" value="58" aria-label="Comparar el año del polígono con el cierre del periodo">
-        <p class="map-swipe-nota">${nota} Sentinel-2 desde 2017. De 2001 a 2016, Landsat. Cada foto es la escena más despejada de su año.</p>
+        <p class="map-swipe-nota">${nota} Sentinel-2 desde 2018. De 2001 a 2017, Landsat. Solo escenas con 30% de nube o menos, de cualquier fecha del año.</p>
       </div>`;
   }
 
@@ -409,7 +409,7 @@ const AcrMap = (() => {
       }
       carga.hidden = false;
       carga.textContent = fallos === 2
-        ? "No hay una escena clara de esos años en este recorte."
+        ? "No hay una escena con 30% de nube o menos en esos años."
         : "Una de las dos escenas no llegó. La otra sí está en el recorte.";
     };
     const pedir = (img, anioFoto, chip) => {

@@ -27,6 +27,7 @@ if str(_BACKEND_ROOT) not in sys.path:
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -275,6 +276,7 @@ app = FastAPI(
     openapi_url=None,
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=2048)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
