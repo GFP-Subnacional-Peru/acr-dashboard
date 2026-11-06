@@ -2545,6 +2545,7 @@ body.kpi-modal-open { overflow: hidden; }
 .tend-welcome h3 { color: #666; margin: 0 0 15px; }
 .tend-welcome p { color: #999; font-size: 15px; max-width: 500px; margin: 0 auto; }
 #chart-tendencias-full { min-height: 400px; }
+#chart-tendencias-full .modebar { display: none !important; }
 
 /* ============================================================
    Dashboard redesign (Jorge mockup) â tab-dashboard only

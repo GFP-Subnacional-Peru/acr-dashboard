@@ -265,9 +265,7 @@ const Tendencias = (() => {
       },
       {
         responsive: true,
-        displaylogo: false,
-        modeBarButtonsToRemove: ["lasso2d", "select2d", "autoScale2d"],
-        toImageButtonOptions: { format: "png", filename: "tendencia-deforestacion", scale: 2 },
+        displayModeBar: false,
       }
     );
     const tools = document.getElementById("tend-tools");
