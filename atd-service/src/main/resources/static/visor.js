@@ -13,6 +13,39 @@
   const fecha = (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '–');
   const clase = (p) => (p.estado === 'pendiente' ? 'pendiente' : p.resultado || 'pendiente');
 
+  function utmDe(lat, lon) {
+    const la = Number(lat);
+    const lo = Number(lon);
+    if (!Number.isFinite(la) || !Number.isFinite(lo)) return '';
+    const a = 6378137;
+    const f = 1 / 298.257223563;
+    const k0 = 0.9996;
+    const e2 = f * (2 - f);
+    const ep2 = e2 / (1 - e2);
+    const zone = Math.floor((lo + 180) / 6) + 1;
+    const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+    const latR = la * Math.PI / 180;
+    const lonR = lo * Math.PI / 180;
+    const sen = Math.sin(latR);
+    const cos = Math.cos(latR);
+    const tan = Math.tan(latR);
+    const N = a / Math.sqrt(1 - e2 * sen * sen);
+    const T = tan * tan;
+    const C = ep2 * cos * cos;
+    const A = (lonR - lon0) * cos;
+    const e4 = e2 * e2;
+    const e6 = e4 * e2;
+    const M = a * ((1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256) * latR
+      - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024) * Math.sin(2 * latR)
+      + (15 * e4 / 256 + 45 * e6 / 1024) * Math.sin(4 * latR)
+      - (35 * e6 / 3072) * Math.sin(6 * latR));
+    const este = k0 * N * (A + (1 - T + C) * A ** 3 / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * A ** 5 / 120) + 500000;
+    let norte = k0 * (M + N * tan * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A ** 4 / 24 + (61 - 58 * T + T * T + 600 * C - 330 * ep2) * A ** 6 / 720));
+    if (la < 0) norte += 10000000;
+    const metros = (n) => Math.round(n).toLocaleString('es-PE');
+    return `${zone}${la < 0 ? 'S' : 'N'}  ${metros(este)} E  ${metros(norte)} N`;
+  }
+
   const irAlLogin = () => { location.assign('/login.html'); };
   const tokenCsrf = () => decodeURIComponent((document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN=')) || '').slice(11));
 
@@ -33,7 +66,7 @@
 
   const st = {
     territorios: [], region: null, acr: null, ambito: 'ambos', anio: null, mes: null,
-    periodos: [], periodosPorAcr: {}, eje: [], resumen: null, geo: null, filtro: 'todas', alerta: null, escenas: [],
+    periodos: [], periodosPorAcr: {}, eje: [], calAnio: null, resumen: null, geo: null, filtro: 'todas', alerta: null, escenas: [],
     pasoMax: 1, modo: 'consulta', catalogos: null,
     cl: { cola: [], idx: -1, hechas: {}, duda: {}, resultado: null, causa: null, conf: 1, bosque: 1, guardando: false },
   };
@@ -413,11 +446,66 @@
     }).sort((x, y) => ym(x) - ym(y));
   }
 
+  let calAncla = null;
+
+  function aniosDelEje() {
+    return [...new Set(st.eje.map((p) => p.anio))].sort((x, y) => x - y);
+  }
+
+  function indiceMes(anio, mes) {
+    return st.eje.findIndex((p) => p.anio === anio && p.mes === mes);
+  }
+
+  function mesConAlertas(anio, mes) {
+    return acrsDeRegion(st.region).some((t) => (st.periodosPorAcr[t.codigo] || []).some((p) => p.anio === anio && p.mes === mes));
+  }
+
+  function pintarCalendario() {
+    const box = $('f-cal-meses');
+    if (!box) return;
+    const anios = aniosDelEje();
+    if (!anios.length) {
+      box.innerHTML = '';
+      if ($('f-anio-lbl')) $('f-anio-lbl').textContent = '—';
+      return;
+    }
+    if (!anios.includes(st.calAnio)) st.calAnio = anios[anios.length - 1];
+    $('f-anio-lbl').textContent = String(st.calAnio);
+    $('f-anio-prev').disabled = st.calAnio <= anios[0];
+    $('f-anio-next').disabled = st.calAnio >= anios[anios.length - 1];
+    const a = st.eje[+$('f-desde').value];
+    const b = st.eje[+$('f-hasta').value];
+    const lo = a && b ? Math.min(ym(a), ym(b)) : null;
+    const hi = a && b ? Math.max(ym(a), ym(b)) : null;
+    box.innerHTML = MESES.map((nombre, i) => {
+      const mes = i + 1;
+      const cur = st.calAnio * 12 + mes;
+      const dentro = lo != null && cur >= lo && cur <= hi;
+      const extremo = dentro && (cur === lo || cur === hi);
+      const vacio = mesConAlertas(st.calAnio, mes) ? '' : ' vacio';
+      return `<button type="button" data-mes="${mes}" class="${dentro ? 'dentro' : ''}${extremo ? ' extremo' : ''}${vacio}">${nombre.slice(0, 3)}</button>`;
+    }).join('');
+  }
+
   function pintarEtiquetasPeriodo() {
     const a = st.eje[+$('f-desde').value];
     const b = st.eje[+$('f-hasta').value];
-    if (a) $('f-desde-lbl').textContent = etiquetaMes(a);
-    if (b) $('f-hasta-lbl').textContent = etiquetaMes(b);
+    if (a) $('f-desde-lbl').textContent = `${MESES[a.mes - 1]} ${a.anio}`;
+    if (b) $('f-hasta-lbl').textContent = `${MESES[b.mes - 1]} ${b.anio}`;
+    pintarCalendario();
+  }
+
+  function seleccionarAnio(anio) {
+    const idxs = [];
+    st.eje.forEach((p, i) => { if (p.anio === anio) idxs.push(i); });
+    if (!idxs.length) return;
+    st.calAnio = anio;
+    calAncla = null;
+    $('f-desde').value = String(idxs[0]);
+    $('f-hasta').value = String(idxs[idxs.length - 1]);
+    st.anio = anio;
+    st.mes = 12;
+    pintarEtiquetasPeriodo();
   }
 
   function armarEje() {
@@ -425,35 +513,18 @@
     acrsDeRegion(st.region).forEach((t) => (st.periodosPorAcr[t.codigo] || []).forEach((p) => puntos.push(p)));
     if (!puntos.length) {
       st.eje = [];
-      $('f-desde').disabled = true;
-      $('f-hasta').disabled = true;
+      st.calAnio = null;
+      pintarCalendario();
       return;
     }
-    const min = puntos.reduce((m, p) => (ym(p) < ym(m) ? p : m));
-    const max = puntos.reduce((m, p) => (ym(p) > ym(m) ? p : m));
+    const anios = [...new Set(puntos.map((p) => p.anio))].sort((x, y) => x - y);
     const eje = [];
-    for (let y = min.anio, m = min.mes; y < max.anio || (y === max.anio && m <= max.mes); ) {
-      eje.push({ anio: y, mes: m });
-      m += 1;
-      if (m > 12) { m = 1; y += 1; }
-    }
+    anios.forEach((y) => { for (let m = 1; m <= 12; m += 1) eje.push({ anio: y, mes: m }); });
     st.eje = eje;
-    $('f-desde').disabled = false;
-    $('f-hasta').disabled = false;
-    $('f-desde').max = String(eje.length - 1);
-    $('f-hasta').max = String(eje.length - 1);
     const anioHoy = new Date().getFullYear();
-    let desde = eje.findIndex((p) => p.anio === anioHoy);
-    let hasta = -1;
-    eje.forEach((p, i) => { if (p.anio === anioHoy) hasta = i; });
-    if (desde < 0) { desde = 0; hasta = eje.length - 1; }
-    $('f-desde').value = String(desde);
-    $('f-hasta').value = String(hasta);
-    pintarEtiquetasPeriodo();
+    seleccionarAnio(anios.includes(anioHoy) ? anioHoy : anios[anios.length - 1]);
     const uno = $('f-acr').value !== 'todas' ? $('f-acr').value : acrsDeRegion(st.region)[0]?.codigo;
     st.periodos = st.periodosPorAcr[uno] || [];
-    st.anio = eje[hasta].anio;
-    st.mes = eje[hasta].mes;
   }
 
   async function cargarPeriodosRegion() {
@@ -715,6 +786,8 @@
       if (idx < 0) return;
       $('f-desde').value = String(idx);
       $('f-hasta').value = String(idx);
+      st.calAnio = st.anio;
+      calAncla = null;
       pintarEtiquetasPeriodo();
       await buscar();
     }));
@@ -748,8 +821,33 @@
     $('mb-modo').querySelectorAll('button').forEach((x) => x.classList.toggle('activo', x === b));
     $('mb-det').hidden = b.dataset.v !== 'detallado';
   }));
-  ordenarRango($('f-desde'), $('f-hasta'), pintarEtiquetasPeriodo);
   ordenarRango($('f-ha-min'), $('f-ha-max'), pintarHa);
+  $('f-cal-meses')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn || st.calAnio == null) return;
+    const idx = indiceMes(st.calAnio, +btn.dataset.mes);
+    if (idx < 0) return;
+    if (calAncla == null) {
+      calAncla = idx;
+      $('f-desde').value = String(idx);
+      $('f-hasta').value = String(idx);
+    } else {
+      $('f-desde').value = String(Math.min(calAncla, idx));
+      $('f-hasta').value = String(Math.max(calAncla, idx));
+      calAncla = null;
+    }
+    pintarEtiquetasPeriodo();
+  });
+  $('f-anio-prev').onclick = () => {
+    const anios = aniosDelEje();
+    const i = anios.indexOf(st.calAnio);
+    if (i > 0) seleccionarAnio(anios[i - 1]);
+  };
+  $('f-anio-next').onclick = () => {
+    const anios = aniosDelEje();
+    const i = anios.indexOf(st.calAnio);
+    if (i >= 0 && i < anios.length - 1) seleccionarAnio(anios[i + 1]);
+  };
   pintarHa();
   $('f-region').onchange = () => alCambiarRegion();
   $('f-acr').onchange = () => alCambiarAcr();
@@ -1169,7 +1267,7 @@
       ['Superficie', ha(d.superficie_ha)], ['Fecha de detección', fecha(d.fecha_imagen)],
       ['Ámbito', d.ambito === 'ZI' ? 'Zona de Influencia' : 'Dentro del ACR'], ['Zonificación', d.zonificacion],
       ['Causal', d.causa], ['Confiabilidad', d.confiabilidad], ['Tipo de bosque', d.tipo_bosque], ['Sector', d.sector],
-      ['Coordenadas', `${num(d.lat, 5)}, ${num(d.lon, 5)}`], ['Fuente de detección', d.fuente],
+      ['Coordenadas UTM', utmDe(d.lat, d.lon)], ['Fuente de detección', d.fuente],
       ['Escena antes', antes?.escenaId], ['Escena después', despues?.escenaId],
     ].filter(([, v]) => v !== null && v !== undefined && v !== '');
     return filas.map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join('');
@@ -1249,7 +1347,7 @@
     try { fotos = await api(`/alertas/${codigo}/foto`, true); } catch { fotos = []; }
     const box = $('ev-fotos');
     box.innerHTML = fotos.length ? fotos.map((f) => {
-      const coord = (f.lat != null && f.lon != null) ? `${Number(f.lat).toFixed(5)}, ${Number(f.lon).toFixed(5)}` : 'Sin coordenadas';
+      const coord = utmDe(f.lat, f.lon) || 'Sin coordenadas';
       return `<figure>
         <img src="${f.url}" alt="Foto de constatación de ${esc(codigo)}">
         <figcaption>${esc(f.nota || 'Sin descripción')} · ${esc(coord)}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption>
@@ -1827,9 +1925,11 @@
     await elegirAcr(d.acr);
     const idx = st.eje.findIndex((p) => p.anio === d.anio && p.mes === d.mes);
     if (idx >= 0) {
-      $('f-desde').value = String(idx);
-      $('f-hasta').value = String(idx);
-      pintarEtiquetasPeriodo();
+    $('f-desde').value = String(idx);
+    $('f-hasta').value = String(idx);
+    st.calAnio = d.anio;
+    calAncla = null;
+    pintarEtiquetasPeriodo();
     }
     st.anio = d.anio; st.mes = d.mes;
     await cargarResumen();

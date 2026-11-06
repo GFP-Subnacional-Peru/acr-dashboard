@@ -11,13 +11,10 @@ body {
 
 .lg { min-height: 100vh; display: grid; grid-template-columns: 1.1fr minmax(360px, 440px); align-items: center; gap: 48px; max-width: 1120px; margin: 0 auto; padding: 32px; }
 
-.lg-hero { color: #fff; }
-.lg-eyebrow { display: inline-flex; gap: 8px; align-items: center; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
-.lg-hero h1 { font-size: 44px; line-height: 1.08; letter-spacing: -1px; margin: 18px 0 12px; font-weight: 800; }
-.lg-hero p { font-size: 17px; opacity: .9; margin: 0 0 26px; }
-.lg-hero ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.lg-hero li { display: flex; gap: 12px; align-items: center; font-size: 15px; font-weight: 500; }
-.lg-hero li i { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(255,255,255,.16); }
+.lg-hero { color: #fff; max-width: 520px; }
+.lg-hero h1 { font-size: 44px; line-height: 1.08; letter-spacing: -1px; margin: 0 0 14px; font-weight: 800; }
+.lg-hero p { font-size: 18px; opacity: .92; margin: 0; line-height: 1.4; }
+.lg-inst { margin-top: 18px !important; font-size: 14px !important; letter-spacing: .02em; opacity: .78 !important; }
 
 .lg-tarjeta { background: #fff; border-radius: 20px; padding: 32px 32px 24px; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
 .lg-marca { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #8bc34a, #1b5e20); color: #fff; font-weight: 800; display: grid; place-items: center; letter-spacing: .5px; box-shadow: 0 6px 16px rgba(46,125,50,.35); }
@@ -47,5 +44,4 @@ label { display: block; font-size: 12px; font-weight: 700; color: #4a5a4e; margi
 @media (max-width: 860px) {
   .lg { grid-template-columns: 1fr; gap: 24px; padding: 20px; }
   .lg-hero h1 { font-size: 30px; }
-  .lg-hero ul { display: none; }
 }

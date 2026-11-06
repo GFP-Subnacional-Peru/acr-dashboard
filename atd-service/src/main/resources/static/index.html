@@ -98,11 +98,18 @@
             <button type="button" id="f-lupa" title="Buscar"><i class="fas fa-magnifying-glass"></i></button>
           </div>
           <label class="etq">Periodo <small>(mes de la imagen satelital)</small></label>
-          <div class="mb-rango-etiq"><span id="f-desde-lbl">01/2026</span><span id="f-hasta-lbl">10/2026</span></div>
-          <div class="mb-slider" id="f-slider-periodo">
-            <input type="range" id="f-desde" min="0" max="9" value="0" aria-label="Mes inicial">
-            <input type="range" id="f-hasta" min="0" max="9" value="9" aria-label="Mes final">
+          <div class="mb-cal" id="f-cal">
+            <div class="mb-cal-nav">
+              <button type="button" id="f-anio-prev" aria-label="Año anterior"><i class="fas fa-chevron-left"></i></button>
+              <strong id="f-anio-lbl">—</strong>
+              <button type="button" id="f-anio-next" aria-label="Año siguiente"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="mb-cal-meses" id="f-cal-meses" role="group" aria-label="Meses de enero a diciembre"></div>
           </div>
+          <p class="mb-cal-rango"><span id="f-desde-lbl">Enero</span> – <span id="f-hasta-lbl">Diciembre</span></p>
+          <p class="ayuda">Pulse el mes de inicio y después el mes de cierre. Las flechas cambian el año.</p>
+          <input type="hidden" id="f-desde" value="0">
+          <input type="hidden" id="f-hasta" value="0">
           <p class="ayuda">Las imágenes se buscan en Sentinel-2 L2A, catálogo Earth Search, con la fecha de la alerta y un tope de nubes. Es el mismo criterio que Earth Explorer.</p>
           <div id="mb-det" hidden>
             <label class="etq">Tamaño de la alerta (ha)</label>

@@ -7,33 +7,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
 <style>
-  :root { --verde: #1b5e20; --verde-claro: #e8f5e9; --linea: #d7e3d4; }
+  :root { --verde: #1b5e20; --tinta: #1c2a20; --suave: #5c6d5e; --linea: #d5e0d4; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: #eef3ee; color: #1d2b20; font-family: Inter, sans-serif; }
-  .hoja { max-width: 980px; margin: 24px auto; background: #fff; border: 1px solid var(--linea); box-shadow: 0 8px 28px rgba(20, 40, 20, .08); }
-  header { display: flex; align-items: center; gap: 16px; padding: 16px 22px; border-bottom: 6px solid var(--verde); }
+  body { margin: 0; background: #e7eee8; color: var(--tinta); font-family: Inter, sans-serif; }
+  .acciones { max-width: 980px; margin: 16px auto 0; display: flex; justify-content: flex-end; }
+  .acciones button { border: 0; background: var(--verde); color: #fff; font: inherit; font-weight: 700; font-size: 14px; border-radius: 8px; padding: 10px 16px; cursor: pointer; }
+  .acciones button:hover { filter: brightness(1.06); }
+  .hoja { max-width: 980px; margin: 12px auto 28px; background: #fff; border: 1px solid var(--linea); }
+  header { display: flex; align-items: center; gap: 16px; padding: 18px 24px 14px; border-bottom: 4px solid var(--verde); }
   header img { height: 46px; }
-  header h1 { margin: 0; font-size: 18px; letter-spacing: .02em; color: var(--verde); }
-  header p { margin: 2px 0 0; font-size: 12px; color: #4e624f; }
-  .cuerpo { display: grid; grid-template-columns: 280px 1fr; gap: 18px; padding: 18px 22px 26px; }
-  .ficha { background: var(--verde-claro); border-radius: 12px; padding: 14px; }
-  .ficha h2 { margin: 0 0 8px; font-size: 15px; }
-  .fila { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #d3e6d4; }
-  .fila span { color: #4e624f; }
-  .sat { position: relative; min-height: 360px; background: #dfe8df center/cover no-repeat; border-radius: 12px; overflow: hidden; }
+  header h1 { margin: 0; font-size: 17px; letter-spacing: .04em; color: var(--verde); }
+  header p { margin: 4px 0 0; font-size: 12px; color: var(--suave); }
+  .cuerpo { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px 24px 8px; }
+  .ficha { border: 1px solid var(--linea); border-radius: 10px; padding: 14px 14px 6px; }
+  .ficha h2 { margin: 0 0 10px; font-size: 16px; letter-spacing: .02em; }
+  .fila { display: grid; grid-template-columns: 92px 1fr; gap: 8px; font-size: 13px; padding: 8px 0; border-top: 1px solid var(--linea); }
+  .fila span { color: var(--suave); }
+  .fila b { font-weight: 650; }
+  .sat { border: 1px solid var(--linea); border-radius: 10px; overflow: hidden; background: #dfe8df; min-height: 280px; }
   .sat img.fondo { width: 100%; height: 420px; object-fit: cover; display: block; }
   .fotos { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
-  figure { margin: 0; background: #fff; border: 1px solid var(--linea); border-radius: 12px; overflow: hidden; }
-  figure img { width: 100%; max-height: 220px; object-fit: cover; display: block; background: #eee; }
-  figcaption { padding: 8px 10px 10px; font-size: 13px; }
+  figure { margin: 0; background: #fff; border: 1px solid var(--linea); border-radius: 10px; overflow: hidden; }
+  figure img { width: 100%; max-height: 240px; object-fit: cover; display: block; background: #eee; }
+  figcaption { padding: 10px 12px 12px; font-size: 13px; line-height: 1.4; }
   figcaption b { display: block; margin-bottom: 2px; }
-  .vacio { padding: 28px 16px; text-align: center; color: #4e624f; font-size: 14px; }
-  .pie { padding: 0 22px 18px; font-size: 12px; color: #5d6e5e; }
-  @media (max-width: 800px) { .cuerpo { grid-template-columns: 1fr; } }
-  @media print { body { background: #fff; } .hoja { margin: 0; box-shadow: none; border: 0; } }
+  .vacio { padding: 22px 16px; text-align: center; color: var(--suave); font-size: 14px; line-height: 1.45; }
+  .pie { padding: 8px 24px 18px; font-size: 12px; color: var(--suave); }
+  @media (max-width: 800px) { .cuerpo { grid-template-columns: 1fr; } .sat img.fondo { height: 280px; } }
+  @media print {
+    body { background: #fff; }
+    .acciones { display: none; }
+    .hoja { margin: 0; border: 0; }
+    .sat img.fondo { height: 340px; }
+  }
 </style>
 </head>
 <body>
+<div class="acciones"><button type="button" id="bajar">Descargar PDF</button></div>
 <article class="hoja">
   <header>
     <img src="/img/gfp.png" alt="GFP Subnacional">
@@ -55,6 +65,39 @@
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const codigo = new URLSearchParams(location.search).get('codigo') || '';
 const fecha = (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '–');
+function utmDe(lat, lon) {
+  const la = Number(lat);
+  const lo = Number(lon);
+  if (!Number.isFinite(la) || !Number.isFinite(lo)) return '';
+  const a = 6378137;
+  const f = 1 / 298.257223563;
+  const k0 = 0.9996;
+  const e2 = f * (2 - f);
+  const ep2 = e2 / (1 - e2);
+  const zone = Math.floor((lo + 180) / 6) + 1;
+  const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+  const latR = la * Math.PI / 180;
+  const lonR = lo * Math.PI / 180;
+  const sen = Math.sin(latR);
+  const cos = Math.cos(latR);
+  const tan = Math.tan(latR);
+  const N = a / Math.sqrt(1 - e2 * sen * sen);
+  const T = tan * tan;
+  const C = ep2 * cos * cos;
+  const A = (lonR - lon0) * cos;
+  const e4 = e2 * e2;
+  const e6 = e4 * e2;
+  const M = a * ((1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256) * latR
+    - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024) * Math.sin(2 * latR)
+    + (15 * e4 / 256 + 45 * e6 / 1024) * Math.sin(4 * latR)
+    - (35 * e6 / 3072) * Math.sin(6 * latR));
+  const este = k0 * N * (A + (1 - T + C) * A ** 3 / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * A ** 5 / 120) + 500000;
+  let norte = k0 * (M + N * tan * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A ** 4 / 24 + (61 - 58 * T + T * T + 600 * C - 330 * ep2) * A ** 6 / 720));
+  if (la < 0) norte += 10000000;
+  const metros = (n) => Math.round(n).toLocaleString('es-PE');
+  return `${zone}${la < 0 ? 'S' : 'N'} · ${metros(este)} E · ${metros(norte)} N`;
+}
+document.getElementById('bajar').onclick = () => window.print();
 
 async function cargar() {
   if (!/^[A-Z]{3}-\d{4}-\d{4,6}$/.test(codigo)) {
@@ -68,18 +111,18 @@ async function cargar() {
   const d = det.properties || {};
   document.title = `Constatación · ${d.codigo || codigo}`;
   document.getElementById('sub').textContent = `${d.acr_nombre || ''} · ${d.region || ''} · ${d.codigo || codigo}`;
-  const coord = (d.lat != null && d.lon != null) ? `${Number(d.lat).toFixed(5)}, ${Number(d.lon).toFixed(5)}` : '–';
+  const coord = utmDe(d.lat, d.lon) || '–';
   document.getElementById('ficha').innerHTML = `
     <h2>${esc(d.codigo_reporte || d.codigo || codigo)}</h2>
     <div class="fila"><span>Alerta</span><b>${esc(d.codigo || codigo)}</b></div>
     <div class="fila"><span>ACR</span><b>${esc(d.acr_nombre || '–')}</b></div>
     <div class="fila"><span>Fecha</span><b>${fecha(d.fecha_imagen)}</b></div>
     <div class="fila"><span>Superficie</span><b>${Number(d.superficie_ha || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ha</b></div>
-    <div class="fila"><span>Coordenadas</span><b>${esc(coord)}</b></div>
+    <div class="fila"><span>UTM</span><b>${esc(coord)}</b></div>
     <div class="fila"><span>Fotos</span><b>${fotos.length}</b></div>`;
   document.getElementById('sat').innerHTML = `<img class="fondo" alt="Imagen Sentinel posterior" src="/api/atd/alertas/${encodeURIComponent(codigo)}/imagen/despues.png">`;
   document.getElementById('fotos').innerHTML = fotos.length ? fotos.map((f) => {
-    const c = (f.lat != null && f.lon != null) ? `${Number(f.lat).toFixed(5)}, ${Number(f.lon).toFixed(5)}` : 'Sin coordenadas';
+    const c = utmDe(f.lat, f.lon) || 'Sin coordenadas';
     return `<figure><img alt="Foto de constatación" src="${esc(f.url)}"><figcaption><b>${esc(f.nota || 'Sin descripción')}</b>${esc(c)}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption></figure>`;
   }).join('') : `<figure><figcaption class="vacio">Esta alerta todavía no tiene foto de campo. Al subirla, aparece aquí con su descripción y sus coordenadas.</figcaption></figure>`;
 }
