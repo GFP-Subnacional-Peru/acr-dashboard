@@ -927,6 +927,35 @@ body.gfp-map-fs-open { overflow: hidden; }
   background: linear-gradient(to bottom, #fff, #f8f9fa);
   border-top: 1px solid #e0e0e0;
 }
+.portal-footer {
+  background: linear-gradient(160deg, #0a1628 0%, #122a45 55%, #0d3d35 100%);
+  color: #e8eef5;
+  padding: 2rem 1.5rem;
+  margin-top: 2.5rem;
+}
+.portal-footer-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.portal-footer strong { color: #fff; }
+.portal-footer p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.85;
+  max-width: 36rem;
+  line-height: 1.45;
+}
+.portal-footer a {
+  color: #ffc857;
+  font-weight: 700;
+  text-decoration: none;
+}
+.portal-footer a:hover { text-decoration: underline; }
 .footer-logo {
   width: 80px;
   height: 80px;
@@ -2568,8 +2597,7 @@ body.kpi-modal-open { overflow: hidden; }
 #tab-dashboard > .dash-filters-bar,
 #tab-dashboard > .dash-main-grid,
 #tab-dashboard > .dash-analysis-below,
-#tab-dashboard > .region-insights-section,
-#tab-dashboard > .footer-simple {
+#tab-dashboard > .region-insights-section {
   margin-left: auto;
   margin-right: auto;
 }
