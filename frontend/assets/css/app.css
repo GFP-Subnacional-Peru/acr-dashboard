@@ -3476,21 +3476,68 @@ body.kpi-modal-open { overflow: hidden; }
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 0 1px #000);
 }
+.map-swipe.is-cargando .map-swipe-linea,
+.map-swipe.is-cargando .map-swipe-contorno,
+.map-swipe.is-cargando .map-swipe-chip,
+.map-swipe.is-cargando .map-swipe-rango {
+  visibility: hidden;
+}
 .map-swipe-carga {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  z-index: 4;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   margin: 0;
-  padding: 6px 8px;
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.78);
+  overflow: hidden;
   color: #fff;
-  font-size: 11px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    radial-gradient(ellipse 80% 60% at 50% 110%, rgba(46, 140, 86, 0.45), transparent 60%),
+    linear-gradient(165deg, #143028 0%, #0c1c30 58%, #16344c 100%);
+  background-size: 22px 22px, 22px 22px, auto, auto;
+}
+.map-swipe-carga::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 32%;
+  background: linear-gradient(180deg, transparent, rgba(167, 243, 208, 0.22), transparent);
+  animation: map-swipe-barrido 1.7s ease-in-out infinite;
+}
+.map-swipe-radar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-top-color: #86efac;
+  animation: map-swipe-giro 0.85s linear infinite;
+}
+.map-swipe-carga-txt {
+  position: relative;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.map-swipe-carga.is-error::before,
+.map-swipe-carga.is-error .map-swipe-radar { display: none; }
+.map-swipe-carga.is-error .map-swipe-carga-txt {
+  max-width: 16rem;
   text-align: center;
+  line-height: 1.35;
+  font-weight: 600;
 }
 .map-swipe-carga[hidden] { display: none; }
+@keyframes map-swipe-giro { to { transform: rotate(360deg); } }
+@keyframes map-swipe-barrido {
+  0% { top: -30%; }
+  100% { top: 100%; }
+}
 .map-swipe-rango {
   width: 100%;
   margin: 8px 0 0;

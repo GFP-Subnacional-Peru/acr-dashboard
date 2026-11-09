@@ -367,7 +367,7 @@ const AcrMap = (() => {
         : `A la izquierda, ${anio} · ${sensorDe(anio)}. A la derecha, ${cierre} · ${sensorDe(cierre)}. Arrastre la barra para comparar.`;
     const chipIzq = retro ? "Antes de 2016" : `${anio} · ${sensorDe(anio)}`;
     return `
-      <div class="map-feature-section map-swipe" data-anio="${anio}" data-cierre="${cierre}">
+      <div class="map-feature-section map-swipe is-cargando" data-anio="${anio}" data-cierre="${cierre}">
         <div class="map-feature-section-title">Paisaje del año y del cierre</div>
         <div class="map-swipe-stage">
           <img class="map-swipe-img map-swipe-despues" alt="${cierre}, ${sensorDe(cierre)}" draggable="false">
@@ -375,7 +375,10 @@ const AcrMap = (() => {
           <div class="map-swipe-linea"></div>
           <span class="map-swipe-chip map-swipe-chip--izq">${chipIzq}</span>
           <span class="map-swipe-chip map-swipe-chip--der">${cierre} · ${sensorDe(cierre)}</span>
-          <p class="map-swipe-carga">Buscando la escena del recorte…</p>
+          <div class="map-swipe-carga" role="status">
+            <span class="map-swipe-radar" aria-hidden="true"></span>
+            <span class="map-swipe-carga-txt">Preparando el recorte</span>
+          </div>
         </div>
         <input class="map-swipe-rango" type="range" min="0" max="100" value="58" aria-label="Comparar el año del polígono con el cierre del periodo">
         <p class="map-swipe-nota">${nota} Sentinel-2 desde 2018. De 2001 a 2015, Landsat. Solo escenas con 30% de nube o menos.</p>
@@ -412,14 +415,24 @@ const AcrMap = (() => {
       if (!ok) fallos += 1;
       vivas -= 1;
       if (vivas > 0 || !carga) return;
+      const texto = carga.querySelector(".map-swipe-carga-txt");
       if (!fallos) {
+        raiz.classList.remove("is-cargando");
         carga.hidden = true;
         return;
       }
-      carga.hidden = false;
-      carga.textContent = fallos === 2
-        ? "No hay una escena con 30% de nube o menos en esos años."
-        : "Una de las dos escenas no llegó. La otra sí está en el recorte.";
+      if (fallos < 2) {
+        raiz.classList.remove("is-cargando");
+        carga.hidden = true;
+        const nota = raiz.querySelector(".map-swipe-nota");
+        if (nota && !nota.dataset.aviso) {
+          nota.dataset.aviso = "1";
+          nota.textContent = "Una de las dos escenas no llegó. La otra sí está en el recorte. " + nota.textContent;
+        }
+        return;
+      }
+      carga.classList.add("is-error");
+      if (texto) texto.textContent = "No hay una escena con 30% de nube o menos en esos años.";
     };
     const pedir = (img, anioFoto, chip) => {
       fetch(urlEscena(anioFoto, caja, chip && chip.classList.contains("map-swipe-chip--izq") && necesitaRetro(anioFoto)))
