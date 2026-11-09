@@ -1473,10 +1473,116 @@
     if (!dlg.open) dlg.showModal();
   }
 
-  function comparador(cont, escenas, geom, codigo) {
+  function sumarDiasIso(iso, dias) {
+    const [y, m, d] = String(iso || '').slice(0, 10).split('-').map(Number);
+    if (!y || !m || !d) return '';
+    return new Date(Date.UTC(y, m - 1, d + dias)).toISOString().slice(0, 10);
+  }
+
+  function recorte3857(e) {
+    if (!e || e.sur == null) return null;
+    const sw = L.CRS.EPSG3857.project(L.latLng(e.sur, e.oeste));
+    const ne = L.CRS.EPSG3857.project(L.latLng(e.norte, e.este));
+    return [sw.x, sw.y, ne.x, ne.y];
+  }
+
+  function elegirReferencia(lista, ancla, sentido) {
+    const anclaMs = Date.parse(`${ancla}T00:00:00Z`);
+    const con = (lista || []).filter((e) => e && (e.recorte || e.miniatura) && e.fecha);
+    const lado = con.filter((e) => {
+      const delta = (Date.parse(`${e.fecha}T00:00:00Z`) - anclaMs) / 86400000;
+      return sentido === 'antes' ? delta <= -8 : delta >= 0;
+    });
+    const pool0 = lado.length ? lado : con.filter((e) => {
+      const delta = (Date.parse(`${e.fecha}T00:00:00Z`) - anclaMs) / 86400000;
+      return sentido === 'antes' ? delta < 0 : delta >= 0;
+    });
+    const claras = pool0.filter((e) => Number(e.nubes) <= 30);
+    const pool = (claras.length ? claras : pool0).slice();
+    pool.sort((a, b) => {
+      if (Math.abs(Number(a.nubes) - Number(b.nubes)) > 10) return Number(a.nubes) - Number(b.nubes);
+      const da = Math.abs(Date.parse(`${a.fecha}T00:00:00Z`) - anclaMs);
+      const db = Math.abs(Date.parse(`${b.fecha}T00:00:00Z`) - anclaMs);
+      return da - db;
+    });
+    return pool[0] || null;
+  }
+
+  function ponerReferenciaMapa(escena) {
+    quitarBusquedaMapa();
+    if (!escena?.recorte) return;
+    if (!mapa.getPane('referencia')) {
+      const pane = mapa.createPane('referencia');
+      pane.style.zIndex = 340;
+      pane.style.pointerEvents = 'none';
+    }
+    const bounds = L.latLngBounds([escena.sur, escena.oeste], [escena.norte, escena.este]);
+    capaBusqueda = L.imageOverlay(escena.recorte, bounds, { pane: 'referencia', opacity: 0.92, interactive: false }).addTo(mapa);
+    if (!mapa.getBounds().intersects(bounds)) mapa.flyToBounds(bounds, { ...encuadre(24), maxZoom: 16 });
+    const fija = $('escena-fija');
+    if (fija) {
+      fija.hidden = false;
+      fija.textContent = `Referencia · después · ${fecha(escena.fecha)} · Sentinel-2`;
+    }
+  }
+
+  async function referenciaAutomatica(cont, codigo, geom, dia) {
+    const espera = cont.querySelector('.sin-imagen');
+    const ancla = (dia || '').slice(0, 10);
+    if (!ancla || !codigo) {
+      if (espera) espera.innerHTML = '<i class="fas fa-cloud-sun"></i>Aún no hay un par guardado para el reporte. Puede buscar otra fecha abajo.';
+      return;
+    }
+    const desdeAntes = sumarDiasIso(ancla, -75);
+    const hastaAntes = sumarDiasIso(ancla, -1);
+    const hastaDespues = sumarDiasIso(ancla, 25);
+    try {
+      const [ra, rd] = await Promise.all([
+        api(`/alertas/${codigo}/sentinel?desde=${desdeAntes}&hasta=${hastaAntes}`),
+        api(`/alertas/${codigo}/sentinel?desde=${ancla}&hasta=${hastaDespues}`),
+      ]);
+      if (!cont.isConnected) return;
+      const a = elegirReferencia(ra.escenas, ancla, 'antes');
+      const b = elegirReferencia(rd.escenas, ancla, 'despues');
+      if (!a && !b) {
+        if (espera) espera.innerHTML = '<i class="fas fa-cloud-sun"></i>No apareció un par claro alrededor de la detección. Puede buscar otra fecha abajo.';
+        return;
+      }
+      const marco = (esc, rotulo) => marcoImagen(
+        `${rotulo}<small>${fecha(esc.fecha)} · ${num(esc.nubes, 0)} % nubes</small>`,
+        esc.recorte || esc.miniatura,
+        rotulo,
+        geom,
+        recorte3857(esc),
+      );
+      const caja = document.createElement('div');
+      caja.className = 'ref-auto';
+      caja.innerHTML = `<p class="sensor-nota">Referencia automática. Antes es una escena anterior a la detección. Después es una escena de ese día o de los siguientes. No reemplaza el par guardado del reporte.</p>
+        <div class="trio trio-ref">
+          ${a ? marco(a, 'ANTES') : '<div class="sin-imagen"><i class="fas fa-image"></i>Sin escena anterior clara.</div>'}
+          ${b ? marco(b, 'DESPUÉS') : '<div class="sin-imagen"><i class="fas fa-image"></i>Sin escena posterior clara.</div>'}
+        </div>`;
+      if (espera) espera.replaceWith(caja);
+      caja.querySelectorAll('img').forEach((img) => {
+        const fig = img.closest('.marco');
+        const esc = img.alt.startsWith('ANTES') ? a : b;
+        img.onerror = () => {
+          if (esc?.miniatura && img.src !== esc.miniatura) img.src = esc.miniatura;
+          else if (fig) fig.innerHTML = '<p class="marco-fallo">La escena no se pudo abrir.</p>';
+        };
+      });
+      if (b) ponerReferenciaMapa(b);
+      const notaMapa = $('cl-mapa-nota');
+      if (notaMapa && b) notaMapa.textContent = `La referencia de después (${fecha(b.fecha)}) está en el mapa, debajo del polígono.`;
+    } catch (e) {
+      if (espera && cont.isConnected) espera.innerHTML = '<i class="fas fa-cloud-sun"></i>No se pudo traer la referencia. Puede buscar otra fecha abajo.';
+    }
+  }
+
+  function comparador(cont, escenas, geom, codigo, fechaDeteccion) {
     const antes = escenas.find((e) => e.momento === 'antes');
     const despues = escenas.find((e) => e.momento === 'despues');
-    const sugerida = despues?.fecha || antes?.fecha || '';
+    const sugerida = despues?.fecha || antes?.fecha || fechaDeteccion || '';
     const recorte = despues?.recorte || antes?.recorte;
     const swir = urlSwir(recorte, despues?.fecha);
     const par = (antes && despues) ? `<div class="trio">
@@ -1485,7 +1591,7 @@
         ${swir ? marcoImagen('SWIR<small>suelo desnudo</small>', swir, 'Infrarrojo de onda corta', geom, recorte) : ''}
       </div>
       <p class="sensor-nota">Clic en una imagen para abrir el deslizador. El contorno naranja es la alerta. SWIR es la misma fecha reciente: el suelo sin bosque se ve magenta.</p>`
-      : `<div class="sin-imagen"><i class="fas fa-cloud-sun"></i>Aún no hay un par guardado para el reporte. Puede buscar otra fecha abajo.</div>`;
+      : `<div class="sin-imagen"><i class="fas fa-spinner fa-spin"></i>Buscando una imagen de antes y una de después…</div>`;
     cont.innerHTML = `${par}
       <div class="busqueda-s2">
         <p class="sensor-nota">Buscar otro día en el catálogo Sentinel-2 L2A (Copernicus / Element84). Nubes de la escena completa, hasta 80 %.</p>
@@ -1511,6 +1617,7 @@
       };
     });
     if (codigo) buscarSentinel(cont, codigo, sugerida);
+    if (codigo && (!antes || !despues)) referenciaAutomatica(cont, codigo, geom, fechaDeteccion || sugerida);
   }
 
   let propuestasRed = null;
@@ -1580,7 +1687,7 @@
     $('ev-sub').textContent = `${d.codigo_reporte ? d.codigo + ' · ' : ''}${d.acr_nombre} · ${d.region}`;
     $('ev-chip').textContent = TEXTO[c];
     $('ev-chip').style.setProperty('--c', COLOR[c]);
-    comparador($('ev-comparador'), escenas, det.geometry, codigo);
+    comparador($('ev-comparador'), escenas, det.geometry, codigo, d.fecha_imagen);
     $('ev-escena').hidden = !escenas.some((e) => e.recorte);
     verEscena(escenas.some((e) => e.momento === 'despues' && e.recorte) ? 'despues' : '');
     $('ev-ficha').innerHTML = ficha(d, escenas);
@@ -2106,7 +2213,7 @@
     const escenas = await api(`/alertas/${codigo}/evidencia`);
     st.escenas = escenas;
     st.alerta = codigo;
-    comparador($('cl-comparador'), escenas, feat?.geometry, codigo);
+    comparador($('cl-comparador'), escenas, feat?.geometry, codigo, p.fecha_imagen);
     const hayImagen = escenas.some((e) => e.momento === 'despues' && e.recorte);
     if ($('cl-mapa-nota')) {
       $('cl-mapa-nota').textContent = hayImagen

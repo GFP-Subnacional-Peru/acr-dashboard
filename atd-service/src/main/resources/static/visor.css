@@ -400,6 +400,8 @@ dialog .mb-sel { width: 100%; border: 1.5px solid var(--linea); border-radius: 1
 }
 
 .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.trio-ref { grid-template-columns: 1fr 1fr; }
+.ref-auto { margin-top: 4px; }
 .marco { position: relative; margin: 0; border-radius: 10px; overflow: hidden; background: #10140f; aspect-ratio: 1; cursor: zoom-in; }
 .marco::after { content: "\f00e"; font: 900 10px "Font Awesome 6 Free"; position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; }
 .marco img { width: 100%; height: 100%; object-fit: cover; display: block; }
