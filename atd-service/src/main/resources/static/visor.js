@@ -537,6 +537,87 @@
     if ($('f-c-geob')) $('f-c-geob').checked = e.target.checked;
     if (e.target.checked) { geobosques.addTo(mapa); toast('GeoBosques 2026: magenta = última semana, azul = acumulado del año'); } else mapa.removeLayer(geobosques);
   };
+  mapa.createPane('gfw');
+  mapa.getPane('gfw').style.zIndex = 250;
+  mapa.getPane('gfw').style.pointerEvents = 'none';
+  let anillosRecorte = null;
+  function anillosParaRecorte() {
+    if (anillosRecorte) return anillosRecorte;
+    const salida = [];
+    capaLimites.eachLayer((layer) => {
+      const cod = layer.feature?.properties?.codigo || '';
+      if (!cod.startsWith('ACR_') && !cod.startsWith('ZI_')) return;
+      const geom = simplificarGeom(layer.feature.geometry);
+      const partes = geom.type === 'Polygon' ? [geom.coordinates] : (geom.coordinates || []);
+      partes.forEach((poly) => {
+        const anillo = poly[0];
+        if (anillo && anillo.length >= 4) salida.push(anillo);
+      });
+    });
+    anillosRecorte = salida;
+    return salida;
+  }
+  const GfwRecortada = L.TileLayer.extend({
+    createTile(coords, done) {
+      const tile = document.createElement('canvas');
+      const size = this.getTileSize();
+      tile.width = size.x;
+      tile.height = size.y;
+      const img = new Image();
+      img.onload = () => {
+        const ctx = tile.getContext('2d');
+        const zoom = coords.z;
+        const ox = coords.x * size.x;
+        const oy = coords.y * size.y;
+        anillosParaRecorte().forEach((anillo) => {
+          const pts = anillo.map(([lon, lat]) => {
+            const p = mapa.project([lat, lon], zoom);
+            return [p.x - ox, p.y - oy];
+          });
+          let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+          pts.forEach(([x, y]) => {
+            if (x < minx) minx = x;
+            if (y < miny) miny = y;
+            if (x > maxx) maxx = x;
+            if (y > maxy) maxy = y;
+          });
+          if (maxx < 0 || maxy < 0 || minx > size.x || miny > size.y) return;
+          ctx.save();
+          ctx.beginPath();
+          pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(img, 0, 0, size.x, size.y);
+          ctx.restore();
+        });
+        done(null, tile);
+      };
+      img.onerror = () => done(null, tile);
+      img.src = this.getTileUrl(coords);
+      return tile;
+    },
+  });
+  const gfw = new GfwRecortada('https://tiles.globalforestwatch.org/gfw_integrated_alerts/latest/default/{z}/{x}/{y}.png', {
+    pane: 'gfw',
+    maxZoom: 18,
+    opacity: 0.92,
+    attribution: 'GFW · alertas integradas (GLAD-L, GLAD-S2, RADD)',
+  });
+  async function verGfw(prender) {
+    document.querySelectorAll('.ley-gfw').forEach((nodo) => { nodo.hidden = !prender; });
+    if (!prender) {
+      if (mapa.hasLayer(gfw)) mapa.removeLayer(gfw);
+      return;
+    }
+    await cargarLimitesOficiales();
+    anillosParaRecorte();
+    if (!mapa.hasLayer(gfw)) gfw.addTo(mapa);
+    toast('GFW: perturbación integrada, solo dentro del ACR y la zona de influencia. No entra a la clasificación.');
+  }
+  if ($('c-gfw')) $('c-gfw').onchange = (e) => {
+    if ($('f-c-gfw')) $('f-c-gfw').checked = e.target.checked;
+    verGfw(e.target.checked);
+  };
   const capaSemana = L.geoJSON(null, {
     style: { color: '#c45c26', weight: 1.6, fillColor: '#c45c26', fillOpacity: 0.2 },
     onEachFeature: (f, capa) => {
@@ -1077,6 +1158,7 @@
   $('f-c-poli').onchange = (e) => { $('c-poli').checked = e.target.checked; $('c-poli').onchange(e); };
   if ($('f-c-propuesta')) $('f-c-propuesta').onchange = (e) => { $('c-propuesta').checked = e.target.checked; $('c-propuesta').onchange(); };
   $('f-c-geob').onchange = (e) => { $('c-geob').checked = e.target.checked; $('c-geob').onchange(e); };
+  if ($('f-c-gfw')) $('f-c-gfw').onchange = (e) => { $('c-gfw').checked = e.target.checked; $('c-gfw').onchange(e); };
   if ($('f-c-semana')) $('f-c-semana').onchange = (e) => { $('c-semana').checked = e.target.checked; $('c-semana').onchange(e); };
   $('f-c-limites').onchange = (e) => { $('c-limites').checked = e.target.checked; $('c-limites').onchange(e); };
   $('f-base').onchange = () => {
