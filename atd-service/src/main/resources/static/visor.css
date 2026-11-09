@@ -169,6 +169,7 @@ section { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .graf-leyenda b { color: var(--texto); }
 .graf-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; }
 .dos-coord { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.utm-coord { grid-template-columns: 72px 1fr 1fr; }
 .dos-coord input, #eq-nombre, #eq-cargo { width: 100%; padding: 8px 10px; border: 1px solid var(--linea); border-radius: 8px; font: inherit; }
 #form-equipo { display: grid; gap: 8px; margin-top: 8px; }
 #form-equipo[hidden] { display: none; }

@@ -13,10 +13,10 @@
   const fecha = (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '–');
   const clase = (p) => (p.estado === 'pendiente' ? 'pendiente' : p.resultado || 'pendiente');
 
-  function utmDe(lat, lon) {
+  function utmCrudo(lat, lon) {
     const la = Number(lat);
     const lo = Number(lon);
-    if (!Number.isFinite(la) || !Number.isFinite(lo)) return '';
+    if (!Number.isFinite(la) || !Number.isFinite(lo)) return null;
     const a = 6378137;
     const f = 1 / 298.257223563;
     const k0 = 0.9996;
@@ -42,8 +42,179 @@
     const este = k0 * N * (A + (1 - T + C) * A ** 3 / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * A ** 5 / 120) + 500000;
     let norte = k0 * (M + N * tan * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A ** 4 / 24 + (61 - 58 * T + T * T + 600 * C - 330 * ep2) * A ** 6 / 720));
     if (la < 0) norte += 10000000;
-    const metros = (n) => Math.round(n).toLocaleString('es-PE');
-    return `${zone}${la < 0 ? 'S' : 'N'}  ${metros(este)} E  ${metros(norte)} N`;
+    return { zone, hemi: la < 0 ? 'S' : 'N', este: Math.round(este), norte: Math.round(norte) };
+  }
+
+  function utmDe(lat, lon) {
+    const u = utmCrudo(lat, lon);
+    if (!u) return '';
+    const metros = (n) => n.toLocaleString('es-PE');
+    return `${u.zone}${u.hemi}  ${metros(u.este)} E  ${metros(u.norte)} N`;
+  }
+
+  function partesUtm(lat, lon) {
+    const u = utmCrudo(lat, lon);
+    if (!u) return null;
+    return { zona: `${u.zone}${u.hemi}`, este: String(u.este), norte: String(u.norte) };
+  }
+
+  function metrosDe(texto) {
+    const s = String(texto || '').trim();
+    if (!s) return NaN;
+    if (/^\d{1,3}(\.\d{3})+$/.test(s)) return Number(s.replace(/\./g, ''));
+    return Number(s.replace(/\s/g, '').replace(',', '.'));
+  }
+
+  function geoDeUtm(zonaTexto, esteTexto, norteTexto) {
+    const m = String(zonaTexto || '').trim().toUpperCase().match(/^(\d{1,2})\s*([NS])?$/);
+    const este = metrosDe(esteTexto);
+    const norte = metrosDe(norteTexto);
+    if (!m || !Number.isFinite(este) || !Number.isFinite(norte)) return null;
+    const zone = Number(m[1]);
+    const sur = (m[2] || 'S') !== 'N';
+    if (zone < 1 || zone > 60 || este < 100000 || este > 900000 || norte < 0 || norte > 10000000) return null;
+    const a = 6378137;
+    const f = 1 / 298.257223563;
+    const k0 = 0.9996;
+    const e2 = f * (2 - f);
+    const ep2 = e2 / (1 - e2);
+    const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+    const x = este - 500000;
+    let y = norte;
+    if (sur) y -= 10000000;
+    const M = y / k0;
+    const mu = M / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 ** 3 / 256));
+    const phi1 = mu
+      + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * Math.sin(2 * mu)
+      + (21 * e1 * e1 / 16 - 55 * e1 ** 4 / 32) * Math.sin(4 * mu)
+      + (151 * e1 ** 3 / 96) * Math.sin(6 * mu)
+      + (1097 * e1 ** 4 / 512) * Math.sin(8 * mu);
+    const sen = Math.sin(phi1);
+    const cos = Math.cos(phi1);
+    const tan = Math.tan(phi1);
+    const N = a / Math.sqrt(1 - e2 * sen * sen);
+    const T = tan * tan;
+    const C = ep2 * cos * cos;
+    const R = a * (1 - e2) / (1 - e2 * sen * sen) ** 1.5;
+    const D = x / (N * k0);
+    const lat = phi1 - (N * tan / R) * (D * D / 2
+      - (5 + 3 * T + 10 * C - 4 * C * C - 9 * ep2) * D ** 4 / 24
+      + (61 + 90 * T + 298 * C + 45 * T * T - 252 * ep2 - 3 * C * C) * D ** 6 / 720);
+    const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+    const lon = lon0 + (D - (1 + 2 * T + C) * D ** 3 / 6
+      + (5 - 2 * C + 28 * T - 3 * C * C + 8 * ep2 + 24 * T * T) * D ** 5 / 120) / cos;
+    return { lat: lat * 180 / Math.PI, lon: lon * 180 / Math.PI };
+  }
+
+  function ponerUtmFoto(lat, lon, nota) {
+    const p = partesUtm(lat, lon);
+    if (!p || !$('foto-zona')) return;
+    $('foto-zona').value = p.zona;
+    $('foto-este').value = p.este;
+    $('foto-norte').value = p.norte;
+    if ($('foto-utm-nota')) $('foto-utm-nota').textContent = nota || '';
+  }
+
+  function gpsDesdeTiff(view, inicio) {
+    if (inicio + 8 > view.byteLength) return null;
+    const orden = view.getUint16(inicio, false);
+    const le = orden === 0x4949;
+    if (!le && orden !== 0x4D4D) return null;
+    const u16 = (o) => view.getUint16(inicio + o, le);
+    const u32 = (o) => view.getUint32(inicio + o, le);
+    if (u16(2) !== 42) return null;
+    const leerIfd = (off) => {
+      if (off < 8 || inicio + off + 2 > view.byteLength) return [];
+      const n = u16(off);
+      const tags = [];
+      for (let i = 0; i < n; i += 1) {
+        const p = off + 2 + i * 12;
+        if (inicio + p + 12 > view.byteLength) break;
+        tags.push({ tag: u16(p), tipo: u16(p + 2), n: u32(p + 4), val: u32(p + 8) });
+      }
+      return tags;
+    };
+    const gpsPtr = leerIfd(u32(4)).find((t) => t.tag === 0x8825);
+    if (!gpsPtr) return null;
+    const gps = leerIfd(gpsPtr.val);
+    const tag = (id) => gps.find((t) => t.tag === id);
+    const ascii = (t) => {
+      if (!t) return '';
+      if (t.n <= 4) {
+        const bytes = le
+          ? [t.val & 255, (t.val >> 8) & 255, (t.val >> 16) & 255, (t.val >> 24) & 255]
+          : [(t.val >> 24) & 255, (t.val >> 16) & 255, (t.val >> 8) & 255, t.val & 255];
+        return String.fromCharCode(...bytes.filter((b) => b));
+      }
+      let s = '';
+      for (let i = 0; i < t.n && inicio + t.val + i < view.byteLength; i += 1) {
+        const c = view.getUint8(inicio + t.val + i);
+        if (!c) break;
+        s += String.fromCharCode(c);
+      }
+      return s;
+    };
+    const racionales = (t) => {
+      if (!t || t.tipo !== 5) return null;
+      const out = [];
+      for (let i = 0; i < t.n; i += 1) {
+        const p = inicio + t.val + i * 8;
+        if (p + 8 > view.byteLength) return null;
+        const den = view.getUint32(p + 4, le);
+        out.push(den ? view.getUint32(p, le) / den : 0);
+      }
+      return out;
+    };
+    const lat = racionales(tag(2));
+    const lon = racionales(tag(4));
+    if (!lat || !lon || lat.length < 3 || lon.length < 3) return null;
+    const grados = (dms) => dms[0] + dms[1] / 60 + dms[2] / 3600;
+    let la = grados(lat);
+    let lo = grados(lon);
+    if (ascii(tag(1)).toUpperCase().startsWith('S')) la = -la;
+    if (ascii(tag(3)).toUpperCase().startsWith('W')) lo = -lo;
+    if (Math.abs(la) > 90 || Math.abs(lo) > 180) return null;
+    return { lat: la, lon: lo };
+  }
+
+  async function gpsDeArchivo(archivo) {
+    const buf = await archivo.arrayBuffer();
+    const v = new DataView(buf);
+    if (v.byteLength >= 2 && v.getUint16(0) === 0xFFD8) {
+      let o = 2;
+      while (o + 4 < v.byteLength) {
+        if (v.getUint8(o) !== 0xFF) break;
+        const marca = v.getUint8(o + 1);
+        if (marca === 0xDA || marca === 0xD9) break;
+        if (marca === 0x01 || (marca >= 0xD0 && marca <= 0xD8)) { o += 2; continue; }
+        const len = v.getUint16(o + 2);
+        if (len < 2 || o + 2 + len > v.byteLength) break;
+        if (marca === 0xE1 && len >= 8 && v.getUint32(o + 4) === 0x45786966) return gpsDesdeTiff(v, o + 10);
+        o += 2 + len;
+      }
+    }
+    if (v.byteLength >= 8 && v.getUint32(0) === 0x89504E47) {
+      let o = 8;
+      while (o + 12 <= v.byteLength) {
+        const len = v.getUint32(o);
+        if (v.getUint32(o + 4) === 0x65584966) return gpsDesdeTiff(v, o + 8);
+        o += 12 + len;
+      }
+    }
+    if (v.byteLength >= 12 && v.getUint32(0) === 0x52494646 && v.getUint32(8) === 0x57454250) {
+      let o = 12;
+      while (o + 8 <= v.byteLength) {
+        const tipo = String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
+        const len = v.getUint32(o + 4, true);
+        if (tipo === 'EXIF') {
+          let t = o + 8;
+          if (t + 6 <= v.byteLength && v.getUint32(t) === 0x45786966) t += 6;
+          return gpsDesdeTiff(v, t);
+        }
+        o += 8 + len + (len % 2);
+      }
+    }
+    return null;
   }
 
   const irAlLogin = () => { location.assign('/login.html'); };
@@ -1680,10 +1851,7 @@
     $('ev-escena').hidden = !escenas.some((e) => e.recorte);
     verEscena(escenas.some((e) => e.momento === 'despues' && e.recorte) ? 'despues' : '');
     $('ev-ficha').innerHTML = ficha(d, escenas);
-    if ($('foto-lat')) {
-      $('foto-lat').value = d.lat ?? '';
-      $('foto-lon').value = d.lon ?? '';
-    }
+    ponerUtmFoto(d.lat, d.lon, 'Centro de la alerta, en UTM. Si la foto trae ubicación, se reemplaza.');
     await propuestasRedCargar();
     pintarPropuesta('ev-red', codigo);
     cargarFotos(codigo);
@@ -1776,15 +1944,38 @@
     renderLista();
   }
 
+  $('foto-archivo')?.addEventListener('change', async () => {
+    const archivo = $('foto-archivo').files[0];
+    if (!archivo) return;
+    try {
+      const gps = await gpsDeArchivo(archivo);
+      if (!gps) {
+        if ($('foto-utm-nota')) $('foto-utm-nota').textContent = 'Esta foto no trae ubicación. Quedó el centro de la alerta; puedes corregir el este y el norte.';
+        return;
+      }
+      ponerUtmFoto(gps.lat, gps.lon, 'Ubicación leída de la foto, en UTM.');
+    } catch {
+      if ($('foto-utm-nota')) $('foto-utm-nota').textContent = 'No se pudo leer la ubicación de la foto.';
+    }
+  });
+
   $('form-foto').onsubmit = async (e) => {
     e.preventDefault();
     const archivo = $('foto-archivo').files[0];
     if (!archivo || !st.alerta) return;
+    const zona = $('foto-zona').value.trim();
+    const este = $('foto-este').value.trim();
+    const norte = $('foto-norte').value.trim();
+    const geo = (zona || este || norte) ? geoDeUtm(zona, este, norte) : null;
+    if ((zona || este || norte) && !geo) {
+      toast('Revisa la zona, el este y el norte');
+      return;
+    }
     const fd = new FormData();
     fd.append('foto', archivo);
     fd.append('nota', $('foto-nota').value.trim());
-    fd.append('lat', $('foto-lat').value.trim());
-    fd.append('lon', $('foto-lon').value.trim());
+    fd.append('lat', geo ? String(geo.lat) : '');
+    fd.append('lon', geo ? String(geo.lon) : '');
     const r = await fetch(`${API}/alertas/${st.alerta}/foto`, {
       method: 'POST',
       headers: { 'X-XSRF-TOKEN': tokenCsrf() },
