@@ -629,6 +629,26 @@ body.portal-body {
 }
 .portal-footer a:hover { text-decoration: underline; }
 
+.footer-simple {
+  text-align: center;
+  margin-top: auto;
+  padding: 40px 16px;
+  background: linear-gradient(to bottom, #fff, #f8f9fa);
+  border-top: 1px solid #e0e0e0;
+}
+.footer-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2rem;
+}
+
 /* ACR detail */
 .acr-page-wrap {
   max-width: 760px;
