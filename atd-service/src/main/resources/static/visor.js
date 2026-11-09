@@ -832,7 +832,6 @@
     st.acr = null;
     await cargarLimitesRegion(st.region);
     await cargarPeriodosRegion();
-    await buscar();
   }
 
   async function alCambiarAcr() {
@@ -841,7 +840,6 @@
     else if (st.region) await cargarLimitesRegion(st.region);
     const uno = st.acr || acrsDeRegion(st.region)[0]?.codigo;
     st.periodos = st.periodosPorAcr[uno] || [];
-    await buscar();
   }
 
   function filtroExtra() {
@@ -930,14 +928,6 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando…';
     try {
-      const texto = ($('f-texto').value || '').trim().toUpperCase();
-      const porCodigo = document.querySelector('input[name="f-por"]:checked')?.value !== 'territorio';
-      if (porCodigo && /^[A-Z]{3}-\d{4}-\d{4,6}$/.test(texto)) {
-        $('f-texto').value = '';
-        await abrirEnlace(texto);
-        $('f-texto').value = texto;
-        return;
-      }
       const acrs = acrsElegidos();
       const meses = mesesElegidos();
       if (!acrs.length || !meses.length) {
@@ -1127,7 +1117,6 @@
   $('f-ambito').onchange = async () => {
     st.ambito = $('f-ambito').value;
     await cargarPeriodosRegion();
-    await buscar();
   };
   $('f-lupa').onclick = () => buscar();
   $('f-texto').addEventListener('keydown', (e) => { if (e.key === 'Enter') buscar(); });
