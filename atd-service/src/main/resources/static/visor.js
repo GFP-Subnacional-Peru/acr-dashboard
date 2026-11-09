@@ -763,7 +763,8 @@
           pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
           ctx.closePath();
           ctx.clip();
-          ctx.drawImage(img, 0, 0, size.x, size.y);
+          ctx.filter = 'saturate(2.4) contrast(1.35)';
+          for (let vez = 0; vez < 8; vez += 1) ctx.drawImage(img, 0, 0, size.x, size.y);
           ctx.restore();
         });
         done(null, tile);
@@ -776,7 +777,7 @@
   const gfw = new GfwRecortada('https://tiles.globalforestwatch.org/gfw_integrated_alerts/latest/default/{z}/{x}/{y}.png', {
     pane: 'gfw',
     maxZoom: 18,
-    opacity: 0.92,
+    opacity: 1,
     attribution: 'GFW · alertas integradas (GLAD-L, GLAD-S2, RADD)',
   });
   async function verGfw(prender) {
