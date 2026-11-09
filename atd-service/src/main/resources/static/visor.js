@@ -774,11 +774,15 @@
       return tile;
     },
   });
-  const gfw = new GfwRecortada('https://tiles.globalforestwatch.org/gfw_integrated_alerts/latest/default/{z}/{x}/{y}.png', {
+  const hoyGfw = new Date();
+  const isoGfw = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const desdeGfw = `${hoyGfw.getFullYear()}-01-01`;
+  const hastaGfw = isoGfw(hoyGfw);
+  const gfw = new GfwRecortada(`https://tiles.globalforestwatch.org/gfw_integrated_alerts/latest/dynamic/{z}/{x}/{y}.png?render_type=true_color&start_date=${desdeGfw}&end_date=${hastaGfw}`, {
     pane: 'gfw',
     maxZoom: 18,
     opacity: 1,
-    attribution: 'GFW · alertas integradas (GLAD-L, GLAD-S2, RADD)',
+    attribution: `GFW · alertas integradas de ${hoyGfw.getFullYear()}, enero a hoy`,
   });
   async function verGfw(prender) {
     document.querySelectorAll('.ley-gfw').forEach((nodo) => { nodo.hidden = !prender; });
@@ -790,7 +794,7 @@
     await cargarLimitesOficiales();
     anillosParaRecorte();
     if (!mapa.hasLayer(gfw)) gfw.addTo(mapa);
-    toast('GFW: perturbación integrada, solo dentro del ACR y la zona de influencia. No entra a la clasificación.');
+    toast(`GFW: solo ${hoyGfw.getFullYear()}, de enero a hoy, dentro del ACR y la zona de influencia. No entra a la clasificación.`);
   }
   if ($('c-gfw')) $('c-gfw').onchange = (e) => {
     if ($('f-c-gfw')) $('f-c-gfw').checked = e.target.checked;
