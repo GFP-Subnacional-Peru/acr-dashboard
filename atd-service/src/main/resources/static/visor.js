@@ -532,8 +532,13 @@
     else mapa.removeLayer(capaAlertas);
     if ($('f-c-poli')) $('f-c-poli').checked = e.target.checked;
   };
+  function leyendaEnVivo() {
+    const prendido = Boolean(($('c-gfw') && $('c-gfw').checked) || ($('c-geob') && $('c-geob').checked));
+    document.querySelectorAll('.ley-vivo').forEach((nodo) => { nodo.hidden = !prendido; });
+  }
   $('c-geob').onchange = (e) => {
     document.querySelectorAll('.ley-geob').forEach((d) => (d.hidden = !e.target.checked));
+    leyendaEnVivo();
     if ($('f-c-geob')) $('f-c-geob').checked = e.target.checked;
     if (e.target.checked) { geobosques.addTo(mapa); toast('GeoBosques 2026: magenta = última semana, azul = acumulado del año'); } else mapa.removeLayer(geobosques);
   };
@@ -605,6 +610,7 @@
   });
   async function verGfw(prender) {
     document.querySelectorAll('.ley-gfw').forEach((nodo) => { nodo.hidden = !prender; });
+    leyendaEnVivo();
     if (!prender) {
       if (mapa.hasLayer(gfw)) mapa.removeLayer(gfw);
       return;
@@ -617,33 +623,6 @@
   if ($('c-gfw')) $('c-gfw').onchange = (e) => {
     if ($('f-c-gfw')) $('f-c-gfw').checked = e.target.checked;
     verGfw(e.target.checked);
-  };
-  const capaSemana = L.geoJSON(null, {
-    style: { color: '#c45c26', weight: 1.6, fillColor: '#c45c26', fillOpacity: 0.2 },
-    onEachFeature: (f, capa) => {
-      const p = f.properties || {};
-      capa.bindTooltip(`${p.region} · ${p.ambito} · ${p.fecha} · ${num(p.ha)} ha`);
-    },
-  });
-  let semanaLista = null;
-  async function verSemana(prender) {
-    document.querySelectorAll('.ley-semana').forEach((nodo) => { nodo.hidden = !prender; });
-    if (!prender) {
-      if (mapa.hasLayer(capaSemana)) mapa.removeLayer(capaSemana);
-      return;
-    }
-    if (!semanaLista) {
-      const r = await fetch('/limites/semana.geojson');
-      if (!r.ok) { toast('No se pudo cargar la semana nueva'); return; }
-      semanaLista = await r.json();
-      capaSemana.addData(semanaLista);
-    }
-    if (!mapa.hasLayer(capaSemana)) capaSemana.addTo(mapa);
-    capaSemana.bringToFront();
-  }
-  if ($('c-semana')) $('c-semana').onchange = (e) => {
-    if ($('f-c-semana')) $('f-c-semana').checked = e.target.checked;
-    verSemana(e.target.checked);
   };
   if ($('c-geob').checked) geobosques.addTo(mapa);
   $('c-limites').onchange = (e) => (e.target.checked ? mapa.addLayer(capaLimites) : mapa.removeLayer(capaLimites));
@@ -1159,7 +1138,6 @@
   if ($('f-c-propuesta')) $('f-c-propuesta').onchange = (e) => { $('c-propuesta').checked = e.target.checked; $('c-propuesta').onchange(); };
   $('f-c-geob').onchange = (e) => { $('c-geob').checked = e.target.checked; $('c-geob').onchange(e); };
   if ($('f-c-gfw')) $('f-c-gfw').onchange = (e) => { $('c-gfw').checked = e.target.checked; $('c-gfw').onchange(e); };
-  if ($('f-c-semana')) $('f-c-semana').onchange = (e) => { $('c-semana').checked = e.target.checked; $('c-semana').onchange(e); };
   $('f-c-limites').onchange = (e) => { $('c-limites').checked = e.target.checked; $('c-limites').onchange(e); };
   $('f-base').onchange = () => {
     const r = document.querySelector(`input[name=base][value="${$('f-base').value}"]`);

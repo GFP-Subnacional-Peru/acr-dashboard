@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="/visor.css?v=20261109b">
+<link rel="stylesheet" href="/visor.css?v=20261109c">
 <script>
   try { if (localStorage.getItem('atd-tema') === 'oscuro') document.documentElement.dataset.tema = 'oscuro'; } catch (e) {}
 </script>
@@ -151,7 +151,6 @@
           <label class="mb-check"><input type="checkbox" id="f-c-propuesta"> Contorno automático · Loreto</label>
           <label class="mb-check"><input type="checkbox" id="f-c-geob"> ATD GeoBosques 2026 <small>(oficial, en vivo)</small></label>
           <label class="mb-check"><input type="checkbox" id="f-c-gfw"> GFW · perturbación integrada <small>(ACR y zona de influencia)</small></label>
-          <label class="mb-check"><input type="checkbox" id="f-c-semana"> Semana 19–30 set 2026 <small>(polígonos nuevos)</small></label>
           <label class="mb-check"><input type="checkbox" id="f-c-limites" checked> Límites ACR / ZI</label>
           <label class="mb-check"><input type="checkbox" id="f-c-exa"> Cuadrícula EXA</label>
           <label class="mb-check"><input type="checkbox" id="f-c-zon"> Zonificación</label>
@@ -382,9 +381,8 @@
     <h4>Capas</h4>
     <label><input type="checkbox" id="c-poli" checked> <i class="sw sw-poli"></i> Perturbación (polígono rojo)</label>
     <label><input type="checkbox" id="c-alertas" checked> <i class="sw sw-alerta"></i> Centros de alerta</label>
-    <label><input type="checkbox" id="c-geob"> <i class="sw sw-geob"></i> ATD GeoBosques 2026 <small>(oficial, en vivo)</small></label>
-    <label><input type="checkbox" id="c-gfw"> <i class="sw sw-gfw"></i> GFW · perturbación integrada <small>(ACR y zona de influencia)</small></label>
-    <label><input type="checkbox" id="c-semana"> <i class="sw sw-semana"></i> Semana 19–30 set 2026</label>
+    <label><input type="checkbox" id="c-geob"> <i class="sw sw-geob"></i> <span>ATD GeoBosques 2026 <small>oficial, en vivo</small></span></label>
+    <label><input type="checkbox" id="c-gfw"> <i class="sw sw-gfw"></i> <span>GFW · perturbación integrada <small>ACR y zona de influencia</small></span></label>
     <label><input type="checkbox" id="c-limites" checked> <i class="sw sw-lim"></i> Límites ACR / ZI</label>
     <label><input type="checkbox" id="c-exa"> <i class="sw sw-exa"></i> Cuadrícula EXA</label>
     <label><input type="checkbox" id="c-zon"> <i class="sw sw-zon"></i> Zonificación</label>
@@ -402,21 +400,23 @@
 <div id="escena-fija" class="escena-fija" hidden></div>
 
 <div class="leyenda" id="leyenda">
-  <div><i class="borde" style="border-color:#e53935"></i>Perturbación (alerta)</div>
-  <div><i class="borde punteado" style="border-color:#e8b931"></i>Contorno automático · Loreto</div>
-  <div><i style="background:#1e88e5"></i>Cambio natural</div>
-  <div><i style="background:#9e9e9e"></i>Falsa alerta</div>
-  <div><i style="background:#fb8c00"></i>Pendiente (un solo polígono)</div>
-  <div><i class="punto" style="background:#fb8c00"></i>Centro de esa misma alerta</div>
-  <div class="ley-semana" hidden><i class="borde" style="border-color:#c45c26"></i>Semana 19–30 set 2026</div>
-  <div class="ley-exa" hidden><i class="borde" style="border-color:#111"></i>Cuadrícula EXA</div>
-  <div class="ley-zon" hidden><i class="borde grueso" style="border-color:#111"></i>Zonificación</div>
-  <div class="ley-sec" hidden><i class="borde punteado" style="border-color:#111"></i>Sectores</div>
-  <div><i class="borde" style="border-color:#2ecc40"></i>ACR</div>
-  <div><i class="borde" style="border-color:#b0b6ba"></i>Zona de Influencia</div>
-  <div class="ley-gfw" hidden><i style="background:#e31a1c"></i>GFW · perturbación integrada</div>
-  <div class="ley-geob" hidden><i style="background:#ff00c5"></i>GeoBosques · última semana</div>
-  <div class="ley-geob" hidden><i style="background:#0066ff"></i>GeoBosques · acumulado 2026</div>
+  <p class="ley-grupo">Alertas</p>
+  <div><i class="borde" style="border-color:#e53935"></i><span>Perturbación</span></div>
+  <div><i style="background:#1e88e5"></i><span>Cambio natural</span></div>
+  <div><i style="background:#9e9e9e"></i><span>Falsa alerta</span></div>
+  <div><i style="background:#fb8c00"></i><span>Pendiente</span></div>
+  <div><i class="punto" style="background:#fb8c00"></i><span>Centro de la alerta</span></div>
+  <div><i class="borde punteado" style="border-color:#e8b931"></i><span>Contorno automático</span></div>
+  <p class="ley-grupo">Territorio</p>
+  <div><i class="borde" style="border-color:#2ecc40"></i><span>ACR</span></div>
+  <div><i class="borde" style="border-color:#b0b6ba"></i><span>Zona de influencia</span></div>
+  <div class="ley-exa" hidden><i class="borde" style="border-color:#111"></i><span>Cuadrícula EXA</span></div>
+  <div class="ley-zon" hidden><i class="borde grueso" style="border-color:#111"></i><span>Zonificación</span></div>
+  <div class="ley-sec" hidden><i class="borde punteado" style="border-color:#111"></i><span>Sectores</span></div>
+  <p class="ley-grupo ley-vivo" hidden>En vivo</p>
+  <div class="ley-gfw" hidden><i style="background:#e31a1c"></i><span>GFW · perturbación</span></div>
+  <div class="ley-geob" hidden><i style="background:#ff00c5"></i><span>GeoBosques · última semana</span></div>
+  <div class="ley-geob" hidden><i style="background:#0066ff"></i><span>GeoBosques · acumulado</span></div>
 </div>
 
 <div class="toast" id="toast" hidden></div>
@@ -469,6 +469,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
-<script src="/visor.js?v=20261109b"></script>
+<script src="/visor.js?v=20261109c"></script>
 </body>
 </html>
