@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="/visor.css?v=20261106b">
+<link rel="stylesheet" href="/visor.css?v=20261109a">
 <script>
   try { if (localStorage.getItem('atd-tema') === 'oscuro') document.documentElement.dataset.tema = 'oscuro'; } catch (e) {}
 </script>
@@ -310,6 +310,7 @@
           <li><b>Cambio natural (N).</b> Río, derrumbe o muerte de árboles.</li>
           <li><b>Falsa alerta (F).</b> Nube, sombra o un cambio que no es pérdida.</li>
           <li><b>En duda (U).</b> Se deja pendiente y pasa a la siguiente.</li>
+          <li><b>La red.</b> Si hay recorte, al abrir la alerta deja marcado el resultado, la causa y la confiabilidad. Enter guarda esa lectura. El polígono sigue siendo el de GeoBosques.</li>
           <li><b>Guardar.</b> La decisión queda en la base. Si cierra el navegador, sigue clasificada.</li>
         </ul>
       </details>
@@ -465,6 +466,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
-<script src="/visor.js?v=20261106b"></script>
+<script src="/visor.js?v=20261109a"></script>
 </body>
 </html>

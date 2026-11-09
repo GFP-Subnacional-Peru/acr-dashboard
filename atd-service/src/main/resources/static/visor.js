@@ -68,7 +68,7 @@
     territorios: [], region: null, acr: null, ambito: 'ambos', anio: null, mes: null,
     periodos: [], periodosPorAcr: {}, eje: [], calAnio: null, resumen: null, geo: null, filtro: 'todas', alerta: null, escenas: [],
     pasoMax: 1, modo: 'consulta', catalogos: null,
-    cl: { cola: [], idx: -1, hechas: {}, duda: {}, resultado: null, causa: null, conf: 1, bosque: 1, guardando: false },
+    cl: { cola: [], idx: -1, hechas: {}, duda: {}, resultado: null, causa: null, conf: 1, bosque: 1, desdeRed: false, guardando: false },
   };
 
   /* ====================================================== MAPA */
@@ -1472,6 +1472,28 @@
       const pct = Math.round(Number(p.probabilidad) * 100);
       txt.textContent = `${p.causa} · ${p.confiabilidad} · ${pct} %`;
     }
+    if (id !== 'cl-red') return;
+    const etiqueta = box.querySelector('span');
+    const nota = box.querySelector('small');
+    if (etiqueta) etiqueta.textContent = st.cl.desdeRed ? 'La red ya la marcó' : 'Propuesta de la red';
+    if (nota) {
+      nota.textContent = st.cl.desdeRed
+        ? 'Esa lectura ya está marcada abajo. Enter la guarda. El polígono sigue siendo el de GeoBosques.'
+        : 'Sugerencia para esta alerta. Guardar sigue siendo la decisión del especialista.';
+    }
+  }
+
+  function lecturaRed(codigo) {
+    const p = propuestasRed && propuestasRed[codigo];
+    if (!p) return null;
+    const falsa = p.causa_id === 99 || p.causa === 'Falsa alerta';
+    const natural = p.causa_id === 14 || p.causa === 'Natural';
+    return {
+      resultado: falsa ? 'falsa' : (natural ? 'natural' : 'antropica'),
+      causa: falsa || natural ? null : p.causa_id,
+      conf: p.confiabilidad === 'Bajo' ? 2 : 1,
+      causaNombre: p.causa,
+    };
   }
 
   function ficha(d, escenas) {
@@ -1886,10 +1908,10 @@
     if (!$('cl-causas').children.length) {
       $('cl-causas').innerHTML = st.catalogos.causas.filter((c) => c.resultado === 'antropica')
         .map((c) => `<button data-v="${c.id}">${esc(c.nombre)}</button>`).join('');
-      $('cl-causas').querySelectorAll('button').forEach((b) => (b.onclick = () => { st.cl.causa = +b.dataset.v; pintarForm(); }));
+      $('cl-causas').querySelectorAll('button').forEach((b) => (b.onclick = () => { st.cl.causa = +b.dataset.v; st.cl.desdeRed = false; pintarForm(); pintarPropuesta('cl-red', st.alerta); }));
       $('cl-conf').innerHTML = st.catalogos.confiabilidad.map((c) => `<button data-v="${c.id}">${esc(c.nombre)}</button>`).join('');
       $('cl-bosque').innerHTML = st.catalogos.tipoBosque.map((c) => `<button data-v="${c.id}">${esc(c.nombre)}</button>`).join('');
-      $('cl-conf').querySelectorAll('button').forEach((b) => (b.onclick = () => { st.cl.conf = +b.dataset.v; pintarForm(); }));
+      $('cl-conf').querySelectorAll('button').forEach((b) => (b.onclick = () => { st.cl.conf = +b.dataset.v; st.cl.desdeRed = false; pintarForm(); pintarPropuesta('cl-red', st.alerta); }));
       $('cl-bosque').querySelectorAll('button').forEach((b) => (b.onclick = () => { st.cl.bosque = +b.dataset.v; pintarForm(); }));
     }
     if (!st.cl.acrs) {
@@ -1948,6 +1970,7 @@
     if (mapa.hasLayer(capaPuntos)) capaPuntos.bringToFront();
     enfocarAcr();
     $('cl-form').hidden = true;
+    await propuestasRedCargar();
     renderCola();
   }
 
@@ -1959,17 +1982,20 @@
     $('cl-cola-cab').innerHTML = `<span><b>${pend}</b> por clasificar · ${hechas} guardadas · ${duda} en duda</span><span>${cola.filter((p) => p.con_imagen).length} con Sentinel-2</span>`;
     $('cl-cola').innerHTML = `<div class="progreso"><i style="width:${cola.length ? ((cola.length - pend) / cola.length) * 100 : 0}%"></i></div>` + cola.map((p) => {
       const hecha = st.cl.hechas[p.codigo];
-      const c = hecha ? hecha.resultado : clase(p);
+      const lectura = !hecha && p.estado === 'pendiente' ? lecturaRed(p.codigo) : null;
+      const c = hecha ? hecha.resultado : (lectura ? lectura.resultado : clase(p));
+      const rotulo = hecha ? `✓ ${TEXTO[c]}` : (lectura ? `Red · ${lectura.causaNombre}` : TEXTO[c]);
       const mini = p.con_imagen ? `style="background-image:url('${API}/alertas/${p.codigo}/imagen/despues.png')"` : '';
       return `<button class="item" data-c="${esc(p.codigo)}"><span class="miniatura" ${mini}>${p.con_imagen ? '' : '<i class="fas fa-satellite"></i>'}</span>
         <span><strong>${esc(p.codigo)}</strong><small>${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'ZI' : 'ACR'} · ${p.con_imagen ? 'imagen lista' : 'sin imagen aún'}</small>
-        <span class="chip" style="--c:${COLOR[c]};margin-top:5px">${hecha ? '✓ ' : ''}${TEXTO[c]}</span></span>
+        <span class="chip" style="--c:${COLOR[c]};margin-top:5px">${esc(rotulo)}</span></span>
         <span class="ha">${num(p.superficie_ha)}<small>ha</small></span></button>`;
     }).join('');
     $('cl-cola').querySelectorAll('.item').forEach((b) => (b.onclick = () => abrirClasificacion(b.dataset.c)));
     const filas = cola.map((p) => {
       const hecha = st.cl.hechas[p.codigo];
-      const causa = hecha?.causaNombre || p.causa || (p.estado === 'pendiente' ? 'Pendiente' : '');
+      const lectura = !hecha && p.estado === 'pendiente' ? lecturaRed(p.codigo) : null;
+      const causa = hecha?.causaNombre || p.causa || lectura?.causaNombre || (p.estado === 'pendiente' ? 'Pendiente' : '');
       return `<tr><td>${esc(p.codigo)}</td><td>${p.ambito === 'ZI' ? 'ZI' : 'ACR'}</td><td>${num(p.lon, 5)}</td><td>${num(p.lat, 5)}</td><td>${esc(causa)}</td><td>${hecha ? 'Clasificada en sesión' : (p.estado === 'pendiente' ? 'Pendiente' : 'Validada')}</td></tr>`;
     }).join('');
     $('cl-cola').insertAdjacentHTML('beforeend', `<div class="cl-tabla-wrap"><table class="cl-tabla"><thead><tr><th>Código</th><th>Ámbito</th><th>X</th><th>Y</th><th>Causa</th><th>Estado</th></tr></thead><tbody>${filas}</tbody></table></div>
@@ -1978,7 +2004,8 @@
       const header = ['codigo', 'ambito', 'x', 'y', 'causa', 'estado'];
       const lineas = [header.join(',')].concat(cola.map((p) => {
         const hecha = st.cl.hechas[p.codigo];
-        const causa = hecha?.causaNombre || p.causa || '';
+        const lectura = !hecha && p.estado === 'pendiente' ? lecturaRed(p.codigo) : null;
+        const causa = hecha?.causaNombre || p.causa || lectura?.causaNombre || '';
         const estado = p.estado === 'pendiente' && st.cl.duda[p.codigo] ? 'en_duda' : p.estado;
         return [p.codigo, p.ambito === 'ZI' ? 'ZI' : 'ACR', p.lon, p.lat, `"${String(causa).replaceAll('"', '""')}"`, estado].join(',');
       }));
@@ -1995,16 +2022,18 @@
     if (!p) return;
     const previa = st.cl.hechas[codigo];
     const ya = p.estado === 'validada';
+    await propuestasRedCargar();
+    const lectura = !previa && !ya ? lecturaRed(codigo) : null;
     Object.assign(st.cl, {
-      resultado: previa?.resultado || (ya ? p.resultado : null),
-      causa: previa?.causa || (ya ? p.causa_id : null) || null,
-      conf: previa?.conf || 1,
+      resultado: previa?.resultado || (ya ? p.resultado : null) || lectura?.resultado || null,
+      causa: previa?.causa || (ya ? p.causa_id : null) || lectura?.causa || null,
+      conf: previa?.conf || (!ya && lectura ? lectura.conf : 1),
       bosque: previa?.bosque || 1,
+      desdeRed: Boolean(lectura),
     });
     $('cl-conclusion').value = previa?.conclusion || '';
     $('cl-codigo').textContent = p.codigo;
     $('cl-codigo-nota').textContent = notaCodigo(p.codigo);
-    await propuestasRedCargar();
     pintarPropuesta('cl-red', codigo);
     $('cl-sub').textContent = `${ha(p.superficie_ha)} · detectada el ${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'Dentro del ACR'}`;
     $('cl-cola').hidden = true; $('cl-cola-cab').hidden = true; $('cl-form').hidden = false;
@@ -2043,8 +2072,10 @@
   $('cl-resultado').querySelectorAll('.op').forEach((b) => (b.onclick = () => elegirResultado(b.dataset.v)));
   function elegirResultado(v) {
     st.cl.resultado = v;
+    st.cl.desdeRed = false;
     if (v !== 'antropica') st.cl.causa = null;
     pintarForm();
+    pintarPropuesta('cl-red', st.alerta);
   }
 
   function cerrarForm() {
