@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="/visor.css?v=20261109c">
+<link rel="stylesheet" href="/visor.css?v=20261109d">
 <script>
   try { if (localStorage.getItem('atd-tema') === 'oscuro') document.documentElement.dataset.tema = 'oscuro'; } catch (e) {}
 </script>
@@ -17,7 +17,7 @@
 <body>
 
 <nav class="rail">
-  <span class="rail-satelite" aria-hidden="true"><svg viewBox="0 0 72 36" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linejoin="miter"><path d="M36 2.2v5.2M33.4 2.2h5.2"/><rect x="30.2" y="8.6" width="11.6" height="8.4"/><rect x="2.2" y="9.4" width="26.2" height="6.8"/><path d="M8.7 9.4v6.8M15.3 9.4v6.8M21.8 9.4v6.8"/><rect x="43.6" y="9.4" width="26.2" height="6.8"/><path d="M50.1 9.4v6.8M56.7 9.4v6.8M63.2 9.4v6.8"/><path d="M36 17v6.4"/><circle cx="36" cy="26.2" r="2.15" fill="none"/><path d="M32.6 30.4h6.8"/></svg></span>
+  <span class="rail-marca"><img src="/img/gfp.png" alt="GFP Subnacional"></span>
   <button class="rail-btn activo" data-modo="consulta" title="Consulta de alertas"><i class="fas fa-map-location-dot"></i><span>Consulta</span></button>
   <button class="rail-btn" data-modo="clasificar" title="Clasificación de alertas (validadores)" hidden><i class="fas fa-satellite"></i><span>Clasificar</span><b id="badge-pend" class="rail-badge" hidden></b></button>
   <button class="rail-btn" id="btn-entrar" title="Ingresar para editar"><i class="fas fa-user-lock"></i><span>Entrar</span></button>
@@ -36,7 +36,7 @@
 
 <aside class="panel" id="panel">
   <header class="panel-cab">
-    <span class="marca-sat" aria-hidden="true"><svg viewBox="0 0 72 36" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linejoin="miter"><path d="M36 2.2v5.2M33.4 2.2h5.2"/><rect x="30.2" y="8.6" width="11.6" height="8.4"/><rect x="2.2" y="9.4" width="26.2" height="6.8"/><path d="M8.7 9.4v6.8M15.3 9.4v6.8M21.8 9.4v6.8"/><rect x="43.6" y="9.4" width="26.2" height="6.8"/><path d="M50.1 9.4v6.8M56.7 9.4v6.8M63.2 9.4v6.8"/><path d="M36 17v6.4"/><circle cx="36" cy="26.2" r="2.15" fill="none"/><path d="M32.6 30.4h6.8"/></svg></span>
+    <img class="cab-logo" src="/img/gfp.png" alt="GFP Subnacional">
     <div>
       <h1>Alertas Tempranas de Deforestación</h1>
       <p id="cab-sub">Consulta de alertas</p>
