@@ -13,14 +13,22 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping dashboard health
+      - name: Ping dashboard y alertas
         run: |
-          URL="https://acr-dashboard-5iqz.onrender.com/api/health"
-          for i in 1 2 3; do
-            code=$(curl -fsS -o /tmp/health.json -w "%{http_code}" --max-time 120 "$URL" || echo "000")
-            echo "Intento $i — HTTP $code"
-            cat /tmp/health.json 2>/dev/null || true
-            if [ "$code" = "200" ]; then exit 0; fi
-            sleep 15
-          done
-          exit 1
+          ping_una() {
+            local nombre="$1" url="$2"
+            local i code
+            for i in 1 2 3; do
+              code=$(curl -fsS -o /tmp/health.json -w "%{http_code}" --max-time 180 "$url" || echo "000")
+              echo "$nombre intento $i — HTTP $code"
+              cat /tmp/health.json 2>/dev/null || true
+              echo
+              if [ "$code" = "200" ]; then return 0; fi
+              sleep 15
+            done
+            return 1
+          }
+          ok=0
+          ping_una "Dashboard" "https://acr-dashboard-5iqz.onrender.com/api/health" || ok=1
+          ping_una "Alertas" "https://acr-atd.onrender.com/api/atd/salud" || ok=1
+          exit $ok
