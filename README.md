@@ -1,38 +1,44 @@
 # Dashboard GFP Subnacional
 
-Servicio web de la línea base de deforestación y del portal de acuerdos de conservación.
-Los dos productos salen del mismo programa Python y de la misma publicación.
+Portal de la línea base de deforestación en las Áreas de Conservación Regional, y del registro de acuerdos de conservación. Lo publica el programa GFP Subnacional.
+
+## Qué hace
+
+La línea base muestra la pérdida de bosque en 9 ACR de Loreto, San Martín y Cusco. Desde el inicio se entra al mapa, a los indicadores, a la metodología, a los reportes y a las tendencias. Cada ACR se puede abrir con su propio filtro.
+
+Los acuerdos de conservación tienen portada, mapa y marco normativo. Un acuerdo es el compromiso de una organización local con el Gobierno Regional para vigilar un ámbito del ACR. Quien firma es el Gobierno Regional. En la ficha se leen dos cifras: la del documento y la del polígono. Hoy está publicado un solo acuerdo: Illapani (001-2026-ACR Chuyapi Urusayhua), de la Asociación de Servicios Turísticos de la Catarata Illapani, en el ACR Chuyapi Urusayhua, Cusco. El documento señala 1,000 ha y el polígono mide 952 ha.
 
 | Producto | Dirección pública | Páginas |
 | --- | --- | --- |
 | Línea base de deforestación | https://www.gfpsubnacional.pe/dashboard-linea-base-de-deforestacion/ | `frontend/home.html`, `index.html`, `datos.html`, `acr.html` |
 | Acuerdos de conservación | https://www.gfpsubnacional.pe/acuerdos-de-conservacion/ | `frontend/acuerdos_home.html`, `acuerdos.html` |
 
-El visor de alertas tempranas es otro programa (Java y PostGIS) y vive en
-[alertas-tempranas](https://github.com/GFP-Subnacional-Peru/alertas-tempranas).
-En línea: https://acr-atd.onrender.com/
+El sitio de GFP embebe estas páginas. Deforestación y acuerdos salen del mismo programa porque comparten la API, los estilos y una sola publicación.
 
-Deforestación y acuerdos siguen en este repositorio porque comparten `backend_python/main.py`,
-`frontend/assets` y un solo servicio. Partirlos en dos servicios web gastaría el cupo de horas
-del plan gratuito y, a mitad de mes, se apagarían los dos.
+## Cómo está hecho
+
+El servicio es Python con FastAPI. Entrega el HTML y la API (`/api/health`, indicadores, centroides, geometrías). El mapa es Leaflet y los gráficos son Plotly, escritos en HTML, CSS y JavaScript estáticos. Las cifras no se recalculan en cada visita: el servidor lee GeoJSON, la tabla de centroides y la serie anual que ya están en el repositorio.
+
+`render.yaml` describe esa publicación. Un push a `main` actualiza el sitio.
 
 ## Carpetas
 
 | Carpeta | Para qué está |
 | --- | --- |
-| `backend_python/` | API FastAPI. Arranque: `uvicorn main:app`. |
-| `frontend/` | HTML, CSS, JavaScript e imágenes. `/assets` sale de `frontend/assets`. |
-| `data/cache/` | GeoJSON y centroides que la API sirve en línea. |
+| `backend_python/` | API FastAPI. El arranque es `uvicorn main:app`. |
+| `frontend/` | Páginas, estilos, scripts e imágenes. `/assets` sale de `frontend/assets`. |
+| `data/cache/` | GeoJSON y centroides que la API sirve. |
 | `data/incoming/` | Capas de entrada ya convertidas a GeoJSON. |
 | `www/mapas/` | Mapas PDF y sus miniaturas. |
-| `www/reportes_atd/` | Capas que el mapa de deforestación sigue mostrando. |
-| `utils/datos_temporales_acr.R` | Serie anual por ACR. El servicio la lee al armar tendencias. |
-| `scripts/` | Regeneración de cachés y herramientas. No corren en el servidor. |
-| `atd-service/` | Código del visor de alertas, todavía publicado desde aquí. Ver abajo. |
-| `.github/workflows/` | De lunes a viernes, de 8:00 a 18:00 (hora de Lima), llama a los dos servicios para que no se duerman. |
+| `utils/datos_temporales_acr.R` | Serie anual por ACR. Las tendencias la leen. |
+| `scripts/` | Regeneración de cachés. No corre en el servidor. |
+| `.github/workflows/` | Mantiene el servicio despierto en el horario de trabajo. |
 
-La aplicación Shiny (`ui.R`, `server.R`, `modules/`, el resto de `utils/`) y los accesos
-directos de Windows quedan en la computadora de quien los tenga. No forman parte de este repositorio.
+## Horario
+
+De lunes a viernes, de 8:00 a 18:00, hora de Lima. GitHub Actions llama a `GET /api/health` desde las 7:50, para que a las 8 el sitio ya responda, y deja de llamar a las 18. A esa hora el servicio se apaga solo. La computadora de quien desarrolla no tiene que estar prendida: el aviso corre en GitHub.
+
+Hay dos workflows, `keep-render-awake.yml` y `keep-render-awake-offset.yml`. El segundo va desfasado unos minutos por si el primero se atrasa. Los dos cubren el mismo horario.
 
 ## Correr en local
 
@@ -44,27 +50,3 @@ cd backend_python
 ```
 
 También vale, desde la raíz: `python run_server.py`. Abre http://127.0.0.1:8000 cuando `/api/health` responde.
-
-## Publicación
-
-`render.yaml` describe un servicio Python. Un push a `main` actualiza el sitio.
-Salud del servicio: `GET /api/health`.
-
-## Alertas tempranas
-
-La carpeta `atd-service/` sigue en este repositorio porque el servicio
-https://acr-atd.onrender.com todavía se construye desde ella (Dockerfile dentro de esa carpeta).
-
-El repositorio propio ya está en
-https://github.com/GFP-Subnacional-Peru/alertas-tempranas
-y ahí el Dockerfile está en la raíz.
-
-Para dejar de publicar el visor desde aquí:
-
-1. En Render, abrir el servicio de alertas.
-2. Cambiar el repositorio a `GFP-Subnacional-Peru/alertas-tempranas`.
-3. Dejar el directorio raíz vacío y el Dockerfile en `/Dockerfile`.
-4. Confirmar que `GET /api/atd/salud` responde.
-5. Recién entonces se puede borrar `atd-service/` de este repositorio.
-
-Borrarla antes deja el visor en línea con la imagen actual, y el siguiente despliegue de ese servicio falla.
