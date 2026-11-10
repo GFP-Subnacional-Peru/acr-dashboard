@@ -128,17 +128,18 @@ const Modals = (() => {
       slot.appendChild(nac);
       nac.classList.remove("hidden");
     }
-    setTimeout(() => {
+    slot.classList.add("is-midiendo");
+    const medir = () => {
       try {
-        window.dispatchEvent(new Event("resize"));
         if (typeof Plotly !== "undefined") {
-          ["chart-composicion", "chart-causas", "chart-distribucion", "chart-comparativa"].forEach((id) => {
-            const el = document.getElementById(id);
-            if (el) Plotly.Plots.resize(el);
-          });
+          slot.querySelectorAll(".js-plotly-plot").forEach((el) => Plotly.Plots.resize(el));
         }
       } catch (_) {}
-    }, 180);
+      slot.classList.remove("is-midiendo");
+    };
+    requestAnimationFrame(() => requestAnimationFrame(medir));
+    setTimeout(medir, 80);
+    setTimeout(medir, 280);
   }
 
   function show(html) {
@@ -245,6 +246,15 @@ const Modals = (() => {
       return;
     }
 
+    const hueco = document.getElementById("kpi-modal-charts");
+    const individual = document.getElementById("charts-individual");
+    if (hueco && individual) {
+      hueco.appendChild(individual);
+      individual.classList.remove("hidden");
+    }
+    if (hueco) {
+      await new Promise((resolver) => requestAnimationFrame(() => requestAnimationFrame(resolver)));
+    }
     if (graf && typeof renderCharts === "function") {
       renderCharts(graf);
       // Pérdida de bosque: quitar barras de composición; pie ocupa ese espacio

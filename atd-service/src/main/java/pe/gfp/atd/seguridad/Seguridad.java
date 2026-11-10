@@ -23,6 +23,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -47,6 +49,10 @@ public class Seguridad {
         CsrfTokenRequestAttributeHandler csrf = new CsrfTokenRequestAttributeHandler();
         // Sin token diferido: la cookie XSRF-TOKEN ya existe cuando se muestra la pantalla de ingreso.
         csrf.setCsrfRequestAttributeName(null);
+        CookieCsrfTokenRepository tokens = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        if (enNube()) {
+            tokens.setCookieCustomizer(c -> c.sameSite("None").secure(true));
+        }
         SavedRequestAwareAuthenticationSuccessHandler destino = new SavedRequestAwareAuthenticationSuccessHandler();
         destino.setDefaultTargetUrl("/");
 
@@ -78,8 +84,12 @@ public class Seguridad {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login.html?salir")
                 .deleteCookies("ATD_SESION"))
+            .headers(h -> h
+                .frameOptions(f -> f.disable())
+                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                    "frame-ancestors 'self' https://www.gfpsubnacional.pe https://gfpsubnacional.pe")))
             .csrf(c -> c
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRepository(tokens)
                 .csrfTokenRequestHandler(csrf))
             .exceptionHandling(e -> e
                 .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login.html"))
@@ -97,6 +107,22 @@ public class Seguridad {
                 }))
             .addFilterBefore(new FiltroBloqueo(intentos), UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    /** En la nube la página de GFP abre el visor dentro de un iframe. La sesión tiene que viajar en ese marco. */
+    @Bean
+    WebServerFactoryCustomizer<TomcatServletWebServerFactory> sesionEnIframe() {
+        return factory -> {
+            if (!enNube()) return;
+            var cookie = factory.getSession().getCookie();
+            cookie.setSameSite("None");
+            cookie.setSecure(true);
+            cookie.setHttpOnly(true);
+        };
+    }
+
+    private static boolean enNube() {
+        return System.getenv("RENDER") != null;
     }
 
     @Bean

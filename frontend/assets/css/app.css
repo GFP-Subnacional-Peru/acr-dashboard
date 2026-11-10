@@ -1075,11 +1075,13 @@ body.gfp-map-fs-open { overflow: hidden; }
 }
 .kpi-modal-body { margin-top: 0.35rem; }
 .kpi-modal-charts { margin-top: 1rem; }
+.kpi-modal-charts.is-midiendo { visibility: hidden; }
 .kpi-modal-charts .charts-stack {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.95rem;
 }
+.kpi-modal-charts .js-plotly-plot { width: 100% !important; }
 .kpi-modal-charts .chart-block--wide { grid-column: 1 / -1; }
 .kpi-modal-cerrar {
   margin-top: 1.1rem;
