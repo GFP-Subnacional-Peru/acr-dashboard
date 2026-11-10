@@ -1,9 +1,10 @@
-# Segundo ping desfasado (minutos 2,7,12…) por si el cron principal se retrasa.
+# Mismo horario laboral de Lima, desfasado unos minutos por si el otro aviso se atrasa.
 name: Keep Render awake (offset)
 
 on:
   schedule:
-    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+    - cron: "52,57 12 * * 1-5"
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 13-22 * * 1-5"
   workflow_dispatch:
 
 jobs:

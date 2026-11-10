@@ -1,13 +1,13 @@
-# Refuerzo: ping cada 5 min (24/7). NO confíe solo en esto — GitHub puede retrasar crons.
-# Solución fiable: cron-job.org (ver scripts/configurar_ping_render.ps1)
+# Lunes a viernes, 8:00–18:00 hora de Lima (UTC−5).
+# 12:50 UTC = 7:50 Lima, para que a las 8 ya esté despierto.
+# 13:00–22:55 UTC = 8:00–17:55 Lima. A las 18 se deja de llamar y se apaga solo.
 name: Keep Render awake
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "50,55 12 * * 1-5"
+    - cron: "*/5 13-22 * * 1-5"
   workflow_dispatch:
-  push:
-    branches: [main]
 
 jobs:
   ping:
