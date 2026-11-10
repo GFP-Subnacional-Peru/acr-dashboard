@@ -1,52 +1,57 @@
-# Dashboard GFP Subnacional
+# Línea base de deforestación y acuerdos de conservación
 
-Portal de la línea base de deforestación en las Áreas de Conservación Regional, y del registro de acuerdos de conservación. Lo publica el programa GFP Subnacional.
+Registro de la pérdida de bosque en nueve Áreas de Conservación Regional de Loreto, San Martín y Cusco, y de los acuerdos con los que el Gobierno Regional encarga a una organización local el cuidado de un ámbito. Lo publica el programa GFP Subnacional.
 
-## Qué hace
-
-La línea base muestra la pérdida de bosque en 9 ACR de Loreto, San Martín y Cusco. Desde el inicio se entra al mapa, a los indicadores, a la metodología, a los reportes y a las tendencias. Cada ACR se puede abrir con su propio filtro.
-
-Los acuerdos de conservación tienen portada, mapa y marco normativo. Un acuerdo es el compromiso de una organización local con el Gobierno Regional para vigilar un ámbito del ACR. Quien firma es el Gobierno Regional. En la ficha se leen dos cifras: la del documento y la del polígono. Hoy está publicado un solo acuerdo: Illapani (001-2026-ACR Chuyapi Urusayhua), de la Asociación de Servicios Turísticos de la Catarata Illapani, en el ACR Chuyapi Urusayhua, Cusco. El documento señala 1,000 ha y el polígono mide 952 ha.
-
-| Producto | Dirección pública | Páginas |
-| --- | --- | --- |
-| Línea base de deforestación | https://www.gfpsubnacional.pe/dashboard-linea-base-de-deforestacion/ | `frontend/home.html`, `index.html`, `datos.html`, `acr.html` |
-| Acuerdos de conservación | https://www.gfpsubnacional.pe/acuerdos-de-conservacion/ | `frontend/acuerdos_home.html`, `acuerdos.html` |
-
-El sitio de GFP embebe estas páginas. Deforestación y acuerdos salen del mismo programa porque comparten la API, los estilos y una sola publicación.
-
-## Cómo está hecho
-
-El servicio es Python con FastAPI. Entrega el HTML y la API (`/api/health`, indicadores, centroides, geometrías). El mapa es Leaflet y los gráficos son Plotly, escritos en HTML, CSS y JavaScript estáticos. Las cifras no se recalculan en cada visita: el servidor lee GeoJSON, la tabla de centroides y la serie anual que ya están en el repositorio.
-
-`render.yaml` describe esa publicación. Un push a `main` actualiza el sitio.
-
-## Carpetas
-
-| Carpeta | Para qué está |
+| Producto | Dirección pública |
 | --- | --- |
-| `backend_python/` | API FastAPI. El arranque es `uvicorn main:app`. |
-| `frontend/` | Páginas, estilos, scripts e imágenes. `/assets` sale de `frontend/assets`. |
-| `data/cache/` | GeoJSON y centroides que la API sirve. |
-| `data/incoming/` | Capas de entrada ya convertidas a GeoJSON. |
+| Línea base de deforestación | https://www.gfpsubnacional.pe/dashboard-linea-base-de-deforestacion/ |
+| Acuerdos de conservación | https://www.gfpsubnacional.pe/acuerdos-de-conservacion/ |
+
+Las dos lecturas salen del mismo servicio. El sitio de GFP embebe las páginas.
+
+## Línea base
+
+La serie mide la pérdida de cobertura de bosque húmedo amazónico entre 2001 y 2025. La fuente primaria es GeoBosques, del Ministerio del Ambiente. MapBiomas Perú se usa como lectura complementaria de cobertura y uso del suelo. El procesamiento sigue el criterio de detección de cambio de Hansen et al. (2013): polígonos anuales de pérdida, a 30 m, a partir de Landsat.
+
+Cada polígono queda en una de tres clases:
+
+- **Antrópica.** Agricultura, ganadería, minería o infraestructura. La infraestructura agrupa edificaciones, vías y tendidos; esta línea base no separa esos tres tipos.
+- **Natural.** Inundación, deslizamiento o muerte del arbolado.
+- **Falsa alerta.** Nube, sombra o un cambio espectral que no es pérdida de bosque.
+
+La comparación entre las nueve ACR usa una zona de influencia de 5 km. Ese buffer es la referencia común de la línea base. Donde el área ya tiene zona de influencia aprobada, como en Loreto, o en propuesta, como en San Martín, el monitoreo de alertas usa ese límite, aunque pase de 5 km o quede por debajo.
+
+La tendencia de cada ACR es una regresión lineal simple de la serie anual. El ajuste se lee con el coeficiente de determinación (R²) y la tasa media en hectáreas por año. Las cifras que muestra el mapa están calculadas de antemano: el servicio lee los GeoJSON, los centroides y la serie anual, y no vuelve a cruzar las capas en cada visita.
+
+El contraste de la serie se hizo con los reportes del MINAM, con MapBiomas Alertas y con la revisión visual de los polígonos sobre imágenes de alta resolución.
+
+Hansen, M. C., et al. (2013). High-resolution global maps of 21st-century forest cover change. *Science*, 342(6160), 850–853.
+
+## Acuerdos de conservación
+
+La Ley N.º 26834 y su reglamento, el Decreto Supremo N.º 038-2001-AG, permiten que la autoridad del área suscriba acuerdos con la población local para conservar y usar el bosque de forma compatible con la categoría y con el Plan Maestro. En un ACR quien administra y firma es el Gobierno Regional, por la Ley N.º 27867.
+
+En la ficha se publican dos superficies: la escrita en el documento y la del polígono cartografiado. Hoy hay un solo acuerdo cargado: Illapani, 001-2026-ACR Chuyapi Urusayhua, suscrito por la Asociación de Servicios Turísticos de la Catarata Illapani en el ACR Chuyapi Urusayhua, Cusco. El documento señala 1,000 ha y el polígono mide 952 ha.
+
+## Repositorio
+
+| Carpeta | Contenido |
+| --- | --- |
+| `backend_python/` | API FastAPI. Arranque: `uvicorn main:app`. |
+| `frontend/` | Páginas, estilos y scripts. `/assets` sale de `frontend/assets`. |
+| `data/cache/` | GeoJSON y centroides que sirve la API. |
+| `data/incoming/` | Capas de entrada ya convertidas. |
 | `www/mapas/` | Mapas PDF y sus miniaturas. |
-| `utils/datos_temporales_acr.R` | Serie anual por ACR. Las tendencias la leen. |
-| `scripts/` | Regeneración de cachés. No corre en el servidor. |
-| `.github/workflows/` | Mantiene el servicio despierto en el horario de trabajo. |
+| `utils/datos_temporales_acr.R` | Serie anual por ACR. |
+| `scripts/` | Regeneración de las capas. No corre en el servidor. |
 
-## Horario
+Cada cambio que entra a `main` queda en GitHub y actualiza el sitio publicado.
 
-De lunes a viernes, de 8:00 a 18:00, hora de Lima. GitHub Actions llama a `GET /api/health` desde las 7:50, para que a las 8 el sitio ya responda, y deja de llamar a las 18. A esa hora el servicio se apaga solo. La computadora de quien desarrolla no tiene que estar prendida: el aviso corre en GitHub.
-
-Hay dos workflows, `keep-render-awake.yml` y `keep-render-awake-offset.yml`. El segundo va desfasado unos minutos por si el primero se atrasa. Los dos cubren el mismo horario.
-
-## Correr en local
-
-El entorno virtual está en la raíz (`.venv`), no dentro de `backend_python`.
+Para correrlo en esta computadora, el entorno virtual está en la raíz:
 
 ```
 cd backend_python
 ..\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-También vale, desde la raíz: `python run_server.py`. Abre http://127.0.0.1:8000 cuando `/api/health` responde.
+Desde la raíz también vale `python run_server.py`. Abre http://127.0.0.1:8000 cuando `/api/health` responde.
