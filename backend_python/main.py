@@ -847,13 +847,13 @@ if _FRONTEND_DIR.exists():
 
     @app.get("/alertas-tempranas", include_in_schema=False)
     def portal_alertas_tempranas():
-        # El visor ATD es un servicio aparte (Java + PostGIS) con su propio inicio de sesión.
-        destino = os.getenv("ATD_URL")
-        if destino:
-            return RedirectResponse(destino, status_code=302)
-        if os.getenv("RENDER"):
-            return _html("alertas_proximamente.html")
-        return RedirectResponse("http://localhost:8081/", status_code=302)
+        # La página pública es la de GFP. El visor queda dentro de ese enlace.
+        if os.getenv("RENDER") or not os.getenv("ATD_URL"):
+            return RedirectResponse(
+                "https://www.gfpsubnacional.pe/sistema-de-alertas-tempranas-de-deforestacion/",
+                status_code=302,
+            )
+        return RedirectResponse(os.environ["ATD_URL"], status_code=302)
 
     @app.get("/acr/{slug}")
     def portal_acr(slug: str):
