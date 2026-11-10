@@ -1,34 +1,40 @@
-# Lunes a viernes, 8:00–18:00 hora de Lima (UTC−5).
-# 12:50 UTC = 7:50 Lima, para que a las 8 ya esté despierto.
-# 13:00–22:55 UTC = 8:00–17:55 Lima. A las 18 se deja de llamar y se apaga solo.
+# Un solo proceso, de lunes a viernes, llama a los dos servicios cada 4 minutos
+# hasta las 18:00 de Lima. GitHub no cumple un cron de cada 5 minutos: lo deja
+# en cola y el servicio se duerme. Aquí el aviso arranca y se queda.
+# 12:50 UTC = 7:50 Lima. 13:20 UTC = 8:20, por si el primero se atrasó.
+# 18:20 UTC = 13:20 Lima, para el segundo tramo. Cada tramo dura como máximo 6 horas.
 name: Keep Render awake
 
 on:
   schedule:
-    - cron: "50,55 12 * * 1-5"
-    - cron: "*/5 13-22 * * 1-5"
+    - cron: "50 12 * * 1-5"
+    - cron: "20 13 * * 1-5"
+    - cron: "20 18 * * 1-5"
   workflow_dispatch:
 
 jobs:
   ping:
+    if: github.repository == 'GFP-Subnacional-Peru/acr-dashboard'
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
-      - name: Ping dashboard y alertas
+      - name: Mantener dashboard y alertas despiertos hasta las 18
         run: |
-          ping_una() {
-            local nombre="$1" url="$2"
-            local i code
-            for i in 1 2 3; do
-              code=$(curl -fsS -o /tmp/health.json -w "%{http_code}" --max-time 180 "$url" || echo "000")
-              echo "$nombre intento $i — HTTP $code"
-              cat /tmp/health.json 2>/dev/null || true
-              echo
-              if [ "$code" = "200" ]; then return 0; fi
-              sleep 15
+          set -u
+          while true; do
+            hora=$(TZ=America/Lima date +%H)
+            hora=$((10#$hora))
+            if [ "$hora" -ge 18 ]; then
+              echo "18:00 en Lima. Se deja de llamar."
+              exit 0
+            fi
+            marca=$(TZ=America/Lima date +%H:%M)
+            for url in \
+              "https://acr-dashboard-5iqz.onrender.com/api/health" \
+              "https://acr-atd.onrender.com/api/atd/salud"
+            do
+              code=$(curl -sS -o /tmp/health.json -w "%{http_code}" --max-time 180 "$url" || echo "000")
+              echo "$marca $url HTTP $code"
             done
-            return 1
-          }
-          ok=0
-          ping_una "Dashboard" "https://acr-dashboard-5iqz.onrender.com/api/health" || ok=1
-          ping_una "Alertas" "https://acr-atd.onrender.com/api/atd/salud" || ok=1
-          exit $ok
+            sleep 240
+          done
