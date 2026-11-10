@@ -5,8 +5,8 @@ Los dos productos salen del mismo programa Python y de la misma publicación.
 
 | Producto | Dirección pública | Páginas |
 | --- | --- | --- |
-| Línea base de deforestación | https://acr-dashboard-5iqz.onrender.com/ | `frontend/home.html`, `index.html`, `datos.html`, `acr.html` |
-| Acuerdos de conservación | https://acr-dashboard-5iqz.onrender.com/acuerdos | `frontend/acuerdos_home.html`, `acuerdos.html` |
+| Línea base de deforestación | https://www.gfpsubnacional.pe/dashboard-linea-base-de-deforestacion/ | `frontend/home.html`, `index.html`, `datos.html`, `acr.html` |
+| Acuerdos de conservación | https://www.gfpsubnacional.pe/acuerdos-de-conservacion/ | `frontend/acuerdos_home.html`, `acuerdos.html` |
 
 El visor de alertas tempranas es otro programa (Java y PostGIS) y vive en
 [alertas-tempranas](https://github.com/GFP-Subnacional-Peru/alertas-tempranas).
