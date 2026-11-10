@@ -71,3 +71,29 @@ atd-service/db/escenas/
 # Pesos y cuaderno de la red (se generan al entrenar)
 scripts/red_mccallum/salidas/
 scripts/red_mccallum/.venv/
+
+# App Shiny y apuntes de esta PC. No forman parte del servicio publicado.
+# La serie anual sí se publica: utils/datos_temporales_acr.R
+/ui.R
+/server.R
+/global.R
+/run_app.R
+/modules/
+/utils/*
+!/utils/datos_temporales_acr.R
+/*.bat
+/*.cmd
+/*.vbs
+/INICIAR_DESDE_POWERSHELL.ps1
+/convertir shp a rds.R
+/vertificar dependencias.R
+/*.RData
+/*.Rhistory
+/desktop.ini
+/LEEME_PRIMERO.txt
+/LEEME_DESPLIEGUE.txt
+/PASOS_SUBIR.txt
+/SUBIR_WEB.md
+/INSTRUCCIONES_LOCAL.md
+/www/estilos.css
+/www/images/

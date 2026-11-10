@@ -1,4 +1,6 @@
-# Blueprint Render.com — conectar repo GitHub y desplegar con un clic
+# Un solo servicio Python.
+# Deforestación (/) y acuerdos de conservación (/acuerdos) se publican juntos.
+# El visor de alertas tempranas es otro servicio y otro repositorio.
 # https://render.com/docs/blueprint-spec
 
 services:

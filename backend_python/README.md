@@ -21,10 +21,11 @@ backend_python/
 
 ## Arranque (web completa)
 
-Desde la raíz del proyecto:
+Desde `backend_python`, con el entorno de la raíz del repositorio:
 
-- **Windows:** doble clic en `iniciar.bat`
-- **Manual:** ver `INSTRUCCIONES_LOCAL.md` en la raíz
+```
+..\.venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
 
 Abrir **http://127.0.0.1:8000** (sirve frontend + API).
 
