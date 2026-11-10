@@ -24,6 +24,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.Cookie;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
@@ -115,7 +116,7 @@ public class Seguridad {
         return factory -> {
             if (!enNube()) return;
             var cookie = factory.getSession().getCookie();
-            cookie.setSameSite("None");
+            cookie.setSameSite(Cookie.SameSite.NONE);
             cookie.setSecure(true);
             cookie.setHttpOnly(true);
         };
