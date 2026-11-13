@@ -106,7 +106,8 @@ public class SentinelCatalogo {
             double sur = lat - RADIO;
             double norte = lat + RADIO;
             String recorte = visual.isBlank() ? "" : TITILER + oeste + "," + sur + "," + este + "," + norte
-                    + ".png?coord-crs=epsg:4326&url=" + URLEncoder.encode(visual, StandardCharsets.UTF_8);
+                    + ".png?coord-crs=epsg:4326&width=512&height=512&url="
+                    + URLEncoder.encode(visual, StandardCharsets.UTF_8);
             porFecha.put(fecha, new EscenaLibre(
                     item.path("id").asText(""),
                     fecha,

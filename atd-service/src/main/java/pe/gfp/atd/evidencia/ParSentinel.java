@@ -1,7 +1,9 @@
 package pe.gfp.atd.evidencia;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
+import java.nio.charset.StandardCharsets;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
@@ -57,10 +59,18 @@ public class ParSentinel {
         }
         LocalDate det = p.fecha();
         if (!tieneAntes) {
-            guardarLado(p, "antes", det.minusDays(ANTES_DESDE), det.minusDays(ANTES_HASTA), det, true);
+            try {
+                guardarLado(p, "antes", det.minusDays(ANTES_DESDE), det.minusDays(ANTES_HASTA), det, true);
+            } catch (RuntimeException e) {
+                log.warn("No se guardó la escena anterior de {}: {}", codigo, e.toString());
+            }
         }
         if (!tieneDespues) {
-            guardarLado(p, "despues", det, det.plusDays(DESPUES_HASTA), det, false);
+            try {
+                guardarLado(p, "despues", det, det.plusDays(DESPUES_HASTA), det, false);
+            } catch (RuntimeException e) {
+                log.warn("No se guardó la escena posterior de {}: {}", codigo, e.toString());
+            }
         }
     }
 
@@ -72,11 +82,12 @@ public class ParSentinel {
             return;
         }
         EscenaLibre escena = elegida.get();
-        byte[] png = descargar(escena.recorte());
+        byte[] png = descargar(escena);
         if (png == null) {
             log.warn("No se pudo descargar el recorte {} de {}", momento, escena.escenaId());
             return;
         }
+        String mime = png[0] == (byte) 0xFF ? "image/jpeg" : "image/png";
         double xmin = x3857(escena.oeste());
         double ymin = y3857(escena.sur());
         double xmax = x3857(escena.este());
@@ -100,12 +111,12 @@ public class ParSentinel {
                 escena.nubes(), escena.nubes(), xmin, ymin, xmax, ymax);
         jdbc.update("""
                 INSERT INTO evidencia (alerta_id, escena_id, tipo, contenido, mime, ruta)
-                VALUES (?, ?, ?, ?, 'image/png', 'sentinel2')
-                ON CONFLICT (alerta_id, tipo) DO UPDATE SET
+                VALUES (?, ?, ?, ?, ?, 'sentinel2')
+                ON CONFLICT (alerta_id, tipo) WHERE tipo IN ('chip_antes', 'chip_despues') DO UPDATE SET
                     escena_id = EXCLUDED.escena_id,
                     contenido = EXCLUDED.contenido,
                     mime = EXCLUDED.mime
-                """, p.id(), escenaId, "chip_" + momento, png);
+                """, p.id(), escenaId, "chip_" + momento, png, mime);
     }
 
     private boolean tieneChip(long alertaId, String momento) {
@@ -130,7 +141,40 @@ public class ParSentinel {
                         .thenComparingLong(e -> Math.abs(ChronoUnit.DAYS.between(LocalDate.parse(e.fecha()), det))));
     }
 
-    private byte[] descargar(String url) {
+    private byte[] descargar(EscenaLibre escena) {
+        String titiler = escena.recorte();
+        if (titiler != null && !titiler.isBlank() && !titiler.contains("width=")) {
+            titiler = titiler + "&width=512&height=512";
+        }
+        byte[] recorte = leer(titiler);
+        if (recorte != null) {
+            return recorte;
+        }
+        byte[] esri = leer(urlEsri(escena));
+        if (esri == null) {
+            log.warn("Sin recorte para {}", escena.escenaId());
+        }
+        return esri;
+    }
+
+    /** La misma escena, por el servicio de Sentinel-2 que ya usa el mapa del reporte. */
+    private static String urlEsri(EscenaLibre escena) {
+        LocalDate dia = LocalDate.parse(escena.fecha());
+        String where = "acquisitiondate >= timestamp '" + dia + " 00:00:00' AND acquisitiondate < timestamp '"
+                + dia.plusDays(1) + " 00:00:00'";
+        String mosaic = URLEncoder.encode(
+                "{\"mosaicMethod\":\"esriMosaicAttribute\",\"sortField\":\"acquisitiondate\","
+                        + "\"sortValue\":\"2099/12/31\",\"ascending\":true,\"where\":\"" + where + "\"}",
+                StandardCharsets.UTF_8);
+        String render = URLEncoder.encode("{\"rasterFunction\":\"Natural Color\"}", StandardCharsets.UTF_8);
+        return "https://sentinel.arcgis.com/arcgis/rest/services/Sentinel2/ImageServer/exportImage"
+                + "?bbox=" + x3857(escena.oeste()) + "," + y3857(escena.sur()) + ","
+                + x3857(escena.este()) + "," + y3857(escena.norte())
+                + "&bboxSR=3857&imageSR=3857&size=640,640&format=png&f=image"
+                + "&mosaicRule=" + mosaic + "&renderingRule=" + render;
+    }
+
+    private byte[] leer(String url) {
         if (url == null || url.isBlank()) {
             return null;
         }
@@ -143,9 +187,13 @@ public class ParSentinel {
             HttpResponse<byte[]> res = http.send(req, HttpResponse.BodyHandlers.ofByteArray());
             byte[] cuerpo = res.body();
             if (res.statusCode() != 200 || cuerpo == null || cuerpo.length < 800 || cuerpo.length > 4_000_000) {
+                log.warn("Recorte HTTP {} ({} bytes) {}", res.statusCode(), cuerpo == null ? 0 : cuerpo.length, url);
                 return null;
             }
-            if (cuerpo[0] != (byte) 0x89 || cuerpo[1] != 0x50) {
+            boolean png = cuerpo[0] == (byte) 0x89 && cuerpo[1] == 0x50;
+            boolean jpeg = cuerpo[0] == (byte) 0xFF && cuerpo[1] == (byte) 0xD8;
+            if (!png && !jpeg) {
+                log.warn("El recorte no es una imagen: {}", url);
                 return null;
             }
             return cuerpo;
