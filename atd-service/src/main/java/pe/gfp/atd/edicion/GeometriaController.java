@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RestController;
+import pe.gfp.atd.reporte.UbicacionTerritorial;
 
 /**
  * Corrección del polígono de una alerta desde el visor. El original de la GDB queda en geom_original
@@ -30,12 +33,16 @@ public class GeometriaController {
     private static final double MAX_DESPLAZAMIENTO_M = 2000;
     private static final double MAX_HA = 2000;
 
+    private static final Logger log = LoggerFactory.getLogger(GeometriaController.class);
+
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
+    private final UbicacionTerritorial ubicacion;
 
-    public GeometriaController(JdbcTemplate jdbc, ObjectMapper json) {
+    public GeometriaController(JdbcTemplate jdbc, ObjectMapper json, UbicacionTerritorial ubicacion) {
         this.jdbc = jdbc;
         this.json = json;
+        this.ubicacion = ubicacion;
     }
 
     /** Solo alcanzable con perfil editor (ver Seguridad). */
@@ -86,6 +93,7 @@ public class GeometriaController {
                  WHERE a.codigo = ?
                 """, geometria.toString(), auth.getName(), codigo);
         recalcularAmbito(codigo);
+        ubicar(codigo);
         return ResponseEntity.ok(resumen(codigo));
     }
 
@@ -109,7 +117,16 @@ public class GeometriaController {
             return error(HttpStatus.NOT_FOUND, "Alerta no encontrada");
         }
         recalcularAmbito(codigo);
+        ubicar(codigo);
         return ResponseEntity.ok(resumen(codigo));
+    }
+
+    private void ubicar(String codigo) {
+        try {
+            ubicacion.completar(codigo);
+        } catch (RuntimeException e) {
+            log.warn("Zonificación no aplicada a {}: {}", codigo, e.toString());
+        }
     }
 
     private void recalcularAmbito(String codigo) {

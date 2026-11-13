@@ -1330,12 +1330,12 @@
 
   async function cargarResumen() {
     const q = `acr=${st.acr}&ambito=${st.ambito}&anio=${st.anio}&mes=${st.mes}`;
-    const [r, geo] = await Promise.all([api(`/resumen?${q}`), api(`/alertas?${q}`)]);
+    const [r, geo] = await Promise.all([api(`/resumen?${q}`, true), api(`/alertas?${q}`, true)]);
     st.resumen = r; st.geo = geo; st.filtro = 'todas';
     dibujarAlertas(geo.features);
 
     const t = st.territorios.find((x) => x.codigo === st.acr);
-    $('res-titulo').textContent = `${t.nombre} · ${MESES[st.mes - 1]} ${st.anio}`;
+    $('res-titulo').textContent = `${t ? t.nombre : st.acr} · ${MESES[st.mes - 1]} ${st.anio}`;
     const a = r.actual, b = r.mesAnterior;
     $('k-total').textContent = num(a.alertasRecibidas, 0);
     const v1 = variacion(a.alertasRecibidas, b.alertasRecibidas, (x) => num(x, 0));
@@ -1662,8 +1662,7 @@
       const delta = (Date.parse(`${e.fecha}T00:00:00Z`) - anclaMs) / 86400000;
       return sentido === 'antes' ? delta < 0 : delta >= 0;
     });
-    const claras = pool0.filter((e) => Number(e.nubes) <= 30);
-    const pool = (claras.length ? claras : pool0).slice();
+    const pool = pool0.filter((e) => Number(e.nubes) < 3);
     pool.sort((a, b) => {
       if (Math.abs(Number(a.nubes) - Number(b.nubes)) > 10) return Number(a.nubes) - Number(b.nubes);
       const da = Math.abs(Date.parse(`${a.fecha}T00:00:00Z`) - anclaMs);
@@ -1703,14 +1702,14 @@
     const hastaDespues = sumarDiasIso(ancla, 25);
     try {
       const [ra, rd] = await Promise.all([
-        api(`/alertas/${codigo}/sentinel?desde=${desdeAntes}&hasta=${hastaAntes}`),
-        api(`/alertas/${codigo}/sentinel?desde=${ancla}&hasta=${hastaDespues}`),
+        api(`/alertas/${codigo}/sentinel?desde=${desdeAntes}&hasta=${hastaAntes}&maxNubes=3`),
+        api(`/alertas/${codigo}/sentinel?desde=${ancla}&hasta=${hastaDespues}&maxNubes=3`),
       ]);
       if (!cont.isConnected) return;
       const a = elegirReferencia(ra.escenas, ancla, 'antes');
       const b = elegirReferencia(rd.escenas, ancla, 'despues');
       if (!a && !b) {
-        if (espera) espera.innerHTML = '<i class="fas fa-cloud-sun"></i>No apareció un par claro alrededor de la detección. Puede buscar otra fecha abajo.';
+        if (espera) espera.innerHTML = '<i class="fas fa-cloud-sun"></i>No hay escena Sentinel-2 con nubosidad menor a 3 % en ese periodo. Puede buscar otra fecha abajo.';
         return;
       }
       const marco = (esc, rotulo) => marcoImagen(
@@ -1722,7 +1721,7 @@
       );
       const caja = document.createElement('div');
       caja.className = 'ref-auto';
-      caja.innerHTML = `<p class="sensor-nota">Referencia automática. Antes es una escena anterior a la detección. Después es una escena de ese día o de los siguientes. No reemplaza el par guardado del reporte.</p>
+      caja.innerHTML = `<p class="sensor-nota">Referencia automática con nubosidad menor a 3 %. Antes es una escena anterior a la detección. Después es una escena de ese día o de los siguientes. Este par, con su fecha y su código, es el que entra al reporte.</p>
         <div class="trio trio-ref">
           ${a ? marco(a, 'ANTES') : '<div class="sin-imagen"><i class="fas fa-image"></i>Sin escena anterior clara.</div>'}
           ${b ? marco(b, 'DESPUÉS') : '<div class="sin-imagen"><i class="fas fa-image"></i>Sin escena posterior clara.</div>'}
@@ -2124,6 +2123,11 @@
         const item = st.cl.cola.find((x) => x.codigo === codigo);
         if (item) item.superficie_ha = det.properties.superficie_ha;
       }
+      const g = (st.geo?.features || []).find((x) => x.properties.codigo === codigo);
+      if (g) {
+        g.geometry = det.geometry;
+        g.properties.superficie_ha = det.properties.superficie_ha;
+      }
       dibujarAlertas(st.cl.geo.features);
       st.alerta = codigo;
       st.detalle = det.properties;
@@ -2233,7 +2237,7 @@
   };
 
   /* ====================================================== MODO CLASIFICAR */
-  function cambiarModo(modo) {
+  async function cambiarModo(modo) {
     if (modo !== 'clasificar' && (ed.capa || ed.redibujando)) terminarEdicion();
     st.modo = modo;
     document.querySelectorAll('.rail-btn[data-modo]').forEach((b) => b.classList.toggle('activo', b.dataset.modo === modo));
@@ -2241,7 +2245,37 @@
     $('modo-clasificar').hidden = modo !== 'clasificar';
     $('cab-sub').textContent = modo === 'consulta' ? 'Consulta de alertas' : 'Bandeja de clasificación';
     if (modo === 'clasificar') iniciarClasificacion();
-    else if (st.geo) dibujarAlertas(st.geo.features);
+    else await traerLoGuardado();
+  }
+
+  async function traerLoGuardado() {
+    const acr = ($('cl-acr') && $('cl-acr').value) || st.acr;
+    const ambito = ($('cl-ambito') && $('cl-ambito').value) || st.ambito || 'ambos';
+    let anio = st.anio;
+    let mes = st.mes;
+    const mv = $('cl-mes') && $('cl-mes').value;
+    if (mv && mv.includes('-')) {
+      const partes = mv.split('-');
+      anio = Number(partes[0]);
+      mes = Number(partes[1]);
+    }
+    if (!acr || !anio || !mes) {
+      if (st.geo) dibujarAlertas(st.geo.features);
+      return;
+    }
+    st.acr = acr;
+    st.ambito = ambito;
+    st.anio = anio;
+    st.mes = mes;
+    const facr = $('f-acr');
+    if (facr && [...facr.options].some((o) => o.value === acr)) facr.value = acr;
+    const famb = $('f-ambito');
+    if (famb && [...famb.options].some((o) => o.value === ambito)) famb.value = ambito;
+    try {
+      await cargarResumen();
+    } catch (e) {
+      if (st.geo) dibujarAlertas(st.geo.features);
+    }
   }
   document.querySelectorAll('.rail-btn[data-modo]').forEach((b) => (b.onclick = () => cambiarModo(b.dataset.modo)));
 
@@ -2489,6 +2523,13 @@
       p.resultado = j.resultado || st.cl.resultado;
       p.causa = j.causa || causaNombre;
       p.causa_id = j.causaId || st.cl.causa;
+      const fg = (st.geo?.features || []).find((x) => x.properties.codigo === p.codigo);
+      if (fg && fg.properties !== p) {
+        fg.properties.estado = 'validada';
+        fg.properties.resultado = p.resultado;
+        fg.properties.causa = p.causa;
+        fg.properties.causa_id = p.causa_id;
+      }
       delete st.cl.duda[p.codigo];
       st.cl.hechas[p.codigo] = {
         resultado: st.cl.resultado, causa: p.causa_id, causaNombre: p.causa, conf: st.cl.conf,

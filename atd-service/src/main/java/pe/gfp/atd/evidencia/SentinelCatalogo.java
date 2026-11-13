@@ -39,6 +39,11 @@ public class SentinelCatalogo {
     private final ObjectMapper json = new ObjectMapper();
 
     public BusquedaSentinel buscar(double lon, double lat, LocalDate desde, LocalDate hasta) {
+        return buscar(lon, lat, desde, hasta, 80);
+    }
+
+    /** maxNubes es el tope de eo:cloud_cover (0 a 80). El par del reporte usa 3. */
+    public BusquedaSentinel buscar(double lon, double lat, LocalDate desde, LocalDate hasta, double maxNubes) {
         if (hasta.isBefore(desde)) {
             LocalDate tmp = desde;
             desde = hasta;
@@ -47,6 +52,7 @@ public class SentinelCatalogo {
         if (ChronoUnit.DAYS.between(desde, hasta) > MAX_DIAS) {
             throw new IllegalArgumentException("El rango supera " + MAX_DIAS + " días");
         }
+        double tope = Math.max(0, Math.min(80, maxNubes));
         try {
             ObjectNode cuerpo = json.createObjectNode();
             cuerpo.putArray("collections").add("sentinel-2-l2a");
@@ -54,7 +60,7 @@ public class SentinelCatalogo {
             punto.put("type", "Point");
             punto.putArray("coordinates").add(lon).add(lat);
             cuerpo.put("datetime", desde + "T00:00:00Z/" + hasta + "T23:59:59Z");
-            cuerpo.putObject("query").putObject("eo:cloud_cover").put("lte", 80);
+            cuerpo.putObject("query").putObject("eo:cloud_cover").put("lte", tope);
             cuerpo.putArray("sortby").addObject().put("field", "properties.datetime").put("direction", "desc");
             cuerpo.put("limit", 40);
 
@@ -68,8 +74,10 @@ public class SentinelCatalogo {
                 log.warn("Catálogo Sentinel-2 respondió HTTP {}", res.statusCode());
                 return new BusquedaSentinel(List.of(), "El catálogo Sentinel-2 no respondió. Intente de nuevo.");
             }
-            return new BusquedaSentinel(unicas(json.readTree(res.body()), lon, lat),
-                    "Fechas del catálogo Sentinel-2 L2A. El par del reporte no cambia.");
+            String aviso = tope <= 3
+                    ? "Escenas Sentinel-2 L2A con nubosidad menor a 3 %."
+                    : "Fechas del catálogo Sentinel-2 L2A. El par del reporte no cambia.";
+            return new BusquedaSentinel(unicas(json.readTree(res.body()), lon, lat), aviso);
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {

@@ -13,7 +13,8 @@ import org.springframework.stereotype.Repository;
 public class ReporteRepository {
 
     /** Imagen de evidencia con su extensión en EPSG:3857 [xmin, ymin, xmax, ymax]. */
-    public record ImagenEscena(String momento, String escenaId, LocalDate fecha, double[] recorte, byte[] png) {
+    public record ImagenEscena(String momento, String escenaId, LocalDate fecha, double[] recorte, byte[] png,
+                               Double nubes) {
     }
 
     /** Límites simplificados del ACR y de su Zona de Influencia, en GeoJSON EPSG:3857. */
@@ -84,7 +85,8 @@ public class ReporteRepository {
 
     public List<ImagenEscena> imagenes(String codigo) {
         return jdbc.query("""
-                SELECT e.momento, e.escena_id, e.fecha, e.rec_xmin, e.rec_ymin, e.rec_xmax, e.rec_ymax, v.contenido
+                SELECT e.momento, e.escena_id, e.fecha, e.nubosidad, e.rec_xmin, e.rec_ymin, e.rec_xmax, e.rec_ymax,
+                       v.contenido
                   FROM escena e
                   JOIN alerta a ON a.id = e.alerta_id
                   JOIN evidencia v ON v.escena_id = e.id AND v.contenido IS NOT NULL
@@ -96,7 +98,8 @@ public class ReporteRepository {
                 rs.getObject("rec_xmin") == null ? null : new double[] {
                         rs.getDouble("rec_xmin"), rs.getDouble("rec_ymin"),
                         rs.getDouble("rec_xmax"), rs.getDouble("rec_ymax")},
-                rs.getBytes("contenido")), codigo);
+                rs.getBytes("contenido"),
+                rs.getObject("nubosidad") == null ? null : rs.getDouble("nubosidad")), codigo);
     }
 
     /**

@@ -65,16 +65,21 @@ public class ReportePdf {
 
     private final ReporteRepository repo;
     private final Dibujo dibujo;
+    private final UbicacionTerritorial ubicacion;
+    private final pe.gfp.atd.evidencia.ParSentinel parSentinel;
     private final String responsable;
     private final String cargo;
     private final String dashboardUrl;
 
-    public ReportePdf(ReporteRepository repo, Dibujo dibujo,
+    public ReportePdf(ReporteRepository repo, Dibujo dibujo, UbicacionTerritorial ubicacion,
+                      pe.gfp.atd.evidencia.ParSentinel parSentinel,
                       @Value("${atd.reporte.responsable}") String responsable,
                       @Value("${atd.reporte.cargo}") String cargo,
                       @Value("${atd.reporte.dashboard-url}") String dashboardUrl) {
         this.repo = repo;
         this.dibujo = dibujo;
+        this.ubicacion = ubicacion;
+        this.parSentinel = parSentinel;
         this.responsable = responsable;
         this.cargo = cargo;
         this.dashboardUrl = dashboardUrl;
@@ -85,6 +90,16 @@ public class ReportePdf {
 
     /** @param base URL pública del servicio (para los enlaces del reporte), sin barra final. */
     public Optional<Archivo> generar(String codigo, String base) {
+        try {
+            ubicacion.completar(codigo);
+        } catch (RuntimeException e) {
+            // La ficha sale igual; zonificación, sector o grilla quedan en blanco si la capa no cubre el punto.
+        }
+        try {
+            parSentinel.asegurar(codigo);
+        } catch (RuntimeException e) {
+            // Sin escena bajo 3 % de nubes el recuadro queda vacío, con fecha y código en blanco.
+        }
         return repo.datos(codigo).map(d -> new Archivo(nombreArchivo(d), construir(d, base)));
     }
 
@@ -305,7 +320,9 @@ public class ReportePdf {
     private PdfPCell chip(ImagenEscena e, DatosReporte d, float aw, float ah, boolean izquierda) {
         PdfPCell c;
         if (e == null) {
-            c = sinBorde(new Phrase(izquierda ? "[ Sin imagen Sentinel A ]" : "[ Sin imagen Sentinel B ]",
+            c = sinBorde(new Phrase(izquierda
+                    ? "Sin escena anterior con nubes < 3 %"
+                    : "Sin escena posterior con nubes < 3 %",
                     fuente(7, false, Color.GRAY)));
             c.setHorizontalAlignment(Element.ALIGN_CENTER);
         } else {
@@ -323,7 +340,9 @@ public class ReportePdf {
         PdfPCell fecha = sinBorde(new Phrase("Fecha:  " + (e == null || e.fecha() == null ? "-" : DMY.format(e.fecha())),
                 fuente(6, true, Color.BLACK)));
         fecha.setHorizontalAlignment(Element.ALIGN_CENTER);
-        PdfPCell cod = sinBorde(new Phrase("Código:  " + (e == null ? "-" : e.escenaId()), fuente(5.5f, false, Color.BLACK)));
+        String nubes = e == null || e.nubes() == null ? "" : String.format(Locale.ROOT, "  ·  nubes %.1f %%", e.nubes());
+        PdfPCell cod = sinBorde(new Phrase("Código:  " + (e == null ? "-" : e.escenaId()) + nubes,
+                fuente(5.5f, false, Color.BLACK)));
         cod.setColspan(2);
         for (PdfPCell c : new PdfPCell[] {sat, fecha, cod}) {
             c.setBackgroundColor(GRIS);

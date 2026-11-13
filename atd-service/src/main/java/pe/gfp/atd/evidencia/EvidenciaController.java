@@ -41,7 +41,8 @@ public class EvidenciaController {
     public BusquedaSentinel sentinel(
             @PathVariable @Pattern(regexp = PATRON_CODIGO) String codigo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) Double maxNubes) {
         EvidenciaRepository.PuntoAlerta punto = repo.punto(codigo)
                 .orElseThrow(() -> new NoEncontradoException("Alerta no encontrada"));
         LocalDate base = punto.fechaImagen() != null ? punto.fechaImagen() : LocalDate.now();
@@ -51,7 +52,8 @@ public class EvidenciaController {
         if (hasta == null) {
             hasta = base.plusDays(20);
         }
-        return sentinel.buscar(punto.lon(), punto.lat(), desde, hasta);
+        double tope = maxNubes == null ? 80 : maxNubes;
+        return sentinel.buscar(punto.lon(), punto.lat(), desde, hasta, tope);
     }
 
     @GetMapping("/imagen/{momento}.png")

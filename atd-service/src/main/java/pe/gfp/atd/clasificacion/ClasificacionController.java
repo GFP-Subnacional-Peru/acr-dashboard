@@ -5,14 +5,20 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import pe.gfp.atd.evidencia.ParSentinel;
+import pe.gfp.atd.reporte.UbicacionTerritorial;
 
 /**
  * Guarda la decisión del especialista en la alerta. No inventa una detección:
@@ -24,13 +30,19 @@ public class ClasificacionController {
     private static final Pattern PATRON_CODIGO = Pattern.compile("[A-Z]{3}-\\d{4}-\\d{4,6}");
     private static final int CAUSA_NATURAL = 14;
     private static final int CAUSA_FALSA = 99;
+    private static final Logger log = LoggerFactory.getLogger(ClasificacionController.class);
 
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
+    private final UbicacionTerritorial ubicacion;
+    private final ParSentinel parSentinel;
 
-    public ClasificacionController(JdbcTemplate jdbc, ObjectMapper json) {
+    public ClasificacionController(JdbcTemplate jdbc, ObjectMapper json,
+                                   UbicacionTerritorial ubicacion, ParSentinel parSentinel) {
         this.jdbc = jdbc;
         this.json = json;
+        this.ubicacion = ubicacion;
+        this.parSentinel = parSentinel;
     }
 
     @PutMapping("/api/atd/alertas/{codigo}/clasificacion")
@@ -105,6 +117,23 @@ public class ClasificacionController {
         if (n == 0) {
             return error(HttpStatus.NOT_FOUND, "Alerta no encontrada");
         }
+        try {
+            ubicacion.completar(codigo);
+        } catch (RuntimeException e) {
+            log.warn("Zonificación no aplicada a {}: {}", codigo, e.toString());
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                Thread.startVirtualThread(() -> {
+                    try {
+                        parSentinel.asegurar(codigo);
+                    } catch (RuntimeException e) {
+                        log.warn("Par Sentinel no guardado para {}: {}", codigo, e.toString());
+                    }
+                });
+            }
+        });
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("codigo", codigo);
         out.put("estado", "validada");

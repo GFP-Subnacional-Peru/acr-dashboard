@@ -73,7 +73,7 @@ public class AlertaController {
             @RequestParam @Min(1) @Max(12) int mes) {
         return ResponseEntity.ok()
                 .contentType(GEOJSON)
-                .cacheControl(CACHE_CORTO)
+                .cacheControl(CacheControl.noStore())
                 .body(repo.alertasGeoJson(acr, Ambito.desde(ambito), anio, mes));
     }
 
