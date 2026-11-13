@@ -98,7 +98,7 @@ public class ReportePdf {
         try {
             parSentinel.asegurar(codigo);
         } catch (RuntimeException e) {
-            // Sin escena bajo 3 % de nubes el recuadro queda vacío, con fecha y código en blanco.
+            // Sin escena de hasta 30 % de nubes el recuadro queda vacío, con fecha y código en blanco.
         }
         return repo.datos(codigo).map(d -> new Archivo(nombreArchivo(d), construir(d, base)));
     }
@@ -321,8 +321,8 @@ public class ReportePdf {
         PdfPCell c;
         if (e == null) {
             c = sinBorde(new Phrase(izquierda
-                    ? "Sin escena anterior con nubes < 3 %"
-                    : "Sin escena posterior con nubes < 3 %",
+                    ? "Sin escena anterior con nubes de hasta 30 %"
+                    : "Sin escena posterior con nubes de hasta 30 %",
                     fuente(7, false, Color.GRAY)));
             c.setHorizontalAlignment(Element.ALIGN_CENTER);
         } else {

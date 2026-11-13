@@ -17,13 +17,13 @@ import org.springframework.stereotype.Service;
 
 /**
  * Guarda el par antes/después del reporte. Solo entran escenas Sentinel-2 L2A
- * con nubosidad de la escena menor a 3 %. Si no hay una, el recuadro queda vacío.
+ * con nubosidad de la escena de hasta 30 %. Si no hay una, el recuadro queda vacío.
  */
 @Service
 public class ParSentinel {
 
     private static final Logger log = LoggerFactory.getLogger(ParSentinel.class);
-    private static final double MAX_NUBES = 3;
+    private static final double MAX_NUBES = 30;
     private static final int ANTES_DESDE = 75;
     private static final int ANTES_HASTA = 8;
     private static final int DESPUES_HASTA = 25;
@@ -68,7 +68,7 @@ public class ParSentinel {
         BusquedaSentinel busqueda = catalogo.buscar(p.lon(), p.lat(), desde, hasta, MAX_NUBES);
         Optional<EscenaLibre> elegida = elegir(busqueda.escenas(), det, anterior);
         if (elegida.isEmpty()) {
-            log.info("Sin escena Sentinel < {} % para {} ({})", MAX_NUBES, p, momento);
+            log.info("Sin escena Sentinel de hasta {} % para {} ({})", MAX_NUBES, p, momento);
             return;
         }
         EscenaLibre escena = elegida.get();
@@ -120,7 +120,7 @@ public class ParSentinel {
 
     private static Optional<EscenaLibre> elegir(List<EscenaLibre> escenas, LocalDate det, boolean anterior) {
         return escenas.stream()
-                .filter(e -> e.fecha() != null && e.fecha().length() >= 10 && e.nubes() < MAX_NUBES && !e.recorte().isBlank())
+                .filter(e -> e.fecha() != null && e.fecha().length() >= 10 && e.nubes() <= MAX_NUBES && !e.recorte().isBlank())
                 .filter(e -> {
                     LocalDate f = LocalDate.parse(e.fecha());
                     long delta = ChronoUnit.DAYS.between(f, det);

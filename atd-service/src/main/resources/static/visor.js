@@ -1662,7 +1662,7 @@
       const delta = (Date.parse(`${e.fecha}T00:00:00Z`) - anclaMs) / 86400000;
       return sentido === 'antes' ? delta < 0 : delta >= 0;
     });
-    const pool = pool0.filter((e) => Number(e.nubes) < 3);
+    const pool = pool0.filter((e) => Number(e.nubes) <= 30);
     pool.sort((a, b) => {
       if (Math.abs(Number(a.nubes) - Number(b.nubes)) > 10) return Number(a.nubes) - Number(b.nubes);
       const da = Math.abs(Date.parse(`${a.fecha}T00:00:00Z`) - anclaMs);
@@ -1702,14 +1702,14 @@
     const hastaDespues = sumarDiasIso(ancla, 25);
     try {
       const [ra, rd] = await Promise.all([
-        api(`/alertas/${codigo}/sentinel?desde=${desdeAntes}&hasta=${hastaAntes}&maxNubes=3`),
-        api(`/alertas/${codigo}/sentinel?desde=${ancla}&hasta=${hastaDespues}&maxNubes=3`),
+        api(`/alertas/${codigo}/sentinel?desde=${desdeAntes}&hasta=${hastaAntes}&maxNubes=30`),
+        api(`/alertas/${codigo}/sentinel?desde=${ancla}&hasta=${hastaDespues}&maxNubes=30`),
       ]);
       if (!cont.isConnected) return;
       const a = elegirReferencia(ra.escenas, ancla, 'antes');
       const b = elegirReferencia(rd.escenas, ancla, 'despues');
       if (!a && !b) {
-        if (espera) espera.innerHTML = '<i class="fas fa-cloud-sun"></i>No hay escena Sentinel-2 con nubosidad menor a 3 % en ese periodo. Puede buscar otra fecha abajo.';
+        if (espera) espera.innerHTML = '<i class="fas fa-cloud-sun"></i>No hay escena Sentinel-2 con nubosidad de hasta 30 % en ese periodo. Puede buscar otra fecha abajo.';
         return;
       }
       const marco = (esc, rotulo) => marcoImagen(
@@ -1721,7 +1721,7 @@
       );
       const caja = document.createElement('div');
       caja.className = 'ref-auto';
-      caja.innerHTML = `<p class="sensor-nota">Referencia automática con nubosidad menor a 3 %. Antes es una escena anterior a la detección. Después es una escena de ese día o de los siguientes. Este par, con su fecha y su código, es el que entra al reporte.</p>
+      caja.innerHTML = `<p class="sensor-nota">Referencia automática con nubosidad de hasta 30 %. Antes es una escena anterior a la detección. Después es una escena de ese día o de los siguientes. Este par, con su fecha y su código, es el que entra al reporte.</p>
         <div class="trio trio-ref">
           ${a ? marco(a, 'ANTES') : '<div class="sin-imagen"><i class="fas fa-image"></i>Sin escena anterior clara.</div>'}
           ${b ? marco(b, 'DESPUÉS') : '<div class="sin-imagen"><i class="fas fa-image"></i>Sin escena posterior clara.</div>'}

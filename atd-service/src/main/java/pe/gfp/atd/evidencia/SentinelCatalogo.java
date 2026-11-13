@@ -42,7 +42,7 @@ public class SentinelCatalogo {
         return buscar(lon, lat, desde, hasta, 80);
     }
 
-    /** maxNubes es el tope de eo:cloud_cover (0 a 80). El par del reporte usa 3. */
+    /** maxNubes es el tope de eo:cloud_cover (0 a 80). El par del reporte usa 30. */
     public BusquedaSentinel buscar(double lon, double lat, LocalDate desde, LocalDate hasta, double maxNubes) {
         if (hasta.isBefore(desde)) {
             LocalDate tmp = desde;
@@ -74,8 +74,8 @@ public class SentinelCatalogo {
                 log.warn("Catálogo Sentinel-2 respondió HTTP {}", res.statusCode());
                 return new BusquedaSentinel(List.of(), "El catálogo Sentinel-2 no respondió. Intente de nuevo.");
             }
-            String aviso = tope <= 3
-                    ? "Escenas Sentinel-2 L2A con nubosidad menor a 3 %."
+            String aviso = tope <= 30
+                    ? "Escenas Sentinel-2 L2A con nubosidad de hasta 30 %."
                     : "Fechas del catálogo Sentinel-2 L2A. El par del reporte no cambia.";
             return new BusquedaSentinel(unicas(json.readTree(res.body()), lon, lat), aviso);
         } catch (IllegalArgumentException e) {
