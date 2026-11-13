@@ -1721,12 +1721,24 @@
       );
       const caja = document.createElement('div');
       caja.className = 'ref-auto';
-      caja.innerHTML = `<p class="sensor-nota">Referencia automática con nubosidad de hasta 30 %. Antes es una escena anterior a la detección. Después es una escena de ese día o de los siguientes. Este par, con su fecha y su código, es el que entra al reporte.</p>
+      const notaClic = (a && b) ? ' Clic en una imagen para abrir el deslizador.' : '';
+      caja.innerHTML = `<p class="sensor-nota">Referencia automática con nubosidad de hasta 30 %. Antes es una escena anterior a la detección. Después es una escena de ese día o de los siguientes. Este par, con su fecha y su código, es el que entra al reporte.${notaClic}</p>
         <div class="trio trio-ref">
           ${a ? marco(a, 'ANTES') : '<div class="sin-imagen"><i class="fas fa-image"></i>Sin escena anterior clara.</div>'}
           ${b ? marco(b, 'DESPUÉS') : '<div class="sin-imagen"><i class="fas fa-image"></i>Sin escena posterior clara.</div>'}
         </div>`;
       if (espera) espera.replaceWith(caja);
+      if (a && b) {
+        const antesRef = { imagen: a.recorte || a.miniatura, fecha: a.fecha, recorte: recorte3857(a) };
+        const despuesRef = { imagen: b.recorte || b.miniatura, fecha: b.fecha, recorte: recorte3857(b) };
+        const cajaSwir = recorte3857(b);
+        const swir = urlSwir(cajaSwir, b.fecha);
+        caja.querySelectorAll('.marco').forEach((fig) => {
+          fig.title = 'Abrir y deslizar';
+          fig.style.cursor = 'pointer';
+          fig.onclick = () => abrirFotos('rgb', antesRef, despuesRef, swir, geom, cajaSwir);
+        });
+      }
       caja.querySelectorAll('img').forEach((img) => {
         const fig = img.closest('.marco');
         const esc = img.alt.startsWith('ANTES') ? a : b;
