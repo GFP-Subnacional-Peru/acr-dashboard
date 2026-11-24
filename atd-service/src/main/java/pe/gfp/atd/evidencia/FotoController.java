@@ -33,6 +33,7 @@ public class FotoController {
     private static final String PATRON_CODIGO = "[A-Z]{3}-\\d{4}-\\d{4,6}";
     private static final int MAX_FOTOS = 6;
     private static final int MAX_BYTES = 8 * 1024 * 1024;
+    private static final int MAX_VIDEO = 12 * 1024 * 1024;
 
     private final EvidenciaRepository repo;
     private final DriveAlmacen drive;
@@ -73,7 +74,10 @@ public class FotoController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> subir(@PathVariable @Pattern(regexp = PATRON_CODIGO) String codigo,
                                                      @RequestParam("foto") MultipartFile foto,
+                                                     @RequestParam(value = "video", required = false) MultipartFile video,
                                                      @RequestParam(value = "nota", required = false) String nota,
+                                                     @RequestParam(value = "nombre", required = false) String nombre,
+                                                     @RequestParam(value = "cargo", required = false) String cargo,
                                                      @RequestParam(value = "lat", required = false) String lat,
                                                      @RequestParam(value = "lon", required = false) String lon) {
         if (foto == null || foto.isEmpty()) {
@@ -113,6 +117,24 @@ public class FotoController {
         if ((latitud == null) != (longitud == null)) {
             return rechazo("Escribe latitud y longitud, o deja las dos vacías");
         }
+        String autor = recortar(nombre, 150);
+        String puesto = recortar(cargo, 120);
+        byte[] videoBytes = null;
+        String videoMime = null;
+        if (video != null && !video.isEmpty()) {
+            if (video.getSize() > MAX_VIDEO) {
+                return rechazo("El video pasa de 12 MB");
+            }
+            try {
+                videoBytes = video.getBytes();
+            } catch (Exception e) {
+                return rechazo("No se pudo leer el video");
+            }
+            videoMime = mimeVideo(videoBytes);
+            if (videoMime == null) {
+                return rechazo("El video tiene que ser MP4 o WEBM");
+            }
+        }
         String ruta = null;
         byte[] guardar = datos;
         if (drive.activo()) {
@@ -124,9 +146,23 @@ public class FotoController {
                 log.warn("Drive no recibió la foto, queda en la base: {}", e.getMessage());
             }
         }
-        long id = repo.guardarFoto(codigo, guardar, mime, limpia, ruta, latitud, longitud);
+        long id = repo.guardarFoto(codigo, guardar, mime, limpia, ruta, latitud, longitud, autor, puesto);
+        if (videoBytes != null) {
+            String rutaVideo = null;
+            byte[] guardarVideo = videoBytes;
+            if (drive.activo()) {
+                try {
+                    String idDrive = drive.subir("videos", codigo + "-" + System.currentTimeMillis() + (videoMime.endsWith("webm") ? ".webm" : ".mp4"), videoMime, videoBytes);
+                    rutaVideo = "drive:" + idDrive;
+                    guardarVideo = null;
+                } catch (Exception e) {
+                    log.warn("Drive no recibió el video, queda en la base: {}", e.getMessage());
+                }
+            }
+            repo.guardarVideo(codigo, guardarVideo, videoMime, limpia, rutaVideo, latitud, longitud, autor, puesto);
+        }
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(fotoJson(codigo, new EvidenciaRepository.Foto(id, limpia, "ahora", latitud, longitud)));
+                .body(fotoJson(codigo, new EvidenciaRepository.Foto(id, limpia, "ahora", latitud, longitud, autor, puesto)));
     }
 
     private static ResponseEntity<Map<String, Object>> rechazo(String mensaje) {
@@ -151,8 +187,31 @@ public class FotoController {
         m.put("tomada", f.tomada());
         m.put("lat", f.lat());
         m.put("lon", f.lon());
+        m.put("autor", f.autor());
+        m.put("cargo", f.cargo());
         m.put("url", "/api/atd/alertas/" + codigo + "/foto/" + f.id());
         return m;
+    }
+
+    private static String recortar(String texto, int max) {
+        if (texto == null) {
+            return null;
+        }
+        String limpio = texto.trim();
+        if (limpio.isEmpty()) {
+            return null;
+        }
+        return limpio.length() > max ? limpio.substring(0, max) : limpio;
+    }
+
+    private static String mimeVideo(byte[] d) {
+        if (d.length >= 12 && d[4] == 'f' && d[5] == 't' && d[6] == 'y' && d[7] == 'p') {
+            return "video/mp4";
+        }
+        if (d.length >= 4 && (d[0] & 0xFF) == 0x1A && (d[1] & 0xFF) == 0x45 && (d[2] & 0xFF) == 0xDF && (d[3] & 0xFF) == 0xA3) {
+            return "video/webm";
+        }
+        return null;
     }
 
     /** Vacío vale null. Un número fuera de rango también devuelve null: el llamador lo distingue del vacío. */

@@ -18,6 +18,18 @@ ACR_NOMBRES = {
     "ACR_QK": "Q'eros Kosñipata",
 }
 
+ACR_DEPTO = {
+    "ACR_AA": "loreto",
+    "ACR_ANPCH": "loreto",
+    "ACR_MK": "loreto",
+    "ACR_CTT": "loreto",
+    "ACR_BSM": "san_martin",
+    "ACR_CE": "san_martin",
+    "ACR_CHQ": "cusco",
+    "ACR_CHU": "cusco",
+    "ACR_QK": "cusco",
+}
+
 COLORES_COMPARATIVA = [
     "#C0392B",
     "#1A5276",
@@ -40,12 +52,18 @@ def analizar_tendencias(
     acr_seleccion: list[str] | None = None,
     rango_anios: tuple[int, int] = (2001, 2025),
     mostrar_tendencia: bool = True,
+    causa: str | None = None,
 ) -> dict:
     df = _load()
     if df.empty:
         return {"series": [], "titulo": "Sin datos temporales"}
 
     y0, y1 = rango_anios
+    causa_txt = (causa or "").strip()
+    if causa_txt and causa_txt.lower() not in {"todas", "todos"}:
+        return _analizar_por_causa(
+            tipo_analisis, acr_seleccion, y0, y1, mostrar_tendencia, causa_txt
+        )
     datos = df[(df["Anio"] >= y0) & (df["Anio"] <= y1)].copy()
 
     if tipo_analisis in ("individual", "comparativa") and acr_seleccion:
@@ -77,11 +95,60 @@ def analizar_tendencias(
         sub = datos[datos["ACR_codigo"] == cod].sort_values("Anio")
         sub["Cambio_Pct"] = _pct_change(sub["Deforestacion_ha"].values)
         color = COLORES_COMPARATIVA[i % len(COLORES_COMPARATIVA)]
-        series.append(_serie_from_df(sub, _nombre_acr(cod), color, False))
+        series.append(_serie_from_df(sub, _nombre_acr(cod), color, mostrar_tendencia))
     return {
         "tipo": tipo_analisis,
         "titulo": "Comparativa de tendencias entre ACR",
         "series": series,
+    }
+
+
+def _codigos(tipo_analisis: str, acr_seleccion: list[str] | None) -> list[str]:
+    if tipo_analisis in ("individual", "comparativa") and acr_seleccion:
+        return [c for c in acr_seleccion if c in ACR_DEPTO]
+    return list(ACR_DEPTO)
+
+
+def _analizar_por_causa(tipo, acr_seleccion, y0, y1, mostrar_tendencia, causa: str) -> dict:
+    """Serie anual real de los polígonos cuya causa coincide. No rellena años sin pérdida."""
+    from services.deforestacion_vectors_service import iter_acumulado_properties
+
+    codigos = _codigos(tipo, acr_seleccion)
+    if tipo == "individual" and codigos:
+        codigos = codigos[:1]
+    por_acr: dict[str, dict[int, float]] = {c: {} for c in codigos}
+    for cod in codigos:
+        depto = ACR_DEPTO.get(cod)
+        if not depto:
+            continue
+        for row in iter_acumulado_properties(depto, "acr", [cod], y0, y1):
+            if (row.get("causa_nombre") or "") != causa:
+                continue
+            anio = int(row["anno"])
+            por_acr[cod][anio] = por_acr[cod].get(anio, 0.0) + float(row.get("area_ha") or 0)
+
+    series = []
+    for i, cod in enumerate(codigos):
+        anos = sorted(por_acr[cod])
+        if not anos:
+            continue
+        filas = [
+            {"Anio": a, "Deforestacion_ha": round(por_acr[cod][a], 2), "Cambio_Pct": None}
+            for a in anos
+        ]
+        frame = pd.DataFrame(filas)
+        color = COLORES_COMPARATIVA[i % len(COLORES_COMPARATIVA)]
+        nombre = causa if len(codigos) == 1 and tipo != "comparativa" else _nombre_acr(cod)
+        series.append(_serie_from_df(frame, nombre, color, mostrar_tendencia and len(frame) >= 2))
+    titulo = f"Pérdida por causa · {causa} · {y0}–{y1}"
+    if not series:
+        titulo = f"Sin polígonos de «{causa}» en {y0}–{y1}"
+    return {
+        "tipo": tipo,
+        "titulo": titulo,
+        "series": series,
+        "causa": causa,
+        "fuente": "poligonos",
     }
 
 
@@ -114,6 +181,7 @@ def _serie_from_df(df: pd.DataFrame, name: str, color: str, trend: bool) -> dict
         coef = np.polyfit(x, y, 1)
         trend_y = coef[0] * x + coef[1]
         serie["tendencia"] = [
-            {"Anio": int(a), "valor": float(b)} for a, b in zip(x, trend_y)
+            {"Anio": int(a), "valor": round(float(b), 2)} for a, b in zip(x, trend_y)
         ]
+        serie["tendencia_nombre"] = f"Tendencia · {name}"
     return serie

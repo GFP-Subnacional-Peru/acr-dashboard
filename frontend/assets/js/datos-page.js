@@ -54,14 +54,16 @@
 
   function formatos(d) {
     if (d.formatos) return d.formatos;
-    return ["GeoJSON", "PDF", "JPG"];
+    return ["GeoJSON", "SHP", "PDF", "JPG"];
   }
 
   function coincide(d) {
     if (state.depto !== "todos" && d.deptoKey !== state.depto && d.deptoKey !== "todos") return false;
     const tiene = formatos(d).map((f) => f.toLowerCase());
     if (state.formato === "geojson" && !tiene.includes("geojson")) return false;
+    if (state.formato === "shp" && !tiene.includes("shp")) return false;
     if (state.formato === "pdf" && !tiene.includes("pdf")) return false;
+    if (state.formato === "jpg" && !tiene.includes("jpg")) return false;
     if (state.formato === "zip" && !tiene.includes("zip")) return false;
     const f = fichaDe(d);
     const texto = (d.titulo + " " + d.resumen + " " + d.depto + " " + (f.palabras || "") + " " + (f.temporal || "")).toLowerCase();
@@ -90,6 +92,8 @@
       return `<a class="ide-btn ide-btn-main" href="${d.zip}"><i class="fas fa-file-archive"></i> Descargar ZIP</a>${ficha}`;
     }
     return `<a class="ide-btn ide-btn-main" href="${d.geojson}"><i class="fas fa-download"></i> GeoJSON</a>
+      <a class="ide-btn" href="/api/descargas/acr/${d.id}/shp"><i class="fas fa-file-archive"></i> SHP</a>
+      <a class="ide-btn" href="${d.img}" download><i class="fas fa-file-image"></i> JPG</a>
       <a class="ide-btn" href="${d.img}" target="_blank" rel="noopener"><i class="fas fa-map"></i> Ver mapa</a>
       <a class="ide-btn" href="${d.pdf}"><i class="fas fa-file-pdf"></i> PDF</a>${ficha}`;
   }

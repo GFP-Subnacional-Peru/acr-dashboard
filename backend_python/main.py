@@ -66,6 +66,7 @@ from services.filtros_service import (
     obtener_datos_filtrados,
 )
 from services.kpis_service import generar_resumen_kpis
+from services.shapefile_export import geojson_path_a_zip
 from services.geometrias_service import build_map_layers
 from services.temporal_service import calcular_variacion_anual, serie_temporal
 from services.tendencias_service import analizar_tendencias
@@ -554,6 +555,7 @@ def tendencias_analisis(
     anio_min: int = Query(2001),
     anio_max: int = Query(2025),
     mostrar_tendencia: bool = Query(True),
+    causa: str | None = Query(None),
 ) -> dict:
     """Equivalente a mod_prediccion.R tras clic en Generar Análisis."""
     return analizar_tendencias(
@@ -561,6 +563,7 @@ def tendencias_analisis(
         acr_seleccion=acr,
         rango_anios=(anio_min, anio_max),
         mostrar_tendencia=mostrar_tendencia,
+        causa=causa,
     )
 
 
@@ -775,6 +778,28 @@ def descargar_datos_acr(code: str) -> FileResponse:
     )
 
 
+@app.get("/api/descargas/acr/{code}/shp")
+def descargar_shp_acr(code: str) -> Response:
+    """Shapefile (ZIP) de la deforestación acumulada. El GDB de Esri no se genera aquí."""
+    key = code.strip().upper()
+    entry = CODIGO_SLUGS.get(key)
+    if not entry or not key.startswith("ACR_"):
+        raise HTTPException(404, "ACR no encontrada")
+    folder, slug = entry
+    path = ATD_ROOT / folder / "acumulado" / f"{slug}.geojson"
+    if not path.exists():
+        raise HTTPException(404, "Datos de la ACR no disponibles")
+    nice = _ACR_DOWNLOAD_NAMES.get(key, key)
+    base = f"deforestacion_{nice}"
+    payload = geojson_path_a_zip(path, base)
+    fname = f"{base}_{date.today().isoformat()}.zip"
+    return Response(
+        content=payload,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
+
+
 @app.get("/api/descargas/datos")
 def descargar_datos_completo() -> StreamingResponse:
     """ZIP con cache CSV/GeoJSON — equivalente a btn_descargar_datos_completo."""
@@ -836,6 +861,14 @@ if _FRONTEND_DIR.exists():
     @app.get("/datos")
     def portal_datos():
         return _html("datos.html")
+
+    @app.get("/panel")
+    def portal_panel():
+        return RedirectResponse("/mapa?tab=panel", status_code=302)
+
+    @app.get("/productos")
+    def portal_productos():
+        return _html("productos.html")
 
     @app.get("/acuerdos")
     def portal_acuerdos():

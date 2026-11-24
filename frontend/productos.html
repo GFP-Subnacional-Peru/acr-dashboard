@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mapas — Productos cartográficos | GFP Subnacional</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/css/portal.css?v=20261124a" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20261124a" />
+  <script>
+    (function () {
+      try {
+        if (window.self !== window.top) document.documentElement.classList.add("is-embed");
+      } catch (e) {
+        document.documentElement.classList.add("is-embed");
+      }
+    })();
+  </script>
+</head>
+<body class="portal-body">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-logos" aria-label="Identidad institucional GFP · SECO · Basel">
+        <a class="site-logo-gfp" href="https://www.gfpsubnacional.pe/" target="_blank" rel="noopener noreferrer" title="GFP Subnacional">
+          <img src="/assets/img/logo_gfp.png" alt="GFP — Suiza apoyando al Perú" height="48" />
+        </a>
+        <img class="site-logo-seco" src="/assets/img/logo_SECO.jpg" alt="Embajada de Suiza en el Perú — SECO" height="42" />
+        <img class="site-logo-basel" src="/assets/img/logo_basel.png" alt="Basel Institute on Governance" height="38" />
+      </div>
+    </div>
+  </header>
+  <main class="portal-main">
+    <section class="dash-hero section-hero datos-hero" aria-label="Productos cartográficos">
+      <nav class="portal-hero-nav navbar" aria-label="Navegación del portal">
+        <ul class="nav-tabs">
+          <li><a href="/"><i class="fas fa-home"></i> Inicio</a></li>
+          <li><a href="/mapa?tab=panel"><i class="fas fa-tachometer-alt"></i> Panel de Control</a></li>
+          <li><a href="/mapa"><i class="fas fa-map"></i> Visor</a></li>
+          <li><a class="active" href="/productos"><i class="fas fa-map-marked-alt"></i> Mapas</a></li>
+          <li><a href="/datos"><i class="fas fa-database"></i> Base de Datos</a></li>
+          <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Análisis</a></li>
+          <li><a href="https://www.gfpsubnacional.pe/sistema-de-alertas-tempranas-de-deforestacion/" target="_blank" rel="noopener" title="Monitoreo de alertas tempranas (acceso con usuario)"><i class="fas fa-satellite"></i> Monitoreo</a></li>
+          <li><a href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
+        </ul>
+      </nav>
+      <div class="dash-hero-inner">
+        <div class="dash-hero-copy">
+          <p class="dash-hero-eyebrow">Productos cartográficos</p>
+          <h1>Mapas de línea base</h1>
+          <p class="dash-hero-sub">Los nueve mapas ya publicados de las ACR. Cada uno se abre en JPG, se descarga en PDF y la capa va en GeoJSON o SHP.</p>
+        </div>
+      </div>
+    </section>
+    <section class="portal-section ide-catalog">
+      <p class="ide-fuente">El GDB (File Geodatabase de Esri) no se genera en este servicio. El SHP es el archivo de polígonos equivalente.</p>
+      <div id="productos" class="ide-results"></div>
+    </section>
+  </main>
+  <footer class="footer-simple">
+    <div class="footer-logo"><i class="fas fa-leaf"></i></div>
+    <p style="font-style:italic;color:#1a4d2e;font-weight:500">Suiza, apoyando la tecnología al servicio de la conservación de nuestros bosques amazónicos.</p>
+  </footer>
+  <script>
+    const MAPAS = [
+      ["ACR_AA", "Ampiyacu Apayacu", "Loreto", "aa", "/mapas/thumbs/aa.jpg", "/mapas/MAPA_ACR_AA_page-0001.jpg"],
+      ["ACR_ANPCH", "Alto Nanay Pintuyacu Chambira", "Loreto", "anpch", "/mapas/thumbs/anpch.jpg", "/mapas/MAPA_ACR_ANPCH_page-0001.jpg"],
+      ["ACR_MK", "Maijuna Kichwa", "Loreto", "mk", "/mapas/thumbs/mk.jpg", "/mapas/MAPA_ACR_MK_page-0001.jpg"],
+      ["ACR_CTT", "Comunal Tamshiyacu Tahuayo", "Loreto", "ctt", "/mapas/thumbs/ctt.jpg", "/mapas/MAPA_ACR_CTT_page-0001.jpg"],
+      ["ACR_BSM", "Bosques de Shunté y Mishollo", "San Martín", "boshumi", "/mapas/thumbs/boshumi.jpg", "/mapas/" + encodeURIComponent("25NOV17_Mapa_de_deforestación_en_ACR_BOSHUMI_y_su_ZI_A2.jpg")],
+      ["ACR_CE", "Cordillera Escalera", "San Martín", "ce", "/mapas/thumbs/ce.jpg", "/mapas/" + encodeURIComponent("25NOV17_Mapa_de_deforestación_en_ACR_CE_y_su_ZI_A2.jpg")],
+      ["ACR_CHQ", "Choquequirao", "Cusco", "chq", "/mapas/thumbs/chq.jpg", "/mapas/MAPA_CHOQUE_DEF_page-0001.jpg"],
+      ["ACR_CHU", "Chuyapi Urusayhua", "Cusco", "chu", "/mapas/thumbs/chu.jpg", "/mapas/MAPA_CHUYAPI_ANEXO2_page-0001.jpg"],
+      ["ACR_QK", "Q'eros Kosñipata", "Cusco", "qk", "/mapas/thumbs/qk.jpg", "/mapas/MAPA_QEROS_ANEXO3_page-0001.jpg"],
+    ];
+    document.getElementById("productos").innerHTML = MAPAS.map(([id, nombre, depto, pdf, thumb, jpg]) => `
+      <article class="ide-card">
+        <div class="ide-thumb"><img src="${thumb}" alt="Mapa ${nombre}" loading="lazy" /></div>
+        <div class="ide-body">
+          <p class="ide-org">GFP Subnacional · ${depto}</p>
+          <h3>${nombre}</h3>
+          <p>Mapa de línea base de deforestación ya publicado para esta ACR.</p>
+          <div class="ide-actions">
+            <a class="ide-btn ide-btn-main" href="${jpg}" target="_blank" rel="noopener"><i class="fas fa-map"></i> Ver</a>
+            <a class="ide-btn" href="${jpg}" download><i class="fas fa-file-image"></i> JPG</a>
+            <a class="ide-btn" href="/api/descargas/mapa/${pdf}"><i class="fas fa-file-pdf"></i> PDF</a>
+            <a class="ide-btn" href="/api/descargas/acr/${id}/shp"><i class="fas fa-file-archive"></i> SHP</a>
+            <a class="ide-btn ide-btn-link" href="/mapa?acr=${id}"><i class="fas fa-map-marked-alt"></i> Abrir en el visor</a>
+          </div>
+        </div>
+      </article>`).join("");
+  </script>
+</body>
+</html>

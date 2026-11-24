@@ -98,6 +98,7 @@ async function bootstrapDashboard() {
   } catch (_) {}
 
   const bootTab = initialTabFromUrl();
+  if (bootTab === "panel") aplicarVista("panel");
   const needsMapNow = bootTab === "dashboard";
 
   // Solo montar Leaflet si el usuario aterriza en Mapa (evita trabajo pesado en Metodología/etc.)
@@ -164,6 +165,7 @@ async function bootstrapDashboard() {
 function initialTabFromUrl() {
   try {
     const t = (new URLSearchParams(window.location.search).get("tab") || "").toLowerCase();
+    if (t === "panel") return "panel";
     if (t === "mapa") return "dashboard";
     if (t === "metodologia" || t === "tendencias") return t;
     if (t === "reportes") return "dashboard"; // pestaña retirada por ahora
@@ -173,12 +175,17 @@ function initialTabFromUrl() {
 
 /** Primera visita al mapa tras aterrizar en otra pestaña. */
 async function ensureDashboardData() {
+  const enPanel = document.getElementById("tab-dashboard")?.classList.contains("is-panel");
   if (window._dashDataReady) {
-    try { AcrMap.init()?.invalidateSize(); } catch (_) {}
+    if (!enPanel) {
+      try { AcrMap.init()?.invalidateSize(); } catch (_) {}
+    }
     return;
   }
   window._dashDataReady = true;
-  try { AcrMap.init(); } catch (_) {}
+  if (!enPanel) {
+    try { AcrMap.init(); } catch (_) {}
+  }
   await refreshDashboard();
 }
 
@@ -193,30 +200,56 @@ function startServerHeartbeat() {
   setInterval(ping, 8 * 60 * 1000);
 }
 
-function activateTab(tabName) {
+function aplicarVista(vista) {
+  const esPanel = vista === "panel";
+  document.getElementById("tab-dashboard")?.classList.toggle("is-panel", esPanel);
+  const hint = qs("#kpi-hint");
+  if (hint) {
+    hint.innerHTML = esPanel
+      ? '<i class="fas fa-columns"></i> El detalle de cada indicador queda fijo en esta página'
+      : '<i class="fas fa-hand-pointer"></i> Haga clic en un indicador para abrir el detalle en ventana flotante';
+  }
+  document.querySelectorAll('.nav-tabs button[data-tab="dashboard"]').forEach((b) => {
+    const want = esPanel ? "panel" : "visor";
+    b.classList.toggle("active", (b.dataset.vista || "visor") === want);
+  });
+}
+
+function activateTab(tabName, vista) {
+  const pedido = tabName === "panel" ? "dashboard" : tabName;
   const allowed = new Set(["dashboard", "metodologia", "tendencias"]);
-  const tab = allowed.has(tabName) ? tabName : "dashboard";
+  const tab = allowed.has(pedido) ? pedido : "dashboard";
+  const vistaFinal = tab !== "dashboard" ? null : (vista || (tabName === "panel" ? "panel" : "visor"));
   try {
     document.documentElement.removeAttribute("data-boot-tab");
+    document.documentElement.removeAttribute("data-boot-vista");
   } catch (_) {}
   document.querySelectorAll(".nav-tabs button[data-tab]").forEach((b) => b.classList.remove("active"));
   document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
-  const btn = document.querySelector(`.nav-tabs button[data-tab="${tab}"]`);
+  if (tab === "dashboard") aplicarVista(vistaFinal);
+  else document.getElementById("tab-dashboard")?.classList.remove("is-panel");
+  const btn = tab === "dashboard"
+    ? document.querySelector(`.nav-tabs button[data-tab="dashboard"][data-vista="${vistaFinal}"]`)
+    : document.querySelector(`.nav-tabs button[data-tab="${tab}"]`);
   if (btn) btn.classList.add("active");
   const panel = qs(`#tab-${tab}`);
   if (panel) panel.classList.add("active");
   if (tab === "dashboard") {
-    ensureDashboardData().catch((err) => console.warn("Dashboard:", err));
+    ensureDashboardData()
+      .then(() => {
+        if (vistaFinal === "panel") Modals.renderFijo?.(state);
+        else AcrMap.refresh?.(state);
+      })
+      .catch((err) => console.warn("Dashboard:", err));
   }
   if (tab === "tendencias" && typeof Tendencias !== "undefined" && !window._tendenciasReady) {
     window._tendenciasReady = true;
     Tendencias.init();
   }
-  // Actualiza URL sin recargar para que cada sección sea una "página" clara
   try {
     const url = new URL(window.location.href);
-    if (tab === "dashboard") url.searchParams.delete("tab");
-    else url.searchParams.set("tab", tab);
+    if (tab === "dashboard" && vistaFinal !== "panel") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", vistaFinal === "panel" ? "panel" : tab);
     window.history.replaceState({}, "", url);
   } catch (_) { /* ignore */ }
 }
@@ -224,7 +257,7 @@ function activateTab(tabName) {
 document.querySelectorAll(".nav-tabs button[data-tab]").forEach((btn) => {
   btn.addEventListener("click", (e) => {
     e.preventDefault();
-    activateTab(btn.dataset.tab);
+    activateTab(btn.dataset.tab, btn.dataset.vista || null);
   });
 });
 
@@ -275,25 +308,29 @@ async function applyUrlQueryParams(opts = {}) {
 function initYearFilters() {
   const desde = qs("#anno_desde");
   const hasta = qs("#anno_hasta");
-  if (!desde || !hasta) return;
-  for (let y = ANNO_MIN; y <= ANNO_MAX; y++) {
-    const o1 = document.createElement("option");
-    o1.value = String(y);
-    o1.textContent = String(y);
-    desde.appendChild(o1);
-    const o2 = document.createElement("option");
-    o2.value = String(y);
-    o2.textContent = String(y);
-    hasta.appendChild(o2);
+  const lista = qs("#annos-lista");
+  if (lista && !lista.children.length) {
+    for (let y = ANNO_MIN; y <= ANNO_MAX; y++) {
+      const o = document.createElement("option");
+      o.value = String(y);
+      lista.appendChild(o);
+    }
   }
+  if (!desde || !hasta) return;
   desde.value = String(state.annoDesde);
   hasta.value = String(state.annoHasta);
   syncYearFilterLabel();
 }
 
+function anioEscrito(raw, fallback) {
+  const n = parseInt(String(raw ?? "").trim(), 10);
+  if (!Number.isInteger(n)) return fallback;
+  return Math.min(ANNO_MAX, Math.max(ANNO_MIN, n));
+}
+
 function readYearFilters() {
-  let desde = parseInt(qs("#anno_desde")?.value || ANNO_MIN, 10);
-  let hasta = parseInt(qs("#anno_hasta")?.value || ANNO_MAX, 10);
+  let desde = anioEscrito(qs("#anno_desde")?.value, state.annoDesde || ANNO_MIN);
+  let hasta = anioEscrito(qs("#anno_hasta")?.value, state.annoHasta || ANNO_MAX);
   if (desde > hasta) [desde, hasta] = [hasta, desde];
   state.annoDesde = desde;
   state.annoHasta = hasta;
@@ -411,8 +448,12 @@ async function refreshDashboard() {
     anno_desde: state.annoDesde,
     anno_hasta: state.annoHasta,
   };
-  // Mapa en paralelo sin bloquear KPIs
-  AcrMap.refresh(state).catch((err) => console.warn("Mapa:", err));
+  const enPanel = document.getElementById("tab-dashboard")?.classList.contains("is-panel");
+  if (enPanel) {
+    Modals.renderFijo?.(state);
+  } else {
+    AcrMap.refresh(state).catch((err) => console.warn("Mapa:", err));
+  }
   const emptyKpis = {
     total_hectareas: 0,
     total_antropico: 0,
@@ -735,8 +776,10 @@ function onYearFilterChange() {
   scheduleRefresh(280);
 }
 
-qs("#anno_desde")?.addEventListener("change", onYearFilterChange);
-qs("#anno_hasta")?.addEventListener("change", onYearFilterChange);
+["#anno_desde", "#anno_hasta"].forEach((sel) => {
+  qs(sel)?.addEventListener("change", onYearFilterChange);
+  qs(sel)?.addEventListener("blur", onYearFilterChange);
+});
 qs("#btn-restablecer")?.addEventListener("click", () => {
   restablecerFiltros().catch((err) => console.error(err));
 });

@@ -279,7 +279,7 @@ const Modals = (() => {
     if (data.length > 1) {
       table = `<h4 class="kpi-detail-table-title"><i class="fas fa-table"></i> Distribución por ACR · ${periodo}</h4>
         <div class="kpi-detail-table-wrap"><table class="data-table"><thead><tr>
-        <th>ACR</th><th>Total (ha)</th><th>Antrópico</th><th>Natural</th></tr></thead><tbody>`;
+        <th>ACR</th><th>Total (ha)</th><th>Antrópico</th><th>Pérdida natural</th></tr></thead><tbody>`;
       data
         .slice()
         .sort((a, b) => (Number(b.Total) || 0) - (Number(a.Total) || 0))
@@ -297,8 +297,18 @@ const Modals = (() => {
       body.innerHTML = `<div class="kpi-modal-grid">
         <div class="kpi-mini kpi-mini--total"><h2>${fmt2(total)}</h2><span>TOTAL HA</span></div>
         <div class="kpi-mini kpi-mini--ant"><h2>${fmt2(ant)}</h2><span>ANTRÓPICO</span></div>
-        <div class="kpi-mini kpi-mini--nat"><h2>${fmt2(nat)}</h2><span>NATURAL</span></div>
-      </div>${table}`;
+        <div class="kpi-mini kpi-mini--nat"><h2>${fmt2(nat)}</h2><span>PÉRDIDA NATURAL</span></div>
+      </div>${table}
+      ${chartTools("ha-descargar-png", "ha-descargar-jpg", "ha-descargar-csv")}`;
+      bindChartDownloads(
+        "ha-descargar-png",
+        "ha-descargar-csv",
+        "chart-distribucion",
+        "perdida-bosque",
+        ["ACR", "Total_ha", "Antropico_ha", "Perdida_natural_ha"],
+        data.map((r) => [r.Nombre, r.Total, r.Antropico, r.Perdida_natural]),
+        "ha-descargar-jpg"
+      );
     }
     attachChartsToModal();
   }
@@ -359,13 +369,23 @@ const Modals = (() => {
     URL.revokeObjectURL(a.href);
   }
 
-  function bindChartDownloads(pngId, csvId, chartId, filename, headers, rows) {
-    document.getElementById(pngId)?.addEventListener("click", () => {
+  function chartTools(pngId, jpgId, csvId) {
+    return `<div class="chart-tools">
+      <button type="button" id="${pngId}"><i class="fas fa-image"></i> PNG</button>
+      <button type="button" id="${jpgId}"><i class="fas fa-file-image"></i> JPG</button>
+      <button type="button" id="${csvId}"><i class="fas fa-file-csv"></i> CSV</button>
+    </div>`;
+  }
+
+  function bindChartDownloads(pngId, csvId, chartId, filename, headers, rows, jpgId) {
+    const bajar = (format) => {
       const el = document.getElementById(chartId);
-      if (el && typeof Plotly !== "undefined") {
-        Plotly.downloadImage(el, { format: "png", filename, scale: 2 });
+      if (el && typeof Plotly !== "undefined" && Plotly.downloadImage) {
+        Plotly.downloadImage(el, { format, filename, scale: 2 });
       }
-    });
+    };
+    document.getElementById(pngId)?.addEventListener("click", () => bajar("png"));
+    document.getElementById(jpgId)?.addEventListener("click", () => bajar("jpeg"));
     document.getElementById(csvId)?.addEventListener("click", () => downloadCsv(filename + ".csv", headers, rows));
   }
 
@@ -399,10 +419,7 @@ const Modals = (() => {
       <p class="kpi-detail-lead">${sub || "Comparación respecto al año anterior."} Serie de pérdida anual en el período filtrado.</p>
       <div class="chart-block" style="margin-top:0.75rem">
         <h6><i class="fas fa-chart-line"></i> Pérdida anual (ha)</h6>
-        <div class="chart-tools">
-          <button type="button" id="var-descargar-png"><i class="fas fa-image"></i> Descargar imagen</button>
-          <button type="button" id="var-descargar-csv"><i class="fas fa-file-csv"></i> Descargar datos</button>
-        </div>
+        ${chartTools("var-descargar-png", "var-descargar-jpg", "var-descargar-csv")}
         <div id="modal-chart-variacion" style="height:360px"></div>
       </div>`;
     }
@@ -420,7 +437,8 @@ const Modals = (() => {
         "modal-chart-variacion",
         "perdida-anual",
         ["Anio", "Perdida_ha"],
-        years.map((y, i) => [y, vals[i]])
+        years.map((y, i) => [y, vals[i]]),
+        "var-descargar-jpg"
       );
     } else if (body) {
       body.insertAdjacentHTML(
@@ -464,6 +482,7 @@ const Modals = (() => {
       <p class="kpi-detail-lead">${sub || ""} · evolución anual en ${periodo}.</p>
       <div class="chart-block" style="margin-top:0.75rem">
         <h6><i class="fas fa-chart-area"></i> Origen antrópico por año</h6>
+        ${chartTools("ant-descargar-png", "ant-descargar-jpg", "ant-descargar-csv")}
         <div id="modal-chart-antropico" style="height:340px"></div>
       </div>`;
     }
@@ -525,6 +544,16 @@ const Modals = (() => {
       },
       plotConfig("origen-antropico")
     );
+    const csvRows = years.map((y, i) => [y, antVals[i], hasNat ? natVals[i] : ""]);
+    bindChartDownloads(
+      "ant-descargar-png",
+      "ant-descargar-csv",
+      "modal-chart-antropico",
+      "origen-antropico",
+      ["Anio", "Antropico_ha", "Natural_ha"],
+      csvRows,
+      "ant-descargar-jpg"
+    );
   }
 
   async function openCausas(state) {
@@ -559,6 +588,7 @@ const Modals = (() => {
           ? " «Sin especificar» son polígonos antrópicos sin causa asignada en la base."
           : ""
       }</p>
+        ${chartTools("cau-descargar-png", "cau-descargar-jpg", "cau-descargar-csv")}
         <div id="modal-chart-causas" style="height:${Math.max(360, 34 * data.length + 90)}px"></div>`;
     }
 
@@ -596,6 +626,114 @@ const Modals = (() => {
       },
       plotConfig("causas-antropicas")
     );
+    bindChartDownloads(
+      "cau-descargar-png",
+      "cau-descargar-csv",
+      "modal-chart-causas",
+      "causas",
+      ["Causa", "Area_Ha"],
+      data.map((d) => [d.Causa, d.Area_Ha]),
+      "cau-descargar-jpg"
+    );
+  }
+
+  async function renderFijo(state) {
+    const host = document.getElementById("panel-fijo");
+    if (!host || !state) return;
+    const token = (renderFijo._token = (renderFijo._token || 0) + 1);
+    host.hidden = false;
+    host.innerHTML = '<p class="kpi-detail-loading"><i class="fas fa-spinner fa-spin"></i> Armando el panel…</p>';
+    const params = {
+      departamento: state.departamento,
+      ambito: state.ambito || "ambos",
+      acr: state.acrs.length ? state.acrs : undefined,
+      anno_desde: state.annoDesde,
+      anno_hasta: state.annoHasta,
+    };
+    const [rowsRes, serieRes, causas] = await Promise.all([
+      apiGet("/api/metadata/acrs", params).catch(() => ({ data: [] })),
+      apiGet("/api/serie-anual", params).catch(() => ({ serie: [] })),
+      apiGet("/api/causas", params).catch(() => ({ data: [] })),
+    ]);
+    if (token !== renderFijo._token) return;
+    const data = rowsRes.data || [];
+    const total = data.reduce((s, r) => s + (Number(r.Total) || 0), 0);
+    const ant = data.reduce((s, r) => s + (Number(r.Antropico) || 0), 0);
+    const nat = data.reduce((s, r) => s + (Number(r.Perdida_natural) || 0), 0);
+    const filas = data
+      .slice()
+      .sort((a, b) => (Number(b.Total) || 0) - (Number(a.Total) || 0))
+      .map(
+        (r) => `<tr><td>${r.Nombre}</td><td>${fmt2(r.Total)}</td><td>${fmt2(r.Antropico)}</td><td>${fmt2(r.Perdida_natural)}</td></tr>`
+      )
+      .join("");
+    const rows = (serieRes.serie || []).slice().sort((a, b) => a.Anio - b.Anio);
+    const causasData = (causas.data || []).filter((c) => c.Area_Ha > 0);
+    host.innerHTML = `
+      <section class="panelbox panel-fijo-bloque">
+        <h5 class="section-title"><i class="fas fa-tree"></i> Pérdida de bosque</h5>
+        <div class="kpi-modal-grid">
+          <div class="kpi-mini kpi-mini--total"><h2>${fmt2(total)}</h2><span>TOTAL HA</span></div>
+          <div class="kpi-mini kpi-mini--ant"><h2>${fmt2(ant)}</h2><span>ANTRÓPICO</span></div>
+          <div class="kpi-mini kpi-mini--nat"><h2>${fmt2(nat)}</h2><span>PÉRDIDA NATURAL</span></div>
+        </div>
+        ${filas ? `<div class="kpi-detail-table-wrap"><table class="data-table"><thead><tr><th>ACR</th><th>Total (ha)</th><th>Antrópico</th><th>Pérdida natural</th></tr></thead><tbody>${filas}</tbody></table></div>` : "<p class='kpi-detail-empty'>No hay datos para el período y filtros actuales.</p>"}
+      </section>
+      <section class="panelbox panel-fijo-bloque">
+        <h5 class="section-title"><i class="fas fa-chart-line"></i> Variación anual</h5>
+        ${chartTools("pf-var-png", "pf-var-jpg", "pf-var-csv")}
+        <div id="panel-chart-variacion" style="height:320px"></div>
+      </section>
+      <section class="panelbox panel-fijo-bloque">
+        <h5 class="section-title"><i class="fas fa-cog"></i> Causas</h5>
+        ${chartTools("pf-cau-png", "pf-cau-jpg", "pf-cau-csv")}
+        <div id="panel-chart-causas" style="height:${Math.max(280, 28 * causasData.length + 80)}px"></div>
+      </section>`;
+    if (rows.length && typeof Plotly !== "undefined" && Plotly.newPlot) {
+      const years = rows.map((r) => r.Anio);
+      const vals = rows.map((r) => Number(r.Deforestacion_ha) || 0);
+      plotSerieLine("panel-chart-variacion", years, vals, {
+        color: "#e67e22",
+        fill: true,
+        fillColor: "rgba(230,126,34,0.12)",
+        name: "Pérdida anual",
+        height: 320,
+      });
+      bindChartDownloads(
+        "pf-var-png",
+        "pf-var-csv",
+        "panel-chart-variacion",
+        "perdida-anual",
+        ["Anio", "Perdida_ha"],
+        years.map((y, i) => [y, vals[i]]),
+        "pf-var-jpg"
+      );
+    }
+    if (causasData.length && typeof Plotly !== "undefined" && Plotly.newPlot) {
+      const labels = causasData.map((d) => d.Causa).reverse();
+      const values = causasData.map((d) => d.Area_Ha).reverse();
+      Plotly.newPlot(
+        "panel-chart-causas",
+        [{ y: labels, x: values, type: "bar", orientation: "h", marker: { color: "#006D5B" } }],
+        {
+          paper_bgcolor: "rgba(0,0,0,0)",
+          plot_bgcolor: "rgba(248,250,252,0.65)",
+          margin: { l: 160, r: 24, t: 8, b: 36 },
+          height: Math.max(280, 28 * causasData.length + 80),
+          font: { family: "Segoe UI, Arial, sans-serif", size: 12, color: "#2c3e50" },
+        },
+        { responsive: true, displayModeBar: false }
+      );
+      bindChartDownloads(
+        "pf-cau-png",
+        "pf-cau-csv",
+        "panel-chart-causas",
+        "causas",
+        ["Causa", "Area_Ha"],
+        causasData.map((d) => [d.Causa, d.Area_Ha]),
+        "pf-cau-jpg"
+      );
+    }
   }
 
   function bind(state) {
@@ -634,6 +772,7 @@ const Modals = (() => {
 
   return {
     bind,
+    renderFijo,
     bindRegionCards,
     close,
     closeDock: close,

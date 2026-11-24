@@ -45,11 +45,13 @@
       <nav class="portal-hero-nav navbar" aria-label="Navegación del portal">
         <ul class="nav-tabs">
           <li><a class="active" href="/"><i class="fas fa-home"></i> Inicio</a></li>
-          <li><a href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
-          <li><a href="/datos"><i class="fas fa-database"></i> Datos</a></li>
+          <li><a href="/mapa?tab=panel"><i class="fas fa-tachometer-alt"></i> Panel de Control</a></li>
+          <li><a href="/mapa"><i class="fas fa-map"></i> Visor</a></li>
+          <li><a href="/productos"><i class="fas fa-map-marked-alt"></i> Mapas</a></li>
+          <li><a href="/datos"><i class="fas fa-database"></i> Base de Datos</a></li>
+          <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Análisis</a></li>
+          <li><a href="https://www.gfpsubnacional.pe/sistema-de-alertas-tempranas-de-deforestacion/" target="_blank" rel="noopener" title="Monitoreo de alertas tempranas (acceso con usuario)"><i class="fas fa-satellite"></i> Monitoreo</a></li>
           <li><a href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
-          <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Tendencias</a></li>
-          <li><a href="https://www.gfpsubnacional.pe/sistema-de-alertas-tempranas-de-deforestacion/" target="_blank" rel="noopener" title="Alertas Tempranas de Deforestación (acceso con usuario)"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
         </ul>
       </nav>
       <div class="portal-hero-inner">
@@ -57,8 +59,9 @@
         <h1>Áreas de Conservación Regional</h1>
         <p>Portal de monitoreo de deforestación en 9 ACR de Loreto, San Martín y Cusco. Explore el mapa interactivo, indicadores y reportes basados en evidencia satelital.</p>
         <div>
-          <a class="portal-cta" href="/mapa"><i class="fas fa-map-marked-alt"></i> Explorar el mapa</a>
-          <a class="portal-cta portal-cta-secondary" href="/datos"><i class="fas fa-database"></i> Catálogo de datos</a>
+          <a class="portal-cta" href="/mapa"><i class="fas fa-map-marked-alt"></i> Explorar el Visor</a>
+          <a class="portal-cta portal-cta-secondary" href="/datos"><i class="fas fa-database"></i> Catálogo de Datos</a>
+          <a class="portal-cta portal-cta-secondary" href="/productos"><i class="fas fa-map"></i> Mapas</a>
         </div>
       </div>
     </section>
@@ -96,7 +99,7 @@
           <h3>Ampiyacu Apayacu</h3>
           <p class="acr-tile-desc">Creada en 2010 a pedido de los pueblos yagua, bora, huitoto y ocaina. Conserva los bosques entre los ríos Ampiyacu y Apayacu.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_AA">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_AA">Ingresar al visor</a>
           </div>
         </article>
         <article class="acr-tile" data-depto="loreto" data-name="alto nanay pintuyacu chambira loreto acr_anpch">
@@ -110,7 +113,7 @@
           <h3>Alto Nanay Pintuyacu Chambira</h3>
           <p class="acr-tile-desc">Creada en 2011. Protege las cabeceras que abastecen de agua a Iquitos, en las cuencas del Nanay, Pintuyacu y Chambira.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_ANPCH">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_ANPCH">Ingresar al visor</a>
           </div>
         </article>
         <article class="acr-tile" data-depto="loreto" data-name="maijuna kichwa loreto acr_mk">
@@ -124,7 +127,7 @@
           <h3>Maijuna Kichwa</h3>
           <p class="acr-tile-desc">Creada en 2015 con los pueblos maijuna y kichwa. Cuida las cabeceras y los bosques de los que viven esas comunidades.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_MK">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_MK">Ingresar al visor</a>
           </div>
         </article>
         <article class="acr-tile" data-depto="loreto" data-name="comunal tamshiyacu tahuayo loreto acr_ctt">
@@ -138,7 +141,7 @@
           <h3>Comunal Tamshiyacu Tahuayo</h3>
           <p class="acr-tile-desc">ACR comunal de Loreto, desde 2009. Nació del cuidado que las comunidades del Tahuayo y el Tamshiyacu dan a su bosque.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_CTT">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_CTT">Ingresar al visor</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--sm" data-depto="san_martin" data-name="bosques shunte mishollo san martin acr_bsm">
@@ -152,7 +155,7 @@
           <h3>Bosques de Shunté y Mishollo</h3>
           <p class="acr-tile-desc">Creada en 2018 en Tocache y Mariscal Cáceres. Conserva bosques de montaña y las cuencas del Shunté y el Mishollo.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_BSM">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_BSM">Ingresar al visor</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--sm" data-depto="san_martin" data-name="cordillera escalera san martin acr_ce">
@@ -166,7 +169,7 @@
           <h3>Cordillera Escalera</h3>
           <p class="acr-tile-desc">La primera ACR del Perú, desde 2005. Protege la cordillera que da agua a Tarapoto y a las ciudades vecinas.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_CE">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_CE">Ingresar al visor</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--cusco" data-depto="cusco" data-name="choquequirao cusco acr_chq">
@@ -180,7 +183,7 @@
           <h3>Choquequirao</h3>
           <p class="acr-tile-desc">Creada en 2010 junto al complejo arqueológico. Conserva los bosques de neblina y la cuenca que rodea Choquequirao.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_CHQ">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_CHQ">Ingresar al visor</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--cusco" data-depto="cusco" data-name="chuyapi urusayhua cusco acr_chu">
@@ -194,7 +197,7 @@
           <h3>Chuyapi Urusayhua</h3>
           <p class="acr-tile-desc">Creada en 2021 en La Convención. Protege los bosques de ceja de selva y las cabeceras del Chuyapi y el Urusayhua.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_CHU">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_CHU">Ingresar al visor</a>
           </div>
         </article>
         <article class="acr-tile acr-tile--cusco" data-depto="cusco" data-name="qeros kosnipata cusco acr_qk">
@@ -208,7 +211,7 @@
           <h3>Q'eros Kosñipata</h3>
           <p class="acr-tile-desc">Creada en 2021 con las comunidades q'ero. Conserva pajonales de puna, bosques nublados y la cuenca del Kosñipata.</p>
           <div class="acr-tile-actions">
-            <a class="acr-tile-map" href="/mapa?acr=ACR_QK">Ingresar a dashboard interactivo</a>
+            <a class="acr-tile-map" href="/mapa?acr=ACR_QK">Ingresar al visor</a>
           </div>
         </article>
       </div>

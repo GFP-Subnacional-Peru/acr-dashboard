@@ -39,11 +39,13 @@
       <nav class="portal-hero-nav navbar" aria-label="Navegación del portal">
         <ul class="nav-tabs">
           <li><a href="/"><i class="fas fa-home"></i> Inicio</a></li>
-          <li><a href="/mapa"><i class="fas fa-map"></i> Mapa</a></li>
-          <li><a class="active" href="/datos"><i class="fas fa-database"></i> Datos</a></li>
+          <li><a href="/mapa?tab=panel"><i class="fas fa-tachometer-alt"></i> Panel de Control</a></li>
+          <li><a href="/mapa"><i class="fas fa-map"></i> Visor</a></li>
+          <li><a href="/productos"><i class="fas fa-map-marked-alt"></i> Mapas</a></li>
+          <li><a class="active" href="/datos"><i class="fas fa-database"></i> Base de Datos</a></li>
+          <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Análisis</a></li>
+          <li><a href="https://www.gfpsubnacional.pe/sistema-de-alertas-tempranas-de-deforestacion/" target="_blank" rel="noopener" title="Monitoreo de alertas tempranas (acceso con usuario)"><i class="fas fa-satellite"></i> Monitoreo</a></li>
           <li><a href="/mapa?tab=metodologia"><i class="fas fa-book-open"></i> Metodología</a></li>
-          <li><a href="/mapa?tab=tendencias"><i class="fas fa-chart-line"></i> Tendencias</a></li>
-          <li><a href="https://www.gfpsubnacional.pe/sistema-de-alertas-tempranas-de-deforestacion/" target="_blank" rel="noopener" title="Alertas Tempranas de Deforestación (acceso con usuario)"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
         </ul>
       </nav>
       <div class="dash-hero-inner">
@@ -86,10 +88,12 @@
           <div class="ide-facet" id="ide-formato" role="group">
             <button type="button" class="active" data-formato="todos">Todos</button>
             <button type="button" data-formato="geojson">GeoJSON</button>
+            <button type="button" data-formato="shp">SHP</button>
             <button type="button" data-formato="pdf">PDF</button>
+            <button type="button" data-formato="jpg">JPG</button>
             <button type="button" data-formato="zip">Paquete ZIP</button>
           </div>
-          <p class="ide-fuente"><strong>Organización.</strong> GFP Subnacional. Capas de deforestación acumulada y mapas de línea base de las 9 ACR.</p>
+          <p class="ide-fuente"><strong>Organización.</strong> GFP Subnacional. Capas de deforestación acumulada y mapas de línea base de las 9 ACR. El SHP sale de esos polígonos. El GDB (File Geodatabase de Esri) no se genera en este servicio.</p>
         </aside>
         <div id="ide-results" class="ide-results"></div>
       </div>
@@ -116,6 +120,6 @@
     </form>
   </dialog>
 
-  <script src="/assets/js/datos-page.js?v=20261105e"></script>
+  <script src="/assets/js/datos-page.js?v=20261124a"></script>
 </body>
 </html>

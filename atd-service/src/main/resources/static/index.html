@@ -118,7 +118,7 @@
             <select id="f-resultado" class="mb-sel">
               <option value="todas">Todas</option>
               <option value="antropica">Pérdida antrópica</option>
-              <option value="natural">Cambio natural</option>
+              <option value="natural">Pérdida natural</option>
               <option value="falsa">Falsa alerta</option>
               <option value="pendiente">Pendiente</option>
             </select>
@@ -174,7 +174,7 @@
           <div class="kpi"><span>Alertas recibidas</span><strong id="k-total">–</strong><em id="k-total-var"></em></div>
           <div class="kpi"><span>Alertas validadas</span><strong id="k-valid">–</strong><em id="k-valid-sub"></em></div>
           <div class="kpi rojo"><span>Pérdida antrópica</span><strong id="k-antr">–</strong><em id="k-antr-var"></em></div>
-          <div class="kpi azul"><span>Cambio natural</span><strong id="k-nat">–</strong><em id="k-nat-sub"></em></div>
+          <div class="kpi azul"><span>Pérdida natural</span><strong id="k-nat">–</strong><em id="k-nat-sub"></em></div>
         </div>
         <div class="tarjeta">
           <h3>Resultado de las alertas del mes</h3>
@@ -226,6 +226,8 @@
           <div><h2 id="ev-codigo">–</h2><p class="ayuda" id="ev-sub"></p></div>
           <span class="chip" id="ev-chip"></span>
         </div>
+        <h3><i class="fas fa-eye"></i> Fotointerpretación</h3>
+        <p class="ayuda">Lectura de las imágenes. No exige registro de campo. El reporte de fotointerpretación se arma con el par Sentinel y la clasificación.</p>
         <div id="ev-comparador"></div>
         <div class="escena-mapa" id="ev-escena" hidden>
           <span><i class="fas fa-satellite"></i> Imagen en el mapa</span>
@@ -263,34 +265,39 @@
           </div>
         </aside>
         <div class="campo" id="ev-campo">
-          <h3><i class="fas fa-camera"></i> Reporte sobre constatación de deforestación</h3>
-          <p class="ayuda">La carga de la foto de campo es la corroboración de la alerta. Cada imagen lleva sus coordenadas UTM y una descripción de lo que se ve. Si la foto del celular trae ubicación, se lee sola.</p>
+          <h3><i class="fas fa-camera"></i> Constatación</h3>
+          <p class="ayuda">Registro de campo. No es obligatorio para cerrar la fotointerpretación. Si hay evidencia, aquí se ve el equipo del ACR.</p>
+          <div id="ev-equipo-const"></div>
           <div class="fotos" id="ev-fotos"></div>
+          <div class="fotos" id="ev-videos"></div>
           <form id="form-foto" hidden>
+            <input id="foto-nombre" maxlength="150" placeholder="Nombre del personal" autocomplete="name" required>
+            <input id="foto-cargo" maxlength="120" placeholder="Cargo del personal" required>
             <input id="foto-archivo" type="file" accept="image/jpeg,image/png,image/webp" required>
+            <input id="foto-video" type="file" accept="video/mp4,video/webm" aria-label="Video de campo">
             <div class="dos-coord utm-coord">
               <input id="foto-zona" maxlength="3" placeholder="18S" aria-label="Zona UTM" autocomplete="off">
               <input id="foto-este" inputmode="numeric" placeholder="Este" aria-label="Este UTM" autocomplete="off">
               <input id="foto-norte" inputmode="numeric" placeholder="Norte" aria-label="Norte UTM" autocomplete="off">
             </div>
             <p class="ayuda" id="foto-utm-nota"></p>
-            <input id="foto-nota" maxlength="250" placeholder="Descripción: trocha, chacra, madera…">
-            <button class="btn-pri" type="submit"><i class="fas fa-upload"></i> Subir foto</button>
+            <input id="foto-nota" maxlength="250" placeholder="Descripción de lo que se ve en campo">
+            <button class="btn-pri" type="submit"><i class="fas fa-upload"></i> Registrar constatación</button>
           </form>
-          <p class="ayuda" id="foto-entrar">Entra con usuario de editor para subir la foto de la patrulla.</p>
+          <p class="ayuda" id="foto-entrar">Entra con usuario de editor para registrar la constatación.</p>
         </div>
         <div class="nota" id="ev-conclusion" hidden></div>
         <div class="fila-btn">
           <button class="btn-sec" id="ev-volver"><i class="fas fa-list"></i> Volver a la lista</button>
           <button class="btn-sec" id="ir-const" type="button"><i class="fas fa-camera"></i> Reporte de constatación</button>
-          <button class="btn-pri" id="ir-5">Generar reporte <i class="fas fa-file-pdf"></i></button>
+          <button class="btn-pri" id="ir-5">Reporte de fotointerpretación <i class="fas fa-file-pdf"></i></button>
         </div>
       </div>
 
       <!-- Paso 5 -->
       <div class="paso" data-paso="5" hidden>
-        <h2>Reporte sobre alerta de deforestación</h2>
-        <p class="ayuda">El PDF de la alerta: ubicación, mapa, imágenes Sentinel-2 antes y después, datos de monitoreo, afectación y producción. La foto de campo va en el reporte de constatación.</p>
+        <h2>Reporte de fotointerpretación</h2>
+        <p class="ayuda">PDF de la alerta: ubicación, mapa, imágenes Sentinel-2 antes y después, clasificación y conclusión. La evidencia de campo va en el reporte de constatación y no es obligatoria para este PDF.</p>
         <div class="reporte-prev" id="rep-prev"></div>
         <button class="btn-pri" id="rep-descargar"><i class="fas fa-download"></i> Descargar PDF</button>
       </div>
@@ -309,7 +316,7 @@
           <li><b>SWIR.</b> La misma fecha reciente. El suelo sin bosque se ve magenta. Sirve para no confundir un río, una sombra o un derrumbe con una tala.</li>
           <li><b>Contorno naranja.</b> El polígono de la alerta, en hectáreas, con la fecha de la imagen.</li>
           <li><b>Pérdida antrópica (A).</b> Alguien tumbó bosque. Hay que elegir la causa.</li>
-          <li><b>Cambio natural (N).</b> Río, derrumbe o muerte de árboles.</li>
+          <li><b>Pérdida natural (N).</b> Río, derrumbe o muerte de árboles.</li>
           <li><b>Falsa alerta (F).</b> Nube, sombra o un cambio que no es pérdida.</li>
           <li><b>En duda (U).</b> Se deja pendiente y pasa a la siguiente.</li>
           <li><b>La red.</b> Si hay recorte, al abrir la alerta deja marcado el resultado, la causa y la confiabilidad. Enter guarda esa lectura. El polígono sigue siendo el de GeoBosques.</li>
@@ -351,7 +358,7 @@
         <label class="etq">Resultado <small>(teclas A · N · F)</small></label>
         <div class="opciones-res" id="cl-resultado">
           <button data-v="antropica" class="op rojo"><i class="fas fa-tree"></i> Pérdida antrópica <kbd>A</kbd></button>
-          <button data-v="natural" class="op azul"><i class="fas fa-water"></i> Cambio natural <kbd>N</kbd></button>
+          <button data-v="natural" class="op azul"><i class="fas fa-water"></i> Pérdida natural <kbd>N</kbd></button>
           <button data-v="falsa" class="op gris"><i class="fas fa-ban"></i> Falsa alerta <kbd>F</kbd></button>
         </div>
         <div id="cl-bloque-causa" hidden>
@@ -399,12 +406,21 @@
   </div>
 </div>
 
+<div id="escena-visor" class="escena-visor" hidden>
+  <span>Imagen en el mapa</span>
+  <div class="segmento" id="escena-visor-sel">
+    <button type="button" data-v="">Ninguna</button>
+    <button type="button" data-v="antes">Antes</button>
+    <button type="button" data-v="despues">Después</button>
+  </div>
+  <p id="escena-visor-nota"></p>
+</div>
 <div id="escena-fija" class="escena-fija" hidden></div>
 
 <div class="leyenda" id="leyenda">
   <p class="ley-grupo">Alertas</p>
   <div><i class="borde" style="border-color:#e53935"></i><span>Perturbación</span></div>
-  <div><i style="background:#1e88e5"></i><span>Cambio natural</span></div>
+  <div><i style="background:#1e88e5"></i><span>Pérdida natural</span></div>
   <div><i style="background:#9e9e9e"></i><span>Falsa alerta</span></div>
   <div><i style="background:#fb8c00"></i><span>Pendiente</span></div>
   <div><i class="punto" style="background:#fb8c00"></i><span>Centro de la alerta</span></div>
@@ -431,7 +447,7 @@
     <div class="tut-paso"><i class="fas fa-map-location-dot"></i><div><b>Mapa.</b> El punto es el centro. El polígono rojo es la perturbación de la alerta: se apaga para ver el bosque y se prende para ver el límite. La línea ámbar, apagada al entrar, es un contorno automático solo de Loreto. No es la alerta.</div></div>
     <div class="tut-paso"><i class="fas fa-images"></i><div><b>Tres imágenes.</b> Antes, después y SWIR. Un clic abre el deslizador: arrastra la barra para ver el cambio.</div></div>
     <div class="tut-paso"><i class="fas fa-satellite"></i><div><b>SWIR.</b> La misma fecha reciente. El suelo sin bosque se ve magenta. Sirve para no confundir un río, una sombra o un derrumbe con una tala.</div></div>
-    <div class="tut-paso"><i class="fas fa-check"></i><div><b>Clasificar.</b> A es pérdida antrópica, N es cambio natural, F es falsa alerta. U deja la alerta en duda. Guardar escribe la decisión en la base.</div></div>
+    <div class="tut-paso"><i class="fas fa-check"></i><div><b>Clasificar.</b> A es pérdida antrópica, N es pérdida natural, F es falsa alerta. U deja la alerta en duda. Guardar escribe la decisión en la base.</div></div>
   </div>
   <label class="tut-siempre"><input type="checkbox" id="tut-siempre" checked> Mostrar esta guía al entrar</label>
   <form method="dialog"><button class="btn-pri" id="tut-cerrar" value="ok">Entendido</button></form>
@@ -456,7 +472,7 @@
   <p>Monitoreo de las Áreas de Conservación Regional de Loreto, San Martín y Cusco.</p>
   <ul>
     <li><b>Consulta:</b> mira alertas, evidencias y el reporte. No clasifica.</li>
-    <li><b>Clasificador:</b> el especialista revisa el antes, el después y el SWIR, y guarda pérdida antrópica, cambio natural o falsa alerta. La decisión queda en la base.</li>
+    <li><b>Clasificador:</b> el especialista revisa el antes, el después y el SWIR, y guarda pérdida antrópica, pérdida natural o falsa alerta. La decisión queda en la base.</li>
     <li><b>En duda:</b> la alerta sigue pendiente para volver a verla.</li>
     <li><b>Alertas:</b> GeoBosques (MINAM) · semana vigente <span id="acerca-semana">–</span>.</li>
     <li><b>Código de trabajo</b> (LOR-2026-0570): prefijo de región, año de la imagen e identificador de origen. Vale para pendientes y para ya clasificadas. El código del PDF es el de la GDB (por ejemplo ACR10-2026-084).</li>

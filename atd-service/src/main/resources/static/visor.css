@@ -335,6 +335,10 @@ body.sin-panel #mapa { left: 72px; }
 .leyenda i.borde { background: none; border: 2px solid; }
 .leyenda i.punto { border-radius: 50%; }
 .escena-fija { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1200; background: rgba(15, 23, 42, .92); color: #fff; padding: 8px 14px; border-radius: 10px; font-size: 13px; max-width: min(640px, calc(100vw - 28px)); }
+.escena-visor { position: fixed; top: 74px; right: 16px; z-index: 1200; width: min(320px, calc(100vw - 24px)); background: #fff; border: 1px solid #d5e0d4; border-radius: 12px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(15, 23, 42, .16); }
+.escena-visor > span { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.escena-visor p { margin: 8px 0 0; font-size: 12px; line-height: 1.4; color: #5c6d5e; }
+.escena-visor[hidden] { display: none; }
 .sensor-nota { margin: 8px 0 0; font-size: 12px; color: var(--gris); line-height: 1.4; }
 .busqueda-s2 { margin-top: 10px; }
 .busqueda-s2-fechas { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin-top: 6px; }

@@ -17,8 +17,8 @@ spring:
     create-schemas: true
   servlet:
     multipart:
-      max-file-size: 8MB
-      max-request-size: 9MB
+      max-file-size: 12MB
+      max-request-size: 22MB
   jackson:
     default-property-inclusion: non_null
   main:

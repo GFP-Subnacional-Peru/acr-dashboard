@@ -104,9 +104,10 @@ async function cargar() {
     document.getElementById('ficha').innerHTML = '<p class="vacio">Falta el código de la alerta.</p>';
     return;
   }
-  const [det, fotos] = await Promise.all([
+  const [det, fotos, videos] = await Promise.all([
     fetch(`/api/atd/alertas/${codigo}`).then((r) => r.json()),
     fetch(`/api/atd/alertas/${codigo}/foto`).then((r) => r.ok ? r.json() : []),
+    fetch(`/api/atd/alertas/${codigo}/video`).then((r) => r.ok ? r.json() : []),
   ]);
   const d = det.properties || {};
   document.title = `Constatación · ${d.codigo || codigo}`;
@@ -123,8 +124,10 @@ async function cargar() {
   document.getElementById('sat').innerHTML = `<img class="fondo" alt="Imagen Sentinel posterior" src="/api/atd/alertas/${encodeURIComponent(codigo)}/imagen/despues.png">`;
   document.getElementById('fotos').innerHTML = fotos.length ? fotos.map((f) => {
     const c = utmDe(f.lat, f.lon) || 'Sin coordenadas';
-    return `<figure><img alt="Foto de constatación" src="${esc(f.url)}"><figcaption><b>${esc(f.nota || 'Sin descripción')}</b>${esc(c)}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption></figure>`;
-  }).join('') : `<figure><figcaption class="vacio">Esta alerta todavía no tiene foto de campo. Al subirla, aparece aquí con su descripción y sus coordenadas.</figcaption></figure>`;
+    const quien = [f.autor, f.cargo].filter(Boolean).join(' · ');
+    return `<figure><img alt="Foto de constatación" src="${esc(f.url)}"><figcaption>${quien ? `<b>${esc(quien)}</b>` : ''}<b>${esc(f.nota || 'Sin descripción')}</b>${esc(c)}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption></figure>`;
+  }).join('') : `<figure><figcaption class="vacio">Esta alerta todavía no tiene foto de campo. La fotointerpretación no la exige.</figcaption></figure>`;
+  document.getElementById('fotos').insertAdjacentHTML('beforeend', (videos || []).map((v) => `<figure><video controls src="${esc(v.url)}"></video><figcaption>${esc([v.autor, v.cargo].filter(Boolean).join(' · ') || 'Video de campo')}</figcaption></figure>`).join(''));
 }
 cargar().catch(() => {
   document.getElementById('ficha').innerHTML = '<p class="vacio">No se pudo abrir la constatación.</p>';

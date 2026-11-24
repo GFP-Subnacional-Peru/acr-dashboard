@@ -28,7 +28,7 @@ const AcrMap = (() => {
       weight: 1.1,
       opacity: 0.9,
       fillColor: fill,
-      fillOpacity: soft,
+      fillOpacity: map?._overlayFill ?? soft,
     };
   }
 
@@ -97,7 +97,13 @@ const AcrMap = (() => {
     addBasemapControl();
     addMapTools();
 
-    map.on("click", () => closeFeaturePanel());
+    map.on("click", (e) => {
+      if (map._midiendo) {
+        anotarMedida(e.latlng);
+        return;
+      }
+      closeFeaturePanel();
+    });
 
     map._overlayReady = false;
     map._defoMode = "vectors";
@@ -150,8 +156,20 @@ const AcrMap = (() => {
         <button type="button" class="gfp-tool-btn" id="gfp-map-reset" title="Restablecer vista" aria-label="Restablecer vista">
           <i class="fas fa-undo"></i>
         </button>
+        <button type="button" class="gfp-tool-btn" id="gfp-map-medir" title="Medir distancia" aria-label="Medir distancia" aria-pressed="false">
+          <i class="fas fa-ruler"></i>
+        </button>
+        <label class="gfp-tool-opacidad" title="Transparencia de la pérdida de bosque">
+          <i class="fas fa-adjust" aria-hidden="true"></i>
+          <input id="gfp-map-opacidad" type="range" min="15" max="100" value="70" aria-label="Transparencia de la capa" />
+        </label>
+        <p id="gfp-map-medida" class="gfp-map-medida" hidden></p>
       `;
       wrap.querySelector("#gfp-map-fs")?.addEventListener("click", toggleFullscreen);
+      wrap.querySelector("#gfp-map-medir")?.addEventListener("click", toggleMedir);
+      wrap.querySelector("#gfp-map-opacidad")?.addEventListener("input", (ev) => {
+        aplicarOpacidad(Number(ev.target.value) / 100);
+      });
       wrap.querySelector("#gfp-map-reset")?.addEventListener("click", () => {
         try {
           if (layerRefs.acr) map.fitBounds(layerRefs.acr.getBounds(), { padding: [30, 30], maxZoom: 9 });
@@ -163,6 +181,71 @@ const AcrMap = (() => {
       return wrap;
     };
     map._toolsCtrl.addTo(map);
+  }
+
+  function aplicarOpacidad(fill) {
+    map._overlayFill = fill;
+    [defoAnt, defoNat].forEach((grupo) => {
+      if (!grupo) return;
+      grupo.eachLayer((ly) => {
+        if (typeof ly.setStyle === "function") {
+          ly.setStyle({ fillOpacity: fill, opacity: Math.min(1, fill + 0.25) });
+        }
+      });
+    });
+  }
+
+  function haversineKm(a, b) {
+    const R = 6371;
+    const r = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * r;
+    const dLon = (b.lng - a.lng) * r;
+    const s =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+  }
+
+  function toggleMedir() {
+    map._midiendo = !map._midiendo;
+    const btn = document.getElementById("gfp-map-medir");
+    btn?.classList.toggle("is-on", map._midiendo);
+    btn?.setAttribute("aria-pressed", map._midiendo ? "true" : "false");
+    if (!map._midiendo) limpiarMedida();
+    else {
+      const nota = document.getElementById("gfp-map-medida");
+      if (nota) {
+        nota.hidden = false;
+        nota.textContent = "Clic en el mapa: primer punto y segundo punto.";
+      }
+    }
+  }
+
+  function limpiarMedida() {
+    map._medidaPts = [];
+    if (map._medidaLine) {
+      map.removeLayer(map._medidaLine);
+      map._medidaLine = null;
+    }
+    const nota = document.getElementById("gfp-map-medida");
+    if (nota && !map._midiendo) nota.hidden = true;
+  }
+
+  function anotarMedida(latlng) {
+    map._medidaPts = map._medidaPts || [];
+    map._medidaPts.push(latlng);
+    if (map._medidaPts.length > 2) map._medidaPts = [latlng];
+    if (map._medidaLine) map.removeLayer(map._medidaLine);
+    map._medidaLine = L.polyline(map._medidaPts, { color: "#003DA5", weight: 3, dashArray: "6 4" }).addTo(map);
+    const nota = document.getElementById("gfp-map-medida");
+    if (!nota) return;
+    nota.hidden = false;
+    if (map._medidaPts.length < 2) {
+      nota.textContent = "Ahora el segundo punto.";
+      return;
+    }
+    const km = haversineKm(map._medidaPts[0], map._medidaPts[1]);
+    nota.textContent = km >= 1 ? `${km.toFixed(2)} km` : `${Math.round(km * 1000)} m`;
   }
 
   function toggleFullscreen() {
@@ -510,6 +593,7 @@ const AcrMap = (() => {
           </div>
           ${showCausa ? `<p class="map-feature-note"><strong>Causa estimada:</strong> ${escHtml(causa)}</p>` : ""}
         </div>
+        ${htmlDescarga(p.codigo, true)}
         ${(() => {
           const anio = Number(p.anno);
           if (!Number.isInteger(anio) || anio < 2001 || anio > 2030 || !layer || typeof layer.getBounds !== "function") return "";
@@ -518,6 +602,7 @@ const AcrMap = (() => {
         })()}
         <p class="map-feature-foot"><i class="fas fa-hand-pointer"></i> Haga clic en otro polígono para actualizar el resumen.</p>`,
     });
+    enlazarDescarga(p.codigo, layer);
     if (layer && typeof layer.getBounds === "function" && Number.isInteger(Number(p.anno))) {
       enlazarSwipe(layer, recorteDe(layer.getBounds()));
     }
@@ -553,7 +638,7 @@ const AcrMap = (() => {
             </div>
             <div class="map-feature-metric map-feature-metric--nat">
               <strong>${fmtHa(nat, 2)}</strong>
-              <span>Natural</span>
+              <span>Pérdida natural</span>
             </div>
             ${p.Falsa_alerta != null ? `<div class="map-feature-metric"><strong>${fmtHa(p.Falsa_alerta, 2)}</strong><span>Falsa alerta</span></div>` : ""}
           </div>
@@ -564,7 +649,58 @@ const AcrMap = (() => {
             ${fieldHtml("fingerprint", "Código", escHtml(p.codigo || "—"), true)}
           </div>
         </div>
+        ${htmlDescarga(p.codigo, false)}
         <p class="map-feature-foot">Totales según estadísticas de la capa (línea base acumulada).</p>`,
+    });
+    enlazarDescarga(p.codigo, layer);
+  }
+
+  const PRODUCTO_ACR = {
+    ACR_AA: ["aa", "/mapas/MAPA_ACR_AA_page-0001.jpg"],
+    ACR_ANPCH: ["anpch", "/mapas/MAPA_ACR_ANPCH_page-0001.jpg"],
+    ACR_MK: ["mk", "/mapas/MAPA_ACR_MK_page-0001.jpg"],
+    ACR_CTT: ["ctt", "/mapas/MAPA_ACR_CTT_page-0001.jpg"],
+    ACR_BSM: ["boshumi", "/mapas/" + encodeURIComponent("25NOV17_Mapa_de_deforestación_en_ACR_BOSHUMI_y_su_ZI_A2.jpg")],
+    ACR_CE: ["ce", "/mapas/" + encodeURIComponent("25NOV17_Mapa_de_deforestación_en_ACR_CE_y_su_ZI_A2.jpg")],
+    ACR_CHQ: ["chq", "/mapas/MAPA_CHOQUE_DEF_page-0001.jpg"],
+    ACR_CHU: ["chu", "/mapas/MAPA_CHUYAPI_ANEXO2_page-0001.jpg"],
+    ACR_QK: ["qk", "/mapas/MAPA_QEROS_ANEXO3_page-0001.jpg"],
+  };
+
+  function codigoAcr(codigo) {
+    const c = String(codigo || "");
+    if (c.startsWith("ACR_")) return c;
+    if (c.startsWith("ZI_")) return "ACR_" + c.slice(3);
+    return "";
+  }
+
+  function htmlDescarga(codigo, poligono) {
+    const acr = codigoAcr(codigo);
+    const prod = PRODUCTO_ACR[acr];
+    const links = [];
+    if (acr) {
+      links.push(`<a href="/api/descargas/acr/${acr}">GeoJSON</a>`);
+      links.push(`<a href="/api/descargas/acr/${acr}/shp">SHP</a>`);
+    }
+    if (prod) {
+      links.push(`<a href="/api/descargas/mapa/${prod[0]}">PDF</a>`);
+      links.push(`<a href="${prod[1]}" download>JPG</a>`);
+    }
+    if (poligono) links.push(`<button type="button" data-dl="geo">GeoJSON de este polígono</button>`);
+    if (!links.length) return "";
+    return `<div class="map-feature-section"><div class="map-feature-section-title">Descarga</div><div class="map-feature-dl">${links.join("")}</div><p class="map-feature-foot">El formato GDB (File Geodatabase de Esri) no se genera en este servicio.</p></div>`;
+  }
+
+  function enlazarDescarga(codigo, layer) {
+    document.querySelector("[data-dl=geo]")?.addEventListener("click", () => {
+      const gj = layer?.toGeoJSON?.();
+      if (!gj) return;
+      const blob = new Blob([JSON.stringify(gj)], { type: "application/geo+json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `poligono_${codigo || "deforestacion"}.geojson`;
+      a.click();
+      URL.revokeObjectURL(a.href);
     });
   }
 

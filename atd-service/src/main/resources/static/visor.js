@@ -4,7 +4,7 @@
   const API = '/api/atd';
   const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const COLOR = { antropica: '#e53935', natural: '#1e88e5', falsa: '#9e9e9e', pendiente: '#fb8c00' };
-  const TEXTO = { antropica: 'Pérdida antrópica', natural: 'Cambio natural', falsa: 'Falsa alerta', pendiente: 'Pendiente' };
+  const TEXTO = { antropica: 'Pérdida antrópica', natural: 'Pérdida natural', falsa: 'Falsa alerta', pendiente: 'Pendiente' };
 
   const $ = (id) => document.getElementById(id);
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1171,7 +1171,7 @@
     $('k-valid').textContent = num(validadas, 0);
     $('k-valid-sub').textContent = cuenta.pendiente ? `${cuenta.pendiente} pendientes de validar` : 'Todas validadas';
     $('k-antr').textContent = ha(antr);
-    $('k-antr-var').textContent = 'Suma del periodo elegido';
+    $('k-antr-var').textContent = '';
     $('k-antr-var').className = '';
     $('k-nat').textContent = ha(nat);
     $('k-nat-sub').textContent = `${cuenta.falsa} falsas alertas descartadas`;
@@ -1864,7 +1864,12 @@
     $('ev-chip').textContent = TEXTO[c];
     $('ev-chip').style.setProperty('--c', COLOR[c]);
     comparador($('ev-comparador'), escenas, det.geometry, codigo, d.fecha_imagen);
-    $('ev-escena').hidden = !escenas.some((e) => e.recorte);
+    const hayRecorte = escenas.some((e) => e.recorte);
+    $('ev-escena').hidden = !hayRecorte;
+    const visor = $('escena-visor');
+    if (visor) visor.hidden = !hayRecorte;
+    const nota = $('escena-visor-nota');
+    if (nota) nota.textContent = notaPar(escenas, d.fecha_imagen);
     verEscena(escenas.some((e) => e.momento === 'despues' && e.recorte) ? 'despues' : '');
     $('ev-ficha').innerHTML = ficha(d, escenas);
     ponerUtmFoto(d.lat, d.lon, 'Centro de la alerta, en UTM. Si la foto trae ubicación, se reemplaza.');
@@ -1878,14 +1883,59 @@
     renderLista();
     desbloquear(4);
   }
-  $('ev-volver').onclick = () => { if (ed.capa) terminarEdicion(); verEscena(''); irPaso(3); };
+  $('ev-volver').onclick = () => {
+    if (ed.capa) terminarEdicion();
+    verEscena('');
+    if ($('escena-visor')) $('escena-visor').hidden = true;
+    irPaso(3);
+  };
+
+  async function pintarEquipoConst(codigo, hayCampo) {
+    const caja = $('ev-equipo-const');
+    if (!caja) return;
+    if (!hayCampo) {
+      caja.innerHTML = '';
+      return;
+    }
+    const acr = st.detalle?.acr || st.acr;
+    if (!acr) {
+      caja.innerHTML = '<p class="ayuda">Hay constatación, pero esta alerta no trae el código del ACR para mostrar el equipo.</p>';
+      return;
+    }
+    let gente = [];
+    try { gente = await api(`/responsables?acr=${encodeURIComponent(acr)}`, true); } catch { gente = []; }
+    caja.innerHTML = gente.length
+      ? `<p class="ayuda">Equipo del ACR</p>` + gente.map((p) => `<div class="equipo-fila"><span>${esc(p.nombre)} · ${p.cargo ? esc(p.cargo) : 'sin cargo'}</span></div>`).join('')
+      : '<p class="ayuda">Hay constatación y el ACR todavía no tiene personas anotadas en el equipo.</p>';
+  }
+
+  async function pintarVideos(codigo) {
+    const caja = $('ev-videos');
+    if (!caja) return;
+    let videos = [];
+    try { videos = await api(`/alertas/${codigo}/video`, true); } catch { videos = []; }
+    caja.innerHTML = videos.length ? videos.map((v) => `<figure><video controls src="${esc(v.url)}"></video><figcaption>${esc(v.nota || 'Video de campo')}</figcaption></figure>`).join('') : '';
+  }
 
   /* ---------- Escena Sentinel-2 exacta sobre el mapa ---------- */
   mapa.createPane('escena').style.zIndex = 350;
   let capaEscena = null;
+  function notaPar(escenas, fechaDet) {
+    const antes = (escenas || []).find((e) => e.momento === 'antes' && e.recorte);
+    const despues = (escenas || []).find((e) => e.momento === 'despues' && e.recorte);
+    if (!antes || !despues) return 'Falta una de las dos escenas. Antes es el territorio de referencia y después es la detección o una fecha posterior.';
+    const fa = String(antes.fecha || '');
+    const fd = String(despues.fecha || '');
+    const det = String(fechaDet || '');
+    if (det && fa && fd && !(fa < det && fd >= det.slice(0, 10))) {
+      return 'Este par no deja la fecha de detección entre el antes y el después. El cambio de bosque puede no verse.';
+    }
+    return 'Antes: territorio de referencia, anterior a la detección. Después: el mismo lugar en la detección o en una fecha posterior.';
+  }
+
   function verEscena(momento, acercar) {
     if (capaEscena) { mapa.removeLayer(capaEscena); capaEscena = null; }
-    $('ev-escena-sel').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', b.dataset.v === momento));
+    document.querySelectorAll('#ev-escena-sel button, #escena-visor-sel button').forEach((b) => b.classList.toggle('activo', b.dataset.v === momento));
     const e = (st.escenas || []).find((x) => x.momento === momento);
     const fija = $('escena-fija');
     if (!e || !e.recorte) { fija.hidden = true; return null; }
@@ -1897,7 +1947,7 @@
     fija.textContent = `Sentinel-2 L2A · ${momento === 'antes' ? 'antes' : 'después'} · ${fecha(e.fecha)} · ${e.escenaId}`;
     return limites;
   }
-  $('ev-escena-sel').querySelectorAll('button').forEach((b) => (b.onclick = () => verEscena(b.dataset.v)));
+  document.querySelectorAll('#ev-escena-sel button, #escena-visor-sel button').forEach((b) => (b.onclick = () => verEscena(b.dataset.v, true)));
 
   /* ---------- Edición del polígono ---------- */
   const ed = { habilitada: false, capa: null, codigo: null, herr: 'vertices', redibujando: false };
@@ -1923,9 +1973,10 @@
     const box = $('ev-fotos');
     box.innerHTML = fotos.length ? fotos.map((f) => {
       const coord = utmDe(f.lat, f.lon) || 'Sin coordenadas';
+      const quien = [f.autor, f.cargo].filter(Boolean).join(' · ');
       return `<figure>
         <img src="${f.url}" alt="Foto de constatación de ${esc(codigo)}">
-        <figcaption>${esc(f.nota || 'Sin descripción')} · ${esc(coord)}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption>
+        <figcaption>${quien ? `<b>${esc(quien)}</b>` : ''}${esc(f.nota || 'Sin descripción')} · ${esc(coord)}${f.tomada ? ' · ' + esc(f.tomada) : ''}</figcaption>
         ${ed.habilitada ? `<button type="button" class="btn-sec foto-borrar" data-id="${f.id}">Quitar</button>` : ''}
       </figure>`;
     }).join('') : '<p class="ayuda">Todavía no hay foto de constatación en esta alerta.</p>';
@@ -1942,6 +1993,8 @@
     });
     $('form-foto').hidden = !ed.habilitada || fotos.length >= 6;
     $('foto-entrar').hidden = ed.habilitada;
+    pintarVideos(codigo);
+    pintarEquipoConst(codigo, fotos.length > 0);
     let celda = document.getElementById('ev-ficha-foto');
     if (!celda && $('ev-ficha').children.length) {
       $('ev-ficha').insertAdjacentHTML('beforeend', '<div id="ev-ficha-foto"><span>Validación de campo</span><b></b></div>');
@@ -1989,9 +2042,13 @@
     }
     const fd = new FormData();
     fd.append('foto', archivo);
+    fd.append('nombre', $('foto-nombre').value.trim());
+    fd.append('cargo', $('foto-cargo').value.trim());
     fd.append('nota', $('foto-nota').value.trim());
     fd.append('lat', geo ? String(geo.lat) : '');
     fd.append('lon', geo ? String(geo.lon) : '');
+    const video = $('foto-video')?.files?.[0];
+    if (video) fd.append('video', video);
     const r = await fetch(`${API}/alertas/${st.alerta}/foto`, {
       method: 'POST',
       headers: { 'X-XSRF-TOKEN': tokenCsrf() },
@@ -2001,8 +2058,9 @@
     if (r.status === 401 || r.status === 403) { irAlLogin(); return; }
     if (!r.ok) { toast(j.error || 'No se pudo subir la foto'); return; }
     $('foto-archivo').value = '';
+    if ($('foto-video')) $('foto-video').value = '';
     $('foto-nota').value = '';
-    toast('Foto de campo guardada en la alerta');
+    toast('Constatación guardada en la alerta');
     marcarFoto(st.alerta, true);
     cargarFotos(st.alerta);
   };

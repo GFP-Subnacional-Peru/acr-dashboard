@@ -52,8 +52,8 @@ const Tendencias = (() => {
     document.getElementById("tend-tipo")?.addEventListener("change", toggleAcrPanel);
     document.getElementById("btn-analizar-tend")?.addEventListener("click", generarAnalisis);
     document.getElementById("btn-reset-tend")?.addEventListener("click", restablecer);
-    document.getElementById("tend-anio-min")?.addEventListener("input", syncRange);
-    document.getElementById("tend-anio-max")?.addEventListener("input", syncRange);
+    document.getElementById("tend-anio-min")?.addEventListener("change", syncRange);
+    document.getElementById("tend-anio-max")?.addEventListener("change", syncRange);
     toggleAcrPanel();
     initDownloads();
   }
@@ -93,10 +93,23 @@ const Tendencias = (() => {
     }
   }
 
+  function anioEscrito(id, fallback) {
+    const n = parseInt(String(document.getElementById(id)?.value || "").trim(), 10);
+    if (!Number.isInteger(n)) return fallback;
+    return Math.min(2025, Math.max(2001, n));
+  }
+
   function syncRange() {
-    const min = +document.getElementById("tend-anio-min").value;
-    const max = +document.getElementById("tend-anio-max").value;
-    document.getElementById("tend-rango-label").textContent = `${min} – ${max}`;
+    const minEl = document.getElementById("tend-anio-min");
+    const maxEl = document.getElementById("tend-anio-max");
+    let min = anioEscrito("tend-anio-min", 2001);
+    let max = anioEscrito("tend-anio-max", 2025);
+    if (min > max) [min, max] = [max, min];
+    if (minEl) minEl.value = String(min);
+    if (maxEl) maxEl.value = String(max);
+    const label = document.getElementById("tend-rango-label");
+    if (label) label.textContent = `${min} – ${max}`;
+    return [min, max];
   }
 
   function restablecer() {
@@ -116,7 +129,10 @@ const Tendencias = (() => {
     const chart = document.getElementById("chart-tendencias-full");
     if (chart && window.Plotly?.purge) Plotly.purge(chart);
     document.getElementById("tend-chart-panel")?.classList.add("hidden");
+    document.getElementById("tend-contexto")?.classList.add("hidden");
     document.getElementById("tend-welcome")?.classList.remove("hidden");
+    const causa = document.getElementById("tend-causa");
+    if (causa) causa.value = "";
   }
 
   function getSelectedAcrs() {
@@ -130,10 +146,9 @@ const Tendencias = (() => {
   async function generarAnalisis() {
     const tipo = document.getElementById("tend-tipo").value;
     const acrs = getSelectedAcrs();
-    let anioMin = +document.getElementById("tend-anio-min").value;
-    let anioMax = +document.getElementById("tend-anio-max").value;
-    if (anioMin > anioMax) [anioMin, anioMax] = [anioMax, anioMin];
+    const [anioMin, anioMax] = syncRange();
     const tend = document.getElementById("tend-mostrar-linea").checked;
+    const causa = document.getElementById("tend-causa")?.value || "";
 
     if (tipo === "individual" && !acrs.length) {
       alert("Seleccione una ACR para este tipo de análisis.");
@@ -155,11 +170,13 @@ const Tendencias = (() => {
         anio_min: anioMin,
         anio_max: anioMax,
         mostrar_tendencia: tend,
+        causa: causa || undefined,
       });
 
       document.getElementById("tend-welcome").classList.add("hidden");
       document.getElementById("tend-chart-panel").classList.remove("hidden");
       renderChart(data);
+      pintarContexto(tipo, acrs, data);
     } catch (err) {
       console.error(err);
       alert("No se pudo generar el análisis. Verifique que el servidor esté activo (iniciar.bat).");
@@ -204,11 +221,11 @@ const Tendencias = (() => {
         traces.push({
           x: s.tendencia.map((p) => p.Anio),
           y: s.tendencia.map((p) => p.valor),
-          name: "Tendencia lineal",
+          name: s.tendencia_nombre || `Tendencia · ${s.name}`,
           type: "scatter",
           mode: "lines",
-          line: { color: "#C0392B", width: 2.2, dash: "dot" },
-          hovertemplate: "<b>Tendencia</b>: %{y:,.2f} ha<extra></extra>",
+          line: { color, width: 2.2, dash: "dot" },
+          hovertemplate: "<b>%{fullData.name}</b>: %{y:,.2f} ha<extra></extra>",
         });
       }
     });
@@ -296,11 +313,58 @@ const Tendencias = (() => {
     URL.revokeObjectURL(a.href);
   }
 
+  let mapaUbicacion = null;
+
+  async function pintarContexto(tipo, acrs, data) {
+    const caja = document.getElementById("tend-contexto");
+    const nota = document.getElementById("tend-causa-nota");
+    if (caja) caja.classList.remove("hidden");
+    if (nota) {
+      nota.textContent = data?.causa
+        ? `Filtro activo: ${data.causa}. Cada punto es la suma de polígonos de esa causa en el año. La línea punteada es la tendencia de esa serie.`
+        : "Serie anual publicada, sin filtro de causa. El mapa muestra las ACR incluidas en el análisis.";
+    }
+    const host = document.getElementById("tend-mapa");
+    if (!host || typeof L === "undefined") return;
+    if (!mapaUbicacion) {
+      mapaUbicacion = L.map(host, { zoomControl: true, attributionControl: false });
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 12,
+      }).addTo(mapaUbicacion);
+    }
+    if (mapaUbicacion._acr) {
+      mapaUbicacion.removeLayer(mapaUbicacion._acr);
+      mapaUbicacion._acr = null;
+    }
+    try {
+      const layers = await apiGet("/api/map/layers", {
+        departamento: "todos",
+        ambito: "acr",
+        acr: tipo === "general" ? undefined : acrs,
+      });
+      const geo = layers?.acr;
+      if (!geo?.features?.length) return;
+      mapaUbicacion._acr = L.geoJSON(geo, {
+        style: { color: "#2E7D32", weight: 2, fillColor: "#2E7D32", fillOpacity: 0.18 },
+      }).addTo(mapaUbicacion);
+      mapaUbicacion.fitBounds(mapaUbicacion._acr.getBounds(), { padding: [16, 16] });
+    } catch (err) {
+      console.warn("Mapa de ubicación:", err);
+    }
+    setTimeout(() => mapaUbicacion.invalidateSize(), 80);
+  }
+
   function initDownloads() {
     document.getElementById("tend-descargar-png")?.addEventListener("click", () => {
       const el = document.getElementById("chart-tendencias-full");
-      if (el && typeof Plotly !== "undefined") {
+      if (el && typeof Plotly !== "undefined" && Plotly.downloadImage) {
         Plotly.downloadImage(el, { format: "png", filename: "tendencia-deforestacion", scale: 2 });
+      }
+    });
+    document.getElementById("tend-descargar-jpg")?.addEventListener("click", () => {
+      const el = document.getElementById("chart-tendencias-full");
+      if (el && typeof Plotly !== "undefined" && Plotly.downloadImage) {
+        Plotly.downloadImage(el, { format: "jpeg", filename: "tendencia-deforestacion", scale: 2 });
       }
     });
     document.getElementById("tend-descargar-csv")?.addEventListener("click", descargarCsv);

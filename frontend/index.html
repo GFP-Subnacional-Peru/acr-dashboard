@@ -22,13 +22,14 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <link rel="stylesheet" href="/assets/css/app.css?v=20261110a" />
+  <link rel="stylesheet" href="/assets/css/app.css?v=20261124a" />
   <!-- Evita flash Mapa→Metodología: aplica pestaña desde ?tab= antes del primer paint -->
   <script>
     (function () {
       try {
         var t = (new URLSearchParams(location.search).get("tab") || "").toLowerCase();
         if (t === "mapa" || t === "reportes") t = "dashboard";
+        if (t === "panel") document.documentElement.setAttribute("data-boot-vista", "panel");
         if (t === "metodologia" || t === "tendencias") {
           document.documentElement.setAttribute("data-boot-tab", t);
         }
@@ -47,11 +48,13 @@
       <nav class="navbar" aria-label="Secciones del dashboard">
         <ul class="nav-tabs">
           <li><a class="nav-link-ext" href="/"><i class="fas fa-home"></i> Inicio</a></li>
-          <li><button type="button" class="active" data-tab="dashboard"><i class="fas fa-map"></i> Mapa</button></li>
-          <li><a class="nav-link-ext" href="/datos"><i class="fas fa-database"></i> Datos</a></li>
+          <li><button type="button" data-tab="dashboard" data-vista="panel"><i class="fas fa-tachometer-alt"></i> Panel de Control</button></li>
+          <li><button type="button" class="active" data-tab="dashboard" data-vista="visor"><i class="fas fa-map"></i> Visor</button></li>
+          <li><a class="nav-link-ext" href="/productos"><i class="fas fa-map-marked-alt"></i> Mapas</a></li>
+          <li><a class="nav-link-ext" href="/datos"><i class="fas fa-database"></i> Base de Datos</a></li>
+          <li><button type="button" data-tab="tendencias"><i class="fas fa-chart-line"></i> Análisis</button></li>
+          <li><a class="nav-link-ext" href="https://www.gfpsubnacional.pe/sistema-de-alertas-tempranas-de-deforestacion/" target="_blank" rel="noopener" title="Monitoreo de alertas tempranas (acceso con usuario)"><i class="fas fa-satellite"></i> Monitoreo</a></li>
           <li><button type="button" data-tab="metodologia"><i class="fas fa-book-open"></i> Metodología</button></li>
-          <li><button type="button" data-tab="tendencias"><i class="fas fa-chart-line"></i> Tendencias</button></li>
-          <li><a class="nav-link-ext" href="https://www.gfpsubnacional.pe/sistema-de-alertas-tempranas-de-deforestacion/" target="_blank" rel="noopener" title="Alertas Tempranas de Deforestación (acceso con usuario)"><i class="fas fa-satellite"></i> Alertas Tempranas</a></li>
         </ul>
       </nav>
     </div>
@@ -99,9 +102,10 @@
         <div class="dash-filter-field dash-filter-periodo">
           <label for="anno_desde"><i class="fas fa-calendar-alt"></i> Período</label>
           <div class="year-range-row">
-            <select id="anno_desde" aria-label="Año desde"></select>
+            <input id="anno_desde" type="text" inputmode="numeric" list="annos-lista" aria-label="Año de inicio" autocomplete="off" />
             <span class="year-range-sep">–</span>
-            <select id="anno_hasta" aria-label="Año hasta"></select>
+            <input id="anno_hasta" type="text" inputmode="numeric" list="annos-lista" aria-label="Año de término" autocomplete="off" />
+            <datalist id="annos-lista"></datalist>
           </div>
           <p id="anno-range-label" class="year-range-hint">Periodo: 2001 – 2025</p>
         </div>
@@ -119,7 +123,7 @@
         <section class="panelbox dash-kpi-card">
           <h5 class="section-title"><i class="fas fa-tachometer-alt"></i> Indicadores clave</h5>
           <p class="dash-kpi-subtitle">Resumen de la deforestación en las Áreas de Conservación Regional</p>
-          <p class="dash-kpi-hint"><i class="fas fa-hand-pointer"></i> Haga clic en un indicador para abrir el detalle en ventana flotante</p>
+          <p class="dash-kpi-hint" id="kpi-hint"><i class="fas fa-hand-pointer"></i> Haga clic en un indicador para abrir el detalle en ventana flotante</p>
           <div class="kpi-list">
             <button type="button" id="kpi-hectareas" class="value-box kpi-row kpi-row--ha kpi-trigger" data-kpi="hectareas" aria-expanded="false">
               <div class="kpi-icon kpi-icon--tree" aria-hidden="true"><i class="fas fa-tree"></i></div>
@@ -184,6 +188,8 @@
         </section>
       </div>
     </div>
+
+    <div id="panel-fijo" class="panel-fijo" hidden></div>
 
     <div id="kpi-chart-host" class="hidden" aria-hidden="true">
       <div id="charts-nacional" class="charts-placeholder hidden">
@@ -335,7 +341,7 @@
         <div class="dash-hero-copy">
           <p class="dash-hero-eyebrow">Análisis de Tendencias Temporales</p>
           <h1>Análisis histórico de deforestación en ACRs</h1>
-          <p class="dash-hero-sub">Serie histórica 2001–2025 · tendencias temporales y patrones de deforestación en ACRs del Programa GFP Subnacional.</p>
+          <p class="dash-hero-sub">Serie histórica 2001–2025 · comparación entre ACR, causa y mapa de ubicación.</p>
         </div>
         <div class="dash-hero-accent" aria-hidden="true">
           <span class="dash-hero-accent-bar"></span>
@@ -357,9 +363,35 @@
           <select id="tend-acr"></select>
           <p id="tend-acr-hint" class="tend-acr-hint hidden"></p>
         </div>
-        <label>Rango de Años: <span id="tend-rango-label">2001 – 2025</span></label>
-        <input type="range" id="tend-anio-min" min="2001" max="2026" value="2001" />
-        <input type="range" id="tend-anio-max" min="2001" max="2026" value="2025" />
+        <label for="tend-causa">Causa</label>
+        <select id="tend-causa">
+          <option value="">Todas (serie publicada)</option>
+          <option>Agricultura</option>
+          <option>Ganadería</option>
+          <option>Extracción forestal</option>
+          <option>Extracción de fauna</option>
+          <option>Hidrobiológicos</option>
+          <option>Minería</option>
+          <option>Hidrocarburos</option>
+          <option>Turismo</option>
+          <option>Energía</option>
+          <option>Transporte</option>
+          <option>Ocupación humana</option>
+          <option>Restos arqueológicos</option>
+          <option>Incendio Antrópico</option>
+          <option>Otros</option>
+          <option>Natural</option>
+          <option>Falsa alerta</option>
+          <option>Sin especificar</option>
+        </select>
+        <p class="tend-acr-hint">Con una causa, la serie sale de los polígonos de la línea base. Sin causa, sigue la serie anual publicada.</p>
+        <label>Año de inicio y de término</label>
+        <div class="year-range-row">
+          <input id="tend-anio-min" type="text" inputmode="numeric" list="annos-lista" value="2001" aria-label="Año de inicio" autocomplete="off" />
+          <span class="year-range-sep">–</span>
+          <input id="tend-anio-max" type="text" inputmode="numeric" list="annos-lista" value="2025" aria-label="Año de término" autocomplete="off" />
+        </div>
+        <p id="tend-rango-label" class="year-range-hint">2001 – 2025</p>
         <label><input type="checkbox" id="tend-mostrar-linea" checked /> Mostrar línea de tendencia</label>
         <button type="button" id="btn-analizar-tend" class="btn btn-success btn-block"><i class="fas fa-search"></i> Generar Análisis</button>
         <button type="button" id="btn-reset-tend" class="btn btn-block btn-reset-tend" title="Volver a la configuración inicial"><i class="fas fa-undo"></i> Restablecer</button>
@@ -373,10 +405,18 @@
         <div id="tend-chart-panel" class="panelbox hidden">
           <h5 class="section-title"><i class="fas fa-chart-area"></i> Gráfico de Tendencia Temporal</h5>
           <div class="chart-tools" id="tend-tools" hidden>
-            <button type="button" id="tend-descargar-png"><i class="fas fa-image"></i> Descargar imagen</button>
-            <button type="button" id="tend-descargar-csv"><i class="fas fa-file-csv"></i> Descargar datos</button>
+            <button type="button" id="tend-descargar-png"><i class="fas fa-image"></i> PNG</button>
+            <button type="button" id="tend-descargar-jpg"><i class="fas fa-file-image"></i> JPG</button>
+            <button type="button" id="tend-descargar-csv"><i class="fas fa-file-csv"></i> CSV</button>
           </div>
           <div id="chart-tendencias-full" style="min-height:420px"></div>
+          <div id="tend-contexto" class="tend-contexto hidden">
+            <div>
+              <h5 class="section-title"><i class="fas fa-map-marker-alt"></i> Mapa de ubicación</h5>
+              <div id="tend-mapa" class="tend-mapa"></div>
+            </div>
+            <p id="tend-causa-nota" class="tend-causa-nota"></p>
+          </div>
         </div>
       </main>
     </div>
@@ -411,10 +451,10 @@
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" async onload="window.__plotlyFlush()"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
-  <script src="/assets/js/map.js?v=20261109a" defer></script>
-  <script src="/assets/js/modals.js?v=20261110a" defer></script>
+  <script src="/assets/js/map.js?v=20261124a" defer></script>
+  <script src="/assets/js/modals.js?v=20261124a" defer></script>
   <script src="/assets/js/atd-demo.js?v=20260709d" defer></script>
-  <script src="/assets/js/tendencias.js?v=20261105f" defer></script>
-  <script src="/assets/js/app.js?v=20261016a" defer></script>
+  <script src="/assets/js/tendencias.js?v=20261124a" defer></script>
+  <script src="/assets/js/app.js?v=20261124a" defer></script>
 </body>
 </html>
