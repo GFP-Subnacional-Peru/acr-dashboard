@@ -1809,20 +1809,31 @@
     const box = $(id);
     const p = propuestasRed && propuestasRed[codigo];
     if (!box) return;
-    box.hidden = !p;
+    box.hidden = false;
     const txt = box.querySelector('b');
-    if (p && txt) {
-      const pct = Math.round(Number(p.probabilidad) * 100);
-      txt.textContent = `${p.causa} · ${p.confiabilidad} · ${pct} %`;
+    const nota = box.querySelector('small');
+    if (txt) {
+      if (p) {
+        const pct = Math.round(Number(p.probabilidad) * 100);
+        txt.textContent = `${p.causa} · ${p.confiabilidad} · ${pct} %`;
+      } else {
+        txt.textContent = 'Sin lectura de la red';
+      }
+    }
+    if (nota && id === 'ev-red') {
+      nota.textContent = p
+        ? 'Lectura automática del recorte Sentinel. No reemplaza la clasificación del especialista.'
+        : 'Esta alerta no tiene recorte evaluado. La red no inventa una causa.';
     }
     if (id !== 'cl-red') return;
     const etiqueta = box.querySelector('span');
-    const nota = box.querySelector('small');
     if (etiqueta) etiqueta.textContent = st.cl.desdeRed ? 'La red ya la marcó' : 'Propuesta de la red';
     if (nota) {
-      nota.textContent = st.cl.desdeRed
-        ? 'Esa lectura ya está marcada abajo. Enter la guarda. El polígono sigue siendo el de GeoBosques.'
-        : 'Sugerencia para esta alerta. Guardar sigue siendo la decisión del especialista.';
+      nota.textContent = !p
+        ? 'Esta alerta no tiene recorte evaluado. La red no inventa una causa.'
+        : (st.cl.desdeRed
+          ? 'Esa lectura ya está marcada abajo. Enter la guarda. El polígono sigue siendo el de GeoBosques.'
+          : 'Sugerencia para esta alerta. Guardar sigue siendo la decisión del especialista.');
     }
   }
 
@@ -1954,7 +1965,9 @@
   api('/sesion', true).then((s) => {
     const editor = !!s.editor && !!s.ingresado;
     ed.habilitada = editor;
-    document.querySelector('.rail-btn[data-modo="clasificar"]').hidden = !editor;
+    document.querySelector('.rail-btn[data-modo="clasificar"]').hidden = !s.ingresado;
+    const rol = $('cl-rol');
+    if (rol) rol.hidden = !s.ingresado || editor;
     $('btn-entrar').hidden = !!s.ingresado;
     $('rail-usuario').hidden = !s.ingresado;
     if (s.ingresado) {
@@ -2438,12 +2451,15 @@
     $('cl-cola-cab').innerHTML = `<span><b>${pend}</b> por clasificar · ${hechas} guardadas · ${duda} en duda</span><span>${cola.filter((p) => p.con_imagen).length} con Sentinel-2</span>`;
     $('cl-cola').innerHTML = `<div class="progreso"><i style="width:${cola.length ? ((cola.length - pend) / cola.length) * 100 : 0}%"></i></div>` + cola.map((p) => {
       const hecha = st.cl.hechas[p.codigo];
-      const lectura = !hecha && p.estado === 'pendiente' ? lecturaRed(p.codigo) : null;
-      const c = hecha ? hecha.resultado : (lectura ? lectura.resultado : clase(p));
-      const rotulo = hecha ? `✓ ${TEXTO[c]}` : (lectura ? `Red · ${lectura.causaNombre}` : TEXTO[c]);
+      const lectura = lecturaRed(p.codigo);
+      const c = hecha ? hecha.resultado : (p.estado === 'pendiente' && lectura ? lectura.resultado : clase(p));
+      const rotulo = hecha
+        ? `✓ ${TEXTO[c]}`
+        : (p.estado !== 'pendiente' ? TEXTO[clase(p)] : (lectura ? `Red · ${lectura.causaNombre}` : 'Sin lectura de la red'));
+      const redGuardada = lectura && (hecha || p.estado !== 'pendiente') ? ` · Red · ${lectura.causaNombre}` : '';
       const mini = p.con_imagen ? `style="background-image:url('${API}/alertas/${p.codigo}/imagen/despues.png')"` : '';
       return `<button class="item" data-c="${esc(p.codigo)}"><span class="miniatura" ${mini}>${p.con_imagen ? '' : '<i class="fas fa-satellite"></i>'}</span>
-        <span><strong>${esc(p.codigo)}</strong><small>${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'ZI' : 'ACR'} · ${p.con_imagen ? 'imagen lista' : 'sin imagen aún'}</small>
+        <span><strong>${esc(p.codigo)}</strong><small>${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'ZI' : 'ACR'} · ${p.con_imagen ? 'imagen lista' : 'sin imagen aún'}${redGuardada}</small>
         <span class="chip" style="--c:${COLOR[c]};margin-top:5px">${esc(rotulo)}</span></span>
         <span class="ha">${num(p.superficie_ha)}<small>ha</small></span></button>`;
     }).join('');
@@ -2522,7 +2538,7 @@
     $('cl-causas').querySelectorAll('button').forEach((b) => b.classList.toggle('sel', +b.dataset.v === st.cl.causa));
     $('cl-conf').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', +b.dataset.v === st.cl.conf));
     $('cl-bosque').querySelectorAll('button').forEach((b) => b.classList.toggle('activo', +b.dataset.v === st.cl.bosque));
-    $('cl-guardar').disabled = !st.cl.resultado || (st.cl.resultado === 'antropica' && !st.cl.causa);
+    $('cl-guardar').disabled = !ed.habilitada || !st.cl.resultado || (st.cl.resultado === 'antropica' && !st.cl.causa);
   }
 
   $('cl-resultado').querySelectorAll('.op').forEach((b) => (b.onclick = () => elegirResultado(b.dataset.v)));
