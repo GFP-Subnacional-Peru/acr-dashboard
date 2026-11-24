@@ -237,6 +237,7 @@
             <button data-v="despues">Después</button>
           </div>
         </div>
+        <button class="btn-sec btn-editar" id="ev-editar" type="button" hidden><i class="fas fa-draw-polygon"></i> Editar polígono en el mapa</button>
         <div class="tarjeta editor" id="ed-panel" hidden>
           <h3><i class="fas fa-draw-polygon"></i> Edición del polígono</h3>
           <p class="ayuda">Use la imagen Sentinel-2 de fondo como guía. En <b>Vértices</b>, arrastre los puntos; los puntos intermedios agregan vértices y el clic derecho los quita. <b>Eliminar vector</b> quita el contorno para dibujar otro. <b>Original</b> vuelve al polígono de la GDB.</p>
@@ -284,7 +285,7 @@
             <input id="foto-nota" maxlength="250" placeholder="Descripción de lo que se ve en campo">
             <button class="btn-pri" type="submit"><i class="fas fa-upload"></i> Registrar constatación</button>
           </form>
-          <p class="ayuda" id="foto-entrar">Entra con usuario de editor para registrar la constatación.</p>
+          <p class="ayuda" id="foto-entrar" hidden>Entra a la cuenta para registrar la constatación.</p>
         </div>
         <div class="nota" id="ev-conclusion" hidden></div>
         <div class="fila-btn">
@@ -377,7 +378,7 @@
           <button class="btn-sec" id="cl-saltar">En duda <kbd>U</kbd></button>
           <button class="btn-pri" id="cl-guardar" disabled><i class="fas fa-check"></i> Guardar y siguiente <kbd>Enter</kbd></button>
         </div>
-        <p class="ayuda" id="cl-rol" hidden>Estás en consulta. Ves la propuesta de la red. Guardar la clasificación queda en el usuario editor.</p>
+        <p class="ayuda" id="cl-rol" hidden>Entra a la cuenta para guardar la clasificación.</p>
       </div>
     </div>
   </section>
@@ -488,6 +489,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
-<script src="/visor.js?v=20261124c"></script>
+<script src="/visor.js?v=20261124d"></script>
 </body>
 </html>

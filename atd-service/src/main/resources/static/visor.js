@@ -1892,6 +1892,7 @@
     $('ev-conclusion').textContent = concl || '';
     resaltar(codigo);
     renderLista();
+    pintarBotonEditar();
     desbloquear(4);
   }
   $('ev-volver').onclick = () => {
@@ -1963,12 +1964,12 @@
   /* ---------- Edición del polígono ---------- */
   const ed = { habilitada: false, dibuja: false, capa: null, codigo: null, herr: 'vertices', redibujando: false };
   api('/sesion', true).then((s) => {
-    const editor = !!s.editor && !!s.ingresado;
+    const editor = !!s.ingresado;
     ed.habilitada = editor;
-    ed.dibuja = !!s.ingresado;
+    ed.dibuja = editor;
     document.querySelector('.rail-btn[data-modo="clasificar"]').hidden = !s.ingresado;
     const rol = $('cl-rol');
-    if (rol) rol.hidden = !s.ingresado || editor;
+    if (rol) rol.hidden = editor;
     $('btn-entrar').hidden = !!s.ingresado;
     $('rail-usuario').hidden = !s.ingresado;
     if (s.ingresado) {
@@ -2132,6 +2133,7 @@
   }
   function pintarBotonEditar() {
     if ($('cl-editar')) $('cl-editar').hidden = !(ed.dibuja && !ed.capa && st.modo === 'clasificar');
+    if ($('ev-editar')) $('ev-editar').hidden = !(ed.dibuja && !ed.capa && st.modo === 'consulta' && st.alerta);
   }
 
   async function editar() {
@@ -2229,6 +2231,7 @@
   }
 
   if ($('cl-editar')) $('cl-editar').onclick = editar;
+  if ($('ev-editar')) $('ev-editar').onclick = editar;
   $('ed-herr').querySelectorAll('[data-h]').forEach((b) => (b.onclick = () => { ed.herr = b.dataset.h; aplicarHerramienta(); }));
   $('ed-mas').onclick = () => escalar(1.05);
   $('ed-menos').onclick = () => escalar(1 / 1.05);

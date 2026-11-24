@@ -37,8 +37,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Acceso al visor con usuario y contraseña. Dos perfiles: consulta (ver alertas y reportes) y editor
- * (además corrige polígonos y clasifica). Las credenciales solo llegan por variables de entorno.
+ * Acceso al visor con usuario y contraseña. Quien ya ingresó puede corregir el polígono,
+ * clasificar y subir la constatación. Las credenciales solo llegan por variables de entorno.
  */
 @Configuration
 public class Seguridad {
@@ -63,12 +63,12 @@ public class Seguridad {
                 .requestMatchers("/", "/index.html", "/constatacion.html").authenticated()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/atd/alertas/*/geometria").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/atd/alertas/*/clasificacion").hasRole("EDITOR")
+                .requestMatchers(HttpMethod.PUT, "/api/atd/alertas/*/clasificacion").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/atd/alertas/*/geometria").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/atd/alertas/*/foto").hasRole("EDITOR")
-                .requestMatchers(HttpMethod.DELETE, "/api/atd/alertas/*/foto/*").hasRole("EDITOR")
-                .requestMatchers(HttpMethod.POST, "/api/atd/responsables").hasRole("EDITOR")
-                .requestMatchers(HttpMethod.DELETE, "/api/atd/responsables/*").hasRole("EDITOR")
+                .requestMatchers(HttpMethod.POST, "/api/atd/alertas/*/foto").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/atd/alertas/*/foto/*").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/atd/responsables").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/atd/responsables/*").authenticated()
                 .anyRequest().authenticated())
             .formLogin(f -> f
                 .loginPage("/login.html")
