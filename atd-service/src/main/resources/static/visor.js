@@ -1832,7 +1832,7 @@
       nota.textContent = !p
         ? 'Esta alerta no tiene recorte evaluado. La red no inventa una causa.'
         : (st.cl.desdeRed
-          ? 'Esa lectura ya está marcada abajo. Enter la guarda. El polígono sigue siendo el de GeoBosques.'
+          ? 'Esa lectura quedó marcada abajo. El polígono se corrige en el mapa: vértices, mover o eliminar vector.'
           : 'Sugerencia para esta alerta. Guardar sigue siendo la decisión del especialista.');
     }
   }
@@ -1961,10 +1961,11 @@
   document.querySelectorAll('#ev-escena-sel button, #escena-visor-sel button').forEach((b) => (b.onclick = () => verEscena(b.dataset.v, true)));
 
   /* ---------- Edición del polígono ---------- */
-  const ed = { habilitada: false, capa: null, codigo: null, herr: 'vertices', redibujando: false };
+  const ed = { habilitada: false, dibuja: false, capa: null, codigo: null, herr: 'vertices', redibujando: false };
   api('/sesion', true).then((s) => {
     const editor = !!s.editor && !!s.ingresado;
     ed.habilitada = editor;
+    ed.dibuja = !!s.ingresado;
     document.querySelector('.rail-btn[data-modo="clasificar"]').hidden = !s.ingresado;
     const rol = $('cl-rol');
     if (rol) rol.hidden = !s.ingresado || editor;
@@ -1976,7 +1977,7 @@
       $('rail-usuario').title = `${s.usuario} · ${editor ? 'editor' : 'consulta'}`;
     }
     if (st.alerta && $('ed-panel').hidden) pintarBotonEditar();
-    if (editor && st.modo === 'clasificar' && !$('cl-form').hidden && !ed.capa && st.alerta) editar();
+    if (ed.dibuja && st.modo === 'clasificar' && !$('cl-form').hidden && !ed.capa && st.alerta) editar();
     if (st.alerta) cargarFotos(st.alerta);
   }).catch(() => {});
 
@@ -2130,12 +2131,12 @@
     if (destino && panel.parentElement !== destino) destino.appendChild(panel);
   }
   function pintarBotonEditar() {
-    if ($('cl-editar')) $('cl-editar').hidden = !(ed.habilitada && !ed.capa && st.modo === 'clasificar');
+    if ($('cl-editar')) $('cl-editar').hidden = !(ed.dibuja && !ed.capa && st.modo === 'clasificar');
   }
 
   async function editar() {
     const m = marcas.get(st.alerta);
-    if (!ed.habilitada || !m || ed.capa || ed.abriendo) return;
+    if (!ed.dibuja || !m || ed.capa || ed.abriendo) return;
     ed.codigo = st.alerta;
     ed.herr = 'vertices';
     ed.abriendo = true;
@@ -2216,7 +2217,7 @@
       st.detalle = det.properties;
       const p = st.cl.cola.find((x) => x.codigo === codigo);
       if (p) $('cl-sub').textContent = `${ha(p.superficie_ha)} · detectada el ${fecha(p.fecha_imagen)} · ${p.ambito === 'ZI' ? 'Zona de Influencia' : 'Dentro del ACR'}`;
-      if (ed.habilitada) await editar();
+      if (ed.dibuja) await editar();
       else verEscena('despues', true);
       return;
     }
@@ -2525,7 +2526,7 @@
         ? 'La imagen Sentinel de después está en el mapa, debajo del polígono. Arrastra los vértices para corregirlo.'
         : 'Esta alerta todavía no tiene imagen Sentinel en el mapa. El polígono se edita sobre el fondo.';
     }
-    if (ed.habilitada) await editar();
+    if (ed.dibuja) await editar();
     else {
       verEscena(hayImagen ? 'despues' : '', true);
       resaltar(codigo);

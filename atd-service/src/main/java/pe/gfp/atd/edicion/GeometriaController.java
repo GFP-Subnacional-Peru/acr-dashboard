@@ -45,7 +45,7 @@ public class GeometriaController {
         this.ubicacion = ubicacion;
     }
 
-    /** Solo alcanzable con perfil editor (ver Seguridad). */
+    /** Quien ya ingresó corrige el polígono. Clasificar y las fotos siguen en el perfil editor. */
     @PutMapping("/api/atd/alertas/{codigo}/geometria")
     @Transactional
     public ResponseEntity<?> guardar(@PathVariable String codigo, Authentication auth,
